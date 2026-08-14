@@ -17,6 +17,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
           return (
             <a
               href={item.href}
+              aria-current={isActive ? 'page' : undefined}
               class:list={[
                 'rounded-lg px-3 py-1.5 transition-colors duration-200',
                 isActive ? 'bg-accent/10 font-semibold text-accent' : 'text-body hover:bg-edge hover:text-bright',

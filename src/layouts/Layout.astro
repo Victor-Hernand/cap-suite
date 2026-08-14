@@ -24,8 +24,14 @@ const { title, description = 'Portal unificado de Grupo Empresarial CAP' } = Ast
     <ClientRouter />
   </head>
   <body class="flex min-h-screen flex-col bg-ink font-sans text-bright antialiased">
+    <a
+      href="#contenido"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-bright focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
+    >
+      Saltar al contenido
+    </a>
     <Nav />
-    <main class="flex-1">
+    <main id="contenido" class="flex-1">
       <slot />
     </main>
     <Footer />

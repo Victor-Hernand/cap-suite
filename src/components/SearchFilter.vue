@@ -53,7 +53,7 @@ const globalResults = computed(() => {
       type="search"
       :placeholder="mode === 'global' ? 'Buscar sistemas, recursos, contactos…' : 'Buscar aplicación…'"
       :aria-label="mode === 'global' ? 'Buscar en el portal' : 'Buscar aplicación'"
-      class="w-full rounded-xl border border-edge-strong bg-surface px-5 py-3.5 text-bright shadow-sm placeholder-body transition-colors duration-300 focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      class="w-full rounded-xl border border-edge-strong bg-surface px-5 py-3.5 text-bright shadow-sm placeholder-body transition-colors duration-300 focus:border-accent"
     />
 
     <div v-if="mode === 'catalog'" class="mt-4 flex flex-wrap gap-2">
