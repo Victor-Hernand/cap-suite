@@ -1,0 +1,39 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ResourceCard from '../components/ResourceCard.astro';
+import { resources, resourceTypes } from '../data/resources';
+
+const groups = resourceTypes
+  .map((type) => ({
+    label: type.label,
+    items: resources.filter((resource) => resource.type === type.id),
+  }))
+  .filter((group) => group.items.length > 0);
+---
+
+<Layout title="Recursos — CAP Suite">
+  <section class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <SectionHeader
+      eyebrow="Recursos"
+      title="Materiales y documentos"
+      description="Manuales, plantillas y carpetas compartidas del grupo."
+    />
+    <div class="mt-10 space-y-12">
+      {
+        groups.map((group) => (
+          <div>
+            <h2 class="text-lg font-bold text-bright" data-reveal>
+              {group.label}
+            </h2>
+            <div class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+              {group.items.map((resource, index) => (
+                <ResourceCard resource={resource} index={index} />
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</Layout>

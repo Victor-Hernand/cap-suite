@@ -1,0 +1,38 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+import ContactCard from '../components/ContactCard.astro';
+import { contacts } from '../data/contacts';
+
+const departments = [...new Set(contacts.map((contact) => contact.department))];
+const groups = departments.map((department) => ({
+  department,
+  items: contacts.filter((contact) => contact.department === department),
+}));
+---
+
+<Layout title="Contactos — CAP Suite">
+  <section class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+    <SectionHeader
+      eyebrow="Contactos"
+      title="Directorio del grupo"
+      description="Personas clave por departamento, con teléfono y correo directo."
+    />
+    <div class="mt-10 space-y-12">
+      {
+        groups.map((group) => (
+          <div>
+            <h2 class="text-lg font-bold text-bright" data-reveal>
+              {group.department}
+            </h2>
+            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {group.items.map((contact, index) => (
+                <ContactCard contact={contact} index={index} />
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+</Layout>
