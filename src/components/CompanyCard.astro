@@ -15,11 +15,12 @@ const brandTile = `color-mix(in oklab, ${company.color} 15%, white)`;
 <article
   data-reveal
   style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`}
-  class="relative overflow-hidden rounded-2xl border border-edge bg-surface p-6 transition-colors duration-300 hover:border-edge-strong"
+  class="relative overflow-hidden rounded-2xl border border-edge bg-surface p-5 transition-colors duration-300 hover:border-edge-strong"
 >
   <span class="absolute inset-x-0 top-0 h-1" style={`background-color: ${company.color}`}></span>
   <div class="flex items-center gap-3">
     <span
+      aria-hidden="true"
       class="flex h-11 w-11 items-center justify-center rounded-lg text-lg font-black"
       style={`background: ${brandTile}; color: ${brandText}`}
     >
