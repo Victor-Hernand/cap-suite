@@ -15,6 +15,7 @@ export const categoryStyles: Record<AppCategory, { tile: string }> = {
 };
 
 const capgrupoLogo = 'https://www.google.com/s2/favicons?domain=capgrupo.com&sz=64';
+const fastbiLogo = '/logos/fastbi.png';
 
 export const apps: AppLink[] = [
   {
@@ -25,7 +26,7 @@ export const apps: AppLink[] = [
     category: 'erp',
     featured: true,
     company: 'Grupo CAP',
-    logo: capgrupoLogo,
+    logo: fastbiLogo,
   },
   {
     id: 'erp-sym',
@@ -35,7 +36,7 @@ export const apps: AppLink[] = [
     category: 'erp',
     featured: false,
     company: 'Inversiones S&M',
-    logo: capgrupoLogo,
+    logo: fastbiLogo,
   },
   {
     id: 'erp-japan',
@@ -45,7 +46,7 @@ export const apps: AppLink[] = [
     category: 'erp',
     featured: false,
     company: 'Japan HN',
-    logo: capgrupoLogo,
+    logo: fastbiLogo,
   },
   {
     id: 'erp-mansiago',
@@ -55,7 +56,7 @@ export const apps: AppLink[] = [
     category: 'erp',
     featured: false,
     company: 'Distribuidora Mansiago',
-    logo: capgrupoLogo,
+    logo: fastbiLogo,
   },
   {
     id: 'erp-blessing',
@@ -65,7 +66,7 @@ export const apps: AppLink[] = [
     category: 'erp',
     featured: false,
     company: 'Auto Repuestos Blessing',
-    logo: capgrupoLogo,
+    logo: fastbiLogo,
   },
   {
     id: 'erp-didasa',
@@ -75,7 +76,7 @@ export const apps: AppLink[] = [
     category: 'erp',
     featured: false,
     company: 'Tecnicentro DIDASA',
-    logo: capgrupoLogo,
+    logo: fastbiLogo,
   },
   {
     id: 'outlook',
