@@ -1,4 +1,4 @@
-export type AppCategory = 'erp' | 'microsoft365' | 'portals' | 'tools';
+export type AppCategory = 'erp' | 'microsoft365' | 'portals' | 'tools' | 'talent' | 'marketing';
 
 export interface AppLink {
   id: string;

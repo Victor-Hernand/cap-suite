@@ -5,6 +5,8 @@ export const appCategories: { id: AppCategory; label: string }[] = [
   { id: 'microsoft365', label: 'Microsoft 365' },
   { id: 'portals', label: 'Portales' },
   { id: 'tools', label: 'Operación y Soporte' },
+  { id: 'talent', label: 'Talento Humano' },
+  { id: 'marketing', label: 'Marketing y Clientes' },
 ];
 
 export const categoryStyles: Record<AppCategory, { tile: string }> = {
@@ -12,6 +14,8 @@ export const categoryStyles: Record<AppCategory, { tile: string }> = {
   microsoft365: { tile: 'bg-sky-500/10 text-sky-800' },
   portals: { tile: 'bg-teal-500/10 text-accent' },
   tools: { tile: 'bg-indigo-500/10 text-indigo-700' },
+  talent: { tile: 'bg-rose-500/10 text-rose-700' },
+  marketing: { tile: 'bg-fuchsia-500/10 text-fuchsia-700' },
 };
 
 const capgrupoLogo = 'https://www.google.com/s2/favicons?domain=capgrupo.com&sz=64';
@@ -170,6 +174,57 @@ export const apps: AppLink[] = [
     category: 'tools',
     featured: false,
     logo: 'https://www.google.com/s2/favicons?domain=teams.microsoft.com&sz=64',
+  },
+  {
+    id: 'fastbi-projects',
+    name: 'FastBI Projects',
+    description: 'Gestión de proyectos internos.',
+    url: 'https://project.capgrupo.com/',
+    category: 'tools',
+    featured: false,
+  },
+  {
+    id: 'cap-recruit',
+    name: 'CAP Recruit',
+    description: 'Reclutamiento y selección de personal.',
+    url: 'https://recruit.capgrupo.com',
+    category: 'talent',
+    featured: false,
+    logo: '/logos/recruit.png',
+  },
+  {
+    id: 'talentia',
+    name: 'Talentia',
+    description: 'Evaluaciones y gestión de talento.',
+    url: 'https://talentia.moniteck.com/',
+    category: 'talent',
+    featured: false,
+  },
+  {
+    id: 'marketing-cap',
+    name: 'Marketing CAP',
+    description: 'Gestión de marketing del grupo.',
+    url: 'https://marke.capgrupo.com/',
+    category: 'marketing',
+    featured: false,
+  },
+  {
+    id: 'fastbi-reviews',
+    name: 'FastBI Reviews',
+    description: 'Gestión de reseñas de clientes.',
+    url: 'https://reviews.capgrupo.com/dashboard',
+    category: 'marketing',
+    featured: false,
+    company: 'Tecnicentro DIDASA',
+  },
+  {
+    id: 'tally',
+    name: 'Tally',
+    description: 'Formularios y encuestas del grupo.',
+    url: 'https://tally.capgrupo.com/',
+    category: 'marketing',
+    featured: false,
+    logo: '/logos/tally.png',
   },
 ];
 
