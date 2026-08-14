@@ -1,0 +1,32 @@
+---
+import type { Company } from '../data/types';
+
+interface Props {
+  company: Company;
+  index: number;
+}
+
+const { company, index } = Astro.props;
+---
+
+<article
+  data-reveal
+  style={`--reveal-delay: ${index * 0.08}s`}
+  class="group relative overflow-hidden rounded-xl border border-edge bg-surface p-6 transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+>
+  <span class="absolute inset-x-0 top-0 h-1" style={`background-color: ${company.color}`}></span>
+  <div class="flex items-center gap-3">
+    <span
+      class="flex h-11 w-11 items-center justify-center rounded-lg text-lg font-black text-white"
+      style={`background-color: ${company.color}`}
+    >
+      {company.name.charAt(0)}
+    </span>
+    <div>
+      <h3 class="font-bold">{company.name}</h3>
+      <p class="text-xs uppercase tracking-wide text-body">{company.segment}</p>
+    </div>
+  </div>
+  <p class="mt-4 text-sm text-body">{company.description}</p>
+  <p class="mt-4 text-sm font-medium italic" style={`color: ${company.color}`}>"{company.slogan}"</p>
+</article>

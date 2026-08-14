@@ -1,0 +1,37 @@
+---
+import type { Contact } from '../data/types';
+
+interface Props {
+  contact: Contact;
+  index?: number;
+}
+
+const { contact, index = 0 } = Astro.props;
+const initials = contact.name
+  .split(' ')
+  .slice(0, 2)
+  .map((word) => word.charAt(0))
+  .join('');
+---
+
+<div
+  data-reveal
+  style={`--reveal-delay: ${index * 0.06}s`}
+  class="rounded-xl border border-edge bg-surface p-5 transition duration-300 hover:-translate-y-0.5 hover:border-accent/50"
+>
+  <div class="flex items-center gap-3">
+    <span class="flex h-11 w-11 items-center justify-center rounded-full bg-amber-500/15 font-bold text-accent">
+      {initials}
+    </span>
+    <div>
+      <h3 class="font-semibold">{contact.name}</h3>
+      <p class="text-sm text-body">{contact.role} · {contact.company}</p>
+    </div>
+  </div>
+  <div class="mt-4 space-y-1 text-sm">
+    <a href={`mailto:${contact.email}`} class="block text-electric transition-colors hover:text-bright">{contact.email}</a>
+    <a href={`tel:${contact.phone.replace(/[^+\d]/g, '')}`} class="block text-body transition-colors hover:text-bright">
+      {contact.phone}{contact.extension && ` · ext. ${contact.extension}`}
+    </a>
+  </div>
+</div>

@@ -1,0 +1,31 @@
+---
+import type { AppLink } from '../data/types';
+import { categoryStyles } from '../data/apps';
+
+interface Props {
+  app: AppLink;
+  index?: number;
+}
+
+const { app, index = 0 } = Astro.props;
+const style = categoryStyles[app.category];
+---
+
+<a
+  href={app.url}
+  target="_blank"
+  rel="noopener"
+  data-reveal
+  style={`--reveal-delay: ${index * 0.06}s`}
+  class="group block rounded-xl border border-edge bg-surface p-5 transition duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-lg hover:shadow-accent/10"
+>
+  <div class="flex items-start justify-between">
+    <span class={`flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold ${style.tile}`}>
+      {app.name.charAt(0)}
+    </span>
+    <span class="text-body opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100">→</span>
+  </div>
+  <h3 class="mt-4 font-semibold transition-colors duration-200 group-hover:text-accent">{app.name}</h3>
+  <p class="mt-1 text-sm text-body">{app.description}</p>
+  {app.company && <p class="mt-2 text-xs text-body/70">{app.company}</p>}
+</a>
