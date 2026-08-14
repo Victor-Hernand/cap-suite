@@ -92,9 +92,12 @@ const globalResults = computed(() => {
         rel="noopener"
         class="group block rounded-xl border border-edge bg-surface p-5 transition duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-lg hover:shadow-accent/10"
       >
-        <span :class="['flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold', tileClasses[app.category]]">
-          {{ app.name.charAt(0) }}
-        </span>
+        <div class="flex items-start justify-between">
+          <span :class="['flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold', tileClasses[app.category]]">
+            {{ app.name.charAt(0) }}
+          </span>
+          <span class="text-body opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100">→</span>
+        </div>
         <h3 class="mt-4 font-semibold transition-colors duration-200 group-hover:text-accent">{{ app.name }}</h3>
         <p class="mt-1 text-sm text-body">{{ app.description }}</p>
         <p v-if="app.company" class="mt-2 text-xs text-body/70">{{ app.company }}</p>
