@@ -8,10 +8,10 @@ export const appCategories: { id: AppCategory; label: string }[] = [
 ];
 
 export const categoryStyles: Record<AppCategory, { tile: string }> = {
-  erp: { tile: 'bg-amber-500/15 text-accent' },
-  microsoft365: { tile: 'bg-sky-500/15 text-electric' },
-  portals: { tile: 'bg-emerald-500/15 text-emerald-400' },
-  tools: { tile: 'bg-violet-500/15 text-violet-400' },
+  erp: { tile: 'bg-amber-500/10 text-electric' },
+  microsoft365: { tile: 'bg-sky-500/10 text-sky-800' },
+  portals: { tile: 'bg-teal-500/10 text-accent' },
+  tools: { tile: 'bg-indigo-500/10 text-indigo-700' },
 };
 
 export const apps: AppLink[] = [

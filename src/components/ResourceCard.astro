@@ -15,9 +15,9 @@ const { resource, index = 0 } = Astro.props;
   rel="noopener"
   data-reveal
   style={`--reveal-delay: ${index * 0.06}s`}
-  class="group flex items-center gap-4 rounded-xl border border-edge bg-surface p-4 transition duration-300 hover:-translate-y-0.5 hover:border-electric/60"
+  class="lift group flex items-center gap-4 rounded-2xl border border-edge bg-surface p-4"
 >
-  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/15 text-electric">📄</span>
+  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-800">📄</span>
   <div class="min-w-0">
     <h3 class="truncate font-semibold transition-colors duration-200 group-hover:text-electric">{resource.name}</h3>
     <p class="truncate text-sm text-body">{resource.description}</p>

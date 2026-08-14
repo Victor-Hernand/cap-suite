@@ -40,20 +40,12 @@ const sections = [
 
 <Layout title="CAP Suite — Portal unificado de Grupo CAP">
   <section class="relative overflow-hidden">
-    <div
-      aria-hidden="true"
-      class="pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full bg-accent/10 blur-3xl"
-      style="animation: hero-glow 12s ease-in-out infinite"
-    >
-    </div>
-    <div
-      aria-hidden="true"
-      class="pointer-events-none absolute -bottom-24 right-0 h-72 w-72 rounded-full bg-electric/10 blur-3xl"
-      style="animation: hero-glow 16s ease-in-out infinite reverse"
-    >
+    <div aria-hidden="true">
+      <div class="blob blob-drift left-[6%] top-[-70px] h-80 w-80 bg-teal-500/20"></div>
+      <div class="blob right-[-70px] top-[35%] h-72 w-72 bg-amber-500/20"></div>
     </div>
     <div class="relative mx-auto max-w-4xl px-4 py-20 text-center sm:px-6 sm:py-28">
-      <p class="text-sm font-semibold uppercase tracking-widest text-accent" data-reveal>Grupo Empresarial CAP</p>
+      <p class="font-mono text-xs uppercase tracking-widest text-accent" data-reveal>Grupo Empresarial CAP</p>
       <h1 class="mt-3 text-4xl font-black tracking-tight sm:text-6xl" data-reveal style="--reveal-delay: 0.1s">
         {siteConfig.tagline}
       </h1>
@@ -82,7 +74,7 @@ const sections = [
     </div>
   </section>
 
-  <section class="border-t border-edge bg-surface/40">
+  <section class="border-t border-edge bg-surface">
     <div class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <SectionHeader eyebrow="Explora" title="Todo el portal" />
       <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -92,7 +84,7 @@ const sections = [
               href={section.href}
               data-reveal
               style={`--reveal-delay: ${index * 0.08}s`}
-              class="group rounded-xl border border-edge bg-ink p-6 transition duration-300 hover:-translate-y-1 hover:border-accent/60"
+              class="lift group rounded-2xl border border-edge bg-ink p-6"
             >
               <span class="text-3xl">{section.icon}</span>
               <h3 class="mt-4 font-bold transition-colors duration-200 group-hover:text-accent">{section.title}</h3>

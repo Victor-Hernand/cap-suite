@@ -1,14 +1,58 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-ink: #0b1220;
-  --color-surface: #121b30;
-  --color-edge: #22304f;
-  --color-body: #94a3b8;
-  --color-bright: #e8edf5;
-  --color-accent: #f5a524;
-  --color-electric: #38bdf8;
+  --color-ink: #f7f6f3;
+  --color-surface: #ffffff;
+  --color-edge: #e5e2db;
+  --color-edge-strong: #cfcabf;
+  --color-body: #4b5563;
+  --color-bright: #1e2735;
+  --color-accent: #0b7377;
+  --color-electric: #a04708;
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--color-accent) 18%, transparent);
+  color: var(--color-bright);
+}
+
+.lift {
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 40px -12px rgb(30 39 53 / 0.18);
+}
+
+.blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  pointer-events: none;
+}
+
+.blob-drift {
+  animation: blob-drift 14s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes blob-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(24px, -18px) scale(1.06);
+  }
 }
 
 [data-reveal] {
@@ -32,21 +76,22 @@
     transition: none;
   }
 
+  .lift,
+  .lift:hover {
+    transition: none;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .blob-drift {
+    animation: none;
+  }
+
   *,
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-@keyframes hero-glow {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(40px, -30px) scale(1.15);
   }
 }

@@ -12,7 +12,7 @@ const { company, index } = Astro.props;
 <article
   data-reveal
   style={`--reveal-delay: ${index * 0.08}s`}
-  class="group relative overflow-hidden rounded-xl border border-edge bg-surface p-6 transition duration-300 hover:-translate-y-1 hover:shadow-lg"
+  class="lift group relative overflow-hidden rounded-2xl border border-edge bg-surface p-6"
 >
   <span class="absolute inset-x-0 top-0 h-1" style={`background-color: ${company.color}`}></span>
   <div class="flex items-center gap-3">

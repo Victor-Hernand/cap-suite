@@ -7,7 +7,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 <header class="sticky top-0 z-40 border-b border-edge bg-ink/80 backdrop-blur-md">
   <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
     <a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight">
-      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-accent text-sm font-black text-ink">C</span>
+      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f59e0b] text-sm font-black text-bright">C</span>
       <span>{siteConfig.name}</span>
     </a>
     <nav class="flex flex-wrap items-center gap-1 text-sm">
@@ -19,7 +19,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
               href={item.href}
               class:list={[
                 'rounded-lg px-3 py-1.5 transition-colors duration-200',
-                isActive ? 'bg-surface text-accent' : 'text-body hover:bg-surface hover:text-bright',
+                isActive ? 'bg-accent/10 font-semibold text-accent' : 'text-body hover:bg-edge hover:text-bright',
               ]}
             >
               {item.label}

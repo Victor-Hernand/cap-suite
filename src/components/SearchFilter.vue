@@ -20,10 +20,10 @@ const query = ref('');
 const activeCategory = ref<AppCategory | 'all'>('all');
 
 const tileClasses: Record<AppCategory, string> = {
-  erp: 'bg-amber-500/15 text-accent',
-  microsoft365: 'bg-sky-500/15 text-electric',
-  portals: 'bg-emerald-500/15 text-emerald-400',
-  tools: 'bg-violet-500/15 text-violet-400',
+  erp: 'bg-amber-500/10 text-electric',
+  microsoft365: 'bg-sky-500/10 text-sky-800',
+  portals: 'bg-teal-500/10 text-accent',
+  tools: 'bg-indigo-500/10 text-indigo-700',
 };
 
 const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -53,15 +53,17 @@ const globalResults = computed(() => {
       type="search"
       :placeholder="mode === 'global' ? 'Buscar sistemas, recursos, contactos…' : 'Buscar aplicación…'"
       :aria-label="mode === 'global' ? 'Buscar en el portal' : 'Buscar aplicación'"
-      class="w-full rounded-xl border border-edge bg-surface px-5 py-3.5 text-bright placeholder-body transition duration-300 focus:border-accent focus:shadow-lg focus:shadow-accent/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      class="w-full rounded-xl border border-edge-strong bg-surface px-5 py-3.5 text-bright shadow-sm placeholder-body transition-colors duration-300 focus:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     />
 
     <div v-if="mode === 'catalog'" class="mt-4 flex flex-wrap gap-2">
       <button
         type="button"
         :class="[
-          'rounded-full border px-4 py-1.5 text-sm transition-colors duration-200',
-          activeCategory === 'all' ? 'border-accent bg-accent text-ink font-semibold' : 'border-edge text-body hover:border-accent hover:text-bright',
+          'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
+          activeCategory === 'all'
+            ? 'border-transparent bg-gradient-to-r from-accent to-[#0a5f63] text-white shadow-lg'
+            : 'border-edge-strong text-body hover:border-accent hover:text-accent',
         ]"
         @click="activeCategory = 'all'"
       >
@@ -72,8 +74,10 @@ const globalResults = computed(() => {
         :key="category.id"
         type="button"
         :class="[
-          'rounded-full border px-4 py-1.5 text-sm transition-colors duration-200',
-          activeCategory === category.id ? 'border-accent bg-accent text-ink font-semibold' : 'border-edge text-body hover:border-accent hover:text-bright',
+          'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
+          activeCategory === category.id
+            ? 'border-transparent bg-gradient-to-r from-accent to-[#0a5f63] text-white shadow-lg'
+            : 'border-edge-strong text-body hover:border-accent hover:text-accent',
         ]"
         @click="activeCategory = category.id"
       >
@@ -93,7 +97,7 @@ const globalResults = computed(() => {
         :href="app.url"
         target="_blank"
         rel="noopener"
-        class="group block rounded-xl border border-edge bg-surface p-5 transition duration-300 hover:-translate-y-1 hover:border-accent/60 hover:shadow-lg hover:shadow-accent/10"
+        class="lift group block rounded-2xl border border-edge bg-surface p-5"
       >
         <div class="flex items-start justify-between">
           <span :class="['flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold', tileClasses[app.category]]">
@@ -106,19 +110,19 @@ const globalResults = computed(() => {
         <p v-if="app.company" class="mt-2 text-xs text-body/70">{{ app.company }}</p>
       </a>
     </TransitionGroup>
-    <p v-if="mode === 'catalog' && filteredApps.length === 0" class="mt-8 rounded-xl border border-dashed border-edge p-8 text-center text-body">
+    <p v-if="mode === 'catalog' && filteredApps.length === 0" class="mt-8 rounded-2xl border border-dashed border-edge-strong p-8 text-center text-body">
       No se encontraron aplicaciones para tu búsqueda.
     </p>
 
     <Transition name="fade">
-      <ul v-if="mode === 'global' && query.trim()" class="mt-3 divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface">
+      <ul v-if="mode === 'global' && query.trim()" class="mt-3 divide-y divide-edge overflow-hidden rounded-2xl border border-edge-strong bg-surface shadow-xl">
         <li v-for="item in globalResults" :key="item.id">
-          <a :href="item.url" class="flex items-center justify-between gap-4 px-5 py-3 transition-colors duration-150 hover:bg-ink/50">
+          <a :href="item.url" class="flex items-center justify-between gap-4 px-5 py-3 transition-colors duration-150 hover:bg-ink">
             <div class="min-w-0">
               <p class="truncate font-medium">{{ item.name }}</p>
               <p class="truncate text-sm text-body">{{ item.description }}</p>
             </div>
-            <span class="shrink-0 rounded-full border border-edge px-2.5 py-0.5 text-xs text-body">{{ item.section }}</span>
+            <span class="shrink-0 rounded-full border border-edge-strong px-2.5 py-0.5 text-xs text-body">{{ item.section }}</span>
           </a>
         </li>
         <li v-if="globalResults.length === 0" class="px-5 py-4 text-center text-sm text-body">
