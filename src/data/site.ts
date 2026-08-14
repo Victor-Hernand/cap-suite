@@ -22,24 +22,28 @@ export const siteConfig = {
 export function buildSearchItems(): SearchItem[] {
   return [
     ...apps.map((app) => ({
+      id: `app-${app.id}`,
       name: app.name,
       description: app.description,
       url: app.url,
       section: 'Aplicaciones',
     })),
     ...resources.map((resource) => ({
+      id: `resource-${resource.id}`,
       name: resource.name,
       description: resource.description,
       url: resource.url,
       section: 'Recursos',
     })),
     ...contacts.map((contact) => ({
+      id: `contact-${contact.email}`,
       name: contact.name,
       description: `${contact.role} · ${contact.department}`,
       url: `mailto:${contact.email}`,
       section: 'Contactos',
     })),
     ...companies.map((company) => ({
+      id: `company-${company.id}`,
       name: company.name,
       description: company.segment,
       url: '/empresas',

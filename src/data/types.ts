@@ -41,6 +41,7 @@ export interface Company {
 }
 
 export interface SearchItem {
+  id: string;
   name: string;
   description: string;
   url: string;

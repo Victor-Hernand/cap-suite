@@ -26,20 +26,22 @@ const tileClasses: Record<AppCategory, string> = {
   tools: 'bg-violet-500/15 text-violet-400',
 };
 
+const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+
 const filteredApps = computed(() => {
-  const text = query.value.trim().toLowerCase();
+  const text = normalize(query.value.trim());
   return props.apps.filter((app) => {
     const matchesCategory = activeCategory.value === 'all' || app.category === activeCategory.value;
-    const matchesText = !text || `${app.name} ${app.description}`.toLowerCase().includes(text);
+    const matchesText = !text || normalize(`${app.name} ${app.description}`).includes(text);
     return matchesCategory && matchesText;
   });
 });
 
 const globalResults = computed(() => {
-  const text = query.value.trim().toLowerCase();
+  const text = normalize(query.value.trim());
   if (!text) return [];
   return props.searchItems
-    .filter((item) => `${item.name} ${item.description}`.toLowerCase().includes(text))
+    .filter((item) => normalize(`${item.name} ${item.description}`).includes(text))
     .slice(0, 8);
 });
 </script>
@@ -50,7 +52,8 @@ const globalResults = computed(() => {
       v-model="query"
       type="search"
       :placeholder="mode === 'global' ? 'Buscar sistemas, recursos, contactos…' : 'Buscar aplicación…'"
-      class="w-full rounded-xl border border-edge bg-surface px-5 py-3.5 text-bright placeholder-body outline-none transition duration-300 focus:border-accent focus:shadow-lg focus:shadow-accent/10"
+      :aria-label="mode === 'global' ? 'Buscar en el portal' : 'Buscar aplicación'"
+      class="w-full rounded-xl border border-edge bg-surface px-5 py-3.5 text-bright placeholder-body transition duration-300 focus:border-accent focus:shadow-lg focus:shadow-accent/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
     />
 
     <div v-if="mode === 'catalog'" class="mt-4 flex flex-wrap gap-2">
@@ -109,7 +112,7 @@ const globalResults = computed(() => {
 
     <Transition name="fade">
       <ul v-if="mode === 'global' && query.trim()" class="mt-3 divide-y divide-edge overflow-hidden rounded-xl border border-edge bg-surface">
-        <li v-for="item in globalResults" :key="`${item.section}-${item.name}`">
+        <li v-for="item in globalResults" :key="item.id">
           <a :href="item.url" class="flex items-center justify-between gap-4 px-5 py-3 transition-colors duration-150 hover:bg-ink/50">
             <div class="min-w-0">
               <p class="truncate font-medium">{{ item.name }}</p>
@@ -128,19 +131,13 @@ const globalResults = computed(() => {
 
 <style scoped>
 .card-enter-active,
-.card-leave-active,
 .card-move {
   transition: all 0.3s ease;
 }
 
-.card-enter-from,
-.card-leave-to {
+.card-enter-from {
   opacity: 0;
   transform: scale(0.95);
-}
-
-.card-leave-active {
-  position: absolute;
 }
 
 .fade-enter-active,
@@ -156,7 +153,6 @@ const globalResults = computed(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .card-enter-active,
-  .card-leave-active,
   .card-move,
   .fade-enter-active,
   .fade-leave-active {
