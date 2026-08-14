@@ -1,31 +1,15 @@
 ---
+import AppCardContent from './AppCardContent.vue';
 import type { AppLink } from '../data/types';
-import { categoryStyles } from '../data/apps';
 
 interface Props {
   app: AppLink;
   index?: number;
 }
 
-const { app, index = 0 } = Astro.props;
-const style = categoryStyles[app.category];
+const { app, index = 0 }: Props = Astro.props;
 ---
 
-<a
-  href={app.url}
-  target="_blank"
-  rel="noopener"
-  data-reveal
-  style={`--reveal-delay: ${index * 0.06}s`}
-  class="lift group block rounded-2xl border border-edge bg-surface p-5"
->
-  <div class="flex items-start justify-between">
-    <span class={`flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold ${style.tile}`}>
-      {app.name.charAt(0)}
-    </span>
-    <span class="text-body opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100">→</span>
-  </div>
-  <h3 class="mt-4 font-semibold transition-colors duration-200 group-hover:text-accent">{app.name}</h3>
-  <p class="mt-1 text-sm text-body">{app.description}</p>
-  {app.company && <p class="mt-2 text-xs text-body/70">{app.company}</p>}
-</a>
+<div class="h-full" data-reveal style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`}>
+  <AppCardContent app={app} />
+</div>

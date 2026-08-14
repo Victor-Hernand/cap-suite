@@ -5,12 +5,12 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
 ---
 
 <header class="sticky top-0 z-40 border-b border-edge bg-ink/80 backdrop-blur-md">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-3 sm:px-6">
-    <a href="/" class="flex items-center gap-2 text-lg font-bold tracking-tight">
+  <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+    <a href="/" class="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight">
       <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f59e0b] text-sm font-black text-bright">C</span>
       <span>{siteConfig.name}</span>
     </a>
-    <nav class="flex flex-wrap items-center gap-1 text-sm">
+    <nav class="-my-1 flex min-w-0 items-center gap-1 overflow-x-auto py-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {
         siteConfig.nav.map((item) => {
           const isActive = currentPath === item.href;
@@ -19,7 +19,7 @@ const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
               href={item.href}
               aria-current={isActive ? 'page' : undefined}
               class:list={[
-                'rounded-lg px-3 py-1.5 transition-colors duration-200',
+                'whitespace-nowrap rounded-lg px-3 py-2 transition-colors duration-200',
                 isActive ? 'bg-accent/10 font-semibold text-accent' : 'text-body hover:bg-edge hover:text-bright',
               ]}
             >

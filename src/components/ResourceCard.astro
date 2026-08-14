@@ -1,12 +1,14 @@
 ---
 import type { Resource } from '../data/types';
+import { resourceStyles } from '../data/resources';
 
 interface Props {
   resource: Resource;
   index?: number;
 }
 
-const { resource, index = 0 } = Astro.props;
+const { resource, index = 0 }: Props = Astro.props;
+const style = resourceStyles[resource.type];
 ---
 
 <a
@@ -14,12 +16,25 @@ const { resource, index = 0 } = Astro.props;
   target="_blank"
   rel="noopener"
   data-reveal
-  style={`--reveal-delay: ${index * 0.06}s`}
+  style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`}
   class="lift group flex items-center gap-4 rounded-2xl border border-edge bg-surface p-4"
 >
-  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-800">📄</span>
-  <div class="min-w-0">
-    <h3 class="truncate font-semibold transition-colors duration-200 group-hover:text-electric">{resource.name}</h3>
-    <p class="truncate text-sm text-body">{resource.description}</p>
+  <span aria-hidden="true" class={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${style.tile}`}>
+    {style.icon}
+  </span>
+  <div class="min-w-0 flex-1">
+    <h3
+      title={resource.name}
+      class="truncate font-semibold transition-colors duration-200 group-hover:text-accent group-focus-within:text-accent"
+    >
+      {resource.name}<span class="sr-only"> (se abre en una pestaña nueva)</span>
+    </h3>
+    <p class="line-clamp-2 text-sm text-body">{resource.description}</p>
   </div>
+  <span
+    aria-hidden="true"
+    class="shrink-0 text-body/50 transition duration-300 group-hover:translate-x-1 group-hover:text-accent group-focus-within:translate-x-1 group-focus-within:text-accent"
+  >
+    ↗
+  </span>
 </a>

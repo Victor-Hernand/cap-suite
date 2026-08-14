@@ -6,9 +6,9 @@ import { companies, companiesIntro } from '../data/companies';
 ---
 
 <Layout title="Empresas — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <SectionHeader as="h1" eyebrow="Grupo Empresarial CAP" title={companiesIntro.title} description={companiesIntro.description} />
-    <div class="mt-10 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+    <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {companies.map((company, index) => <CompanyCard company={company} index={index} />)}
     </div>
   </section>

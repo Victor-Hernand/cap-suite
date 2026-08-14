@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, useId, watch } from 'vue';
+import AppCardContent from './AppCardContent.vue';
 import type { AppCategory, AppLink, SearchItem } from '../data/types';
 
 const props = withDefaults(
@@ -16,20 +17,20 @@ const props = withDefaults(
   }
 );
 
+const maxGlobalResults = 8;
+
 const query = ref('');
 const activeCategory = ref<AppCategory | 'all'>('all');
+const activeIndex = ref(-1);
+const listboxId = useId();
 
-const tileClasses: Record<AppCategory, string> = {
-  erp: 'bg-amber-500/10 text-electric',
-  microsoft365: 'bg-sky-500/10 text-sky-800',
-  portals: 'bg-teal-500/10 text-accent',
-  tools: 'bg-indigo-500/10 text-indigo-700',
-};
+const isGlobal = computed(() => props.mode === 'global');
+const trimmedQuery = computed(() => query.value.trim());
 
 const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
 
 const filteredApps = computed(() => {
-  const text = normalize(query.value.trim());
+  const text = normalize(trimmedQuery.value);
   return props.apps.filter((app) => {
     const matchesCategory = activeCategory.value === 'all' || app.category === activeCategory.value;
     const matchesText = !text || normalize(`${app.name} ${app.description}`).includes(text);
@@ -37,28 +38,132 @@ const filteredApps = computed(() => {
   });
 });
 
-const globalResults = computed(() => {
-  const text = normalize(query.value.trim());
+const activeCategoryLabel = computed(
+  () => props.categories.find((category) => category.id === activeCategory.value)?.label ?? ''
+);
+
+const rankedItems = computed(() => {
+  const text = normalize(trimmedQuery.value);
   if (!text) return [];
   return props.searchItems
-    .filter((item) => normalize(`${item.name} ${item.description}`).includes(text))
-    .slice(0, 8);
+    .map((item) => {
+      const name = normalize(item.name);
+      const description = normalize(item.description);
+      if (name.startsWith(text)) return { item, score: 0 };
+      if (name.includes(text)) return { item, score: 1 };
+      if (description.includes(text)) return { item, score: 2 };
+      return null;
+    })
+    .filter((entry) => entry !== null)
+    .sort((a, b) => a.score - b.score)
+    .map((entry) => entry.item);
+});
+
+const globalResults = computed(() => rankedItems.value.slice(0, maxGlobalResults));
+const hasMoreResults = computed(() => rankedItems.value.length > maxGlobalResults);
+const isListboxOpen = computed(() => isGlobal.value && trimmedQuery.value.length > 0);
+const optionCount = computed(() => globalResults.value.length + (hasMoreResults.value ? 1 : 0));
+const catalogUrl = computed(() => `/apps?q=${encodeURIComponent(trimmedQuery.value)}`);
+const activeOptionId = computed(() =>
+  activeIndex.value >= 0 ? `${listboxId}-option-${activeIndex.value}` : undefined
+);
+const resultsAnnouncement = computed(() =>
+  isListboxOpen.value ? `${rankedItems.value.length} resultados` : ''
+);
+
+function moveActiveOption(step: number) {
+  const count = optionCount.value;
+  if (count === 0) return;
+  activeIndex.value =
+    activeIndex.value < 0 ? (step > 0 ? 0 : count - 1) : (activeIndex.value + step + count) % count;
+}
+
+function openActiveOption() {
+  const result = globalResults.value[activeIndex.value];
+  window.location.href = result ? result.url : catalogUrl.value;
+}
+
+function onKeydown(event: KeyboardEvent) {
+  if (!isGlobal.value) {
+    if (event.key === 'Escape') query.value = '';
+    return;
+  }
+
+  if (event.key === 'ArrowDown') {
+    event.preventDefault();
+    moveActiveOption(1);
+  } else if (event.key === 'ArrowUp') {
+    event.preventDefault();
+    moveActiveOption(-1);
+  } else if (event.key === 'Enter' && activeIndex.value >= 0) {
+    event.preventDefault();
+    openActiveOption();
+  } else if (event.key === 'Escape') {
+    query.value = '';
+    activeIndex.value = -1;
+  }
+}
+
+function clearFilters() {
+  query.value = '';
+  activeCategory.value = 'all';
+}
+
+function syncUrl() {
+  const params = new URLSearchParams();
+  if (trimmedQuery.value) params.set('q', trimmedQuery.value);
+  if (activeCategory.value !== 'all') params.set('cat', activeCategory.value);
+  const search = params.toString();
+  history.replaceState(null, '', search ? `${location.pathname}?${search}` : location.pathname);
+}
+
+watch(query, () => {
+  activeIndex.value = -1;
+});
+
+watch(activeIndex, async (index) => {
+  if (index < 0) return;
+  await nextTick();
+  document.getElementById(`${listboxId}-option-${index}`)?.scrollIntoView({ block: 'nearest' });
+});
+
+watch([query, activeCategory], () => {
+  if (!isGlobal.value) syncUrl();
+});
+
+onMounted(() => {
+  if (isGlobal.value) return;
+  const params = new URLSearchParams(location.search);
+  query.value = params.get('q') ?? '';
+  const category = params.get('cat');
+  if (props.categories.some((item) => item.id === category)) {
+    activeCategory.value = category as AppCategory;
+  }
 });
 </script>
 
 <template>
-  <div>
+  <div class="relative">
     <input
       v-model="query"
       type="search"
-      :placeholder="mode === 'global' ? 'Buscar sistemas, recursos, contactos…' : 'Buscar aplicación…'"
-      :aria-label="mode === 'global' ? 'Buscar en el portal' : 'Buscar aplicación'"
+      :placeholder="isGlobal ? 'Buscar sistemas, recursos, contactos…' : 'Buscar aplicación…'"
+      :aria-label="isGlobal ? 'Buscar en el portal' : 'Buscar aplicación'"
+      :role="isGlobal ? 'combobox' : undefined"
+      :aria-autocomplete="isGlobal ? 'list' : undefined"
+      :aria-expanded="isGlobal ? isListboxOpen : undefined"
+      :aria-controls="isGlobal ? listboxId : undefined"
+      :aria-activedescendant="activeOptionId"
       class="w-full rounded-xl border border-edge-strong bg-surface px-5 py-3.5 text-bright shadow-sm placeholder-body transition-colors duration-300 focus:border-accent"
+      @keydown="onKeydown"
     />
 
-    <div v-if="mode === 'catalog'" class="mt-4 flex flex-wrap gap-2">
+    <p v-if="isGlobal" class="sr-only" aria-live="polite">{{ resultsAnnouncement }}</p>
+
+    <div v-if="!isGlobal" role="group" aria-label="Filtrar por categoría" class="mt-4 flex flex-wrap gap-2">
       <button
         type="button"
+        :aria-pressed="activeCategory === 'all'"
         :class="[
           'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
           activeCategory === 'all'
@@ -73,6 +178,7 @@ const globalResults = computed(() => {
         v-for="category in categories"
         :key="category.id"
         type="button"
+        :aria-pressed="activeCategory === category.id"
         :class="[
           'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-200',
           activeCategory === category.id
@@ -85,48 +191,89 @@ const globalResults = computed(() => {
       </button>
     </div>
 
-    <TransitionGroup
-      v-if="mode === 'catalog'"
-      tag="div"
-      name="card"
-      class="relative mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-    >
-      <a
-        v-for="app in filteredApps"
-        :key="app.id"
-        :href="app.url"
-        target="_blank"
-        rel="noopener"
-        class="lift group block rounded-2xl border border-edge bg-surface p-5"
-      >
-        <div class="flex items-start justify-between">
-          <span :class="['flex h-11 w-11 items-center justify-center rounded-lg text-lg font-bold', tileClasses[app.category]]">
-            {{ app.name.charAt(0) }}
-          </span>
-          <span class="text-body opacity-0 transition duration-300 group-hover:translate-x-1 group-hover:opacity-100">→</span>
-        </div>
-        <h3 class="mt-4 font-semibold transition-colors duration-200 group-hover:text-accent">{{ app.name }}</h3>
-        <p class="mt-1 text-sm text-body">{{ app.description }}</p>
-        <p v-if="app.company" class="mt-2 text-xs text-body/70">{{ app.company }}</p>
-      </a>
-    </TransitionGroup>
-    <p v-if="mode === 'catalog' && filteredApps.length === 0" class="mt-8 rounded-2xl border border-dashed border-edge-strong p-8 text-center text-body">
-      No se encontraron aplicaciones para tu búsqueda.
+    <p v-if="!isGlobal" class="mt-6 text-sm text-body" aria-live="polite">
+      {{ filteredApps.length }} de {{ apps.length }} aplicaciones
     </p>
 
+    <TransitionGroup
+      v-if="!isGlobal"
+      tag="div"
+      name="card"
+      class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+    >
+      <AppCardContent v-for="app in filteredApps" :key="app.id" :app="app" />
+    </TransitionGroup>
+
+    <div
+      v-if="!isGlobal && filteredApps.length === 0"
+      class="mt-4 rounded-2xl border border-dashed border-edge-strong p-10 text-center"
+    >
+      <p class="font-semibold text-bright">No hay aplicaciones que coincidan.</p>
+      <p class="mt-1 text-sm text-body">
+        <span v-if="trimmedQuery">Búsqueda: “{{ trimmedQuery }}”</span>
+        <span v-if="trimmedQuery && activeCategory !== 'all'"> · </span>
+        <span v-if="activeCategory !== 'all'">Categoría: {{ activeCategoryLabel }}</span>
+      </p>
+      <button
+        type="button"
+        class="mt-4 rounded-xl bg-gradient-to-r from-accent to-[#0a5f63] px-4 py-2 font-semibold text-white shadow-lg"
+        @click="clearFilters"
+      >
+        Limpiar filtros
+      </button>
+    </div>
+
     <Transition name="fade">
-      <ul v-if="mode === 'global' && query.trim()" class="mt-3 divide-y divide-edge overflow-hidden rounded-2xl border border-edge-strong bg-surface shadow-xl">
-        <li v-for="item in globalResults" :key="item.id">
-          <a :href="item.url" class="flex items-center justify-between gap-4 px-5 py-3 transition-colors duration-150 hover:bg-ink">
-            <div class="min-w-0">
-              <p class="truncate font-medium">{{ item.name }}</p>
-              <p class="truncate text-sm text-body">{{ item.description }}</p>
-            </div>
-            <span class="shrink-0 rounded-full border border-edge-strong px-2.5 py-0.5 text-xs text-body">{{ item.section }}</span>
+      <ul
+        v-if="isListboxOpen"
+        :id="listboxId"
+        role="listbox"
+        :aria-label="`Resultados para ${trimmedQuery}`"
+        class="absolute inset-x-0 top-full z-30 mt-2 max-h-80 divide-y divide-edge overflow-y-auto rounded-2xl border border-edge-strong bg-surface shadow-xl"
+      >
+        <li
+          v-for="(item, index) in globalResults"
+          :id="`${listboxId}-option-${index}`"
+          :key="item.id"
+          role="option"
+          :aria-selected="activeIndex === index"
+        >
+          <a
+            :href="item.url"
+            tabindex="-1"
+            :class="[
+              'flex items-center justify-between gap-4 px-5 py-3 transition-colors duration-150 hover:bg-ink',
+              activeIndex === index && 'bg-ink',
+            ]"
+          >
+            <span class="min-w-0">
+              <span class="block truncate font-medium">{{ item.name }}</span>
+              <span class="block truncate text-sm text-body">{{ item.description }}</span>
+            </span>
+            <span class="shrink-0 rounded-full border border-edge-strong px-2.5 py-0.5 text-xs text-body">
+              {{ item.section }}
+            </span>
           </a>
         </li>
-        <li v-if="globalResults.length === 0" class="px-5 py-4 text-center text-sm text-body">
-          Sin resultados para "{{ query }}".
+        <li
+          v-if="hasMoreResults"
+          :id="`${listboxId}-option-${globalResults.length}`"
+          role="option"
+          :aria-selected="activeIndex === globalResults.length"
+        >
+          <a
+            :href="catalogUrl"
+            tabindex="-1"
+            :class="[
+              'block px-5 py-3 text-sm font-semibold text-accent transition-colors duration-150 hover:bg-ink',
+              activeIndex === globalResults.length && 'bg-ink',
+            ]"
+          >
+            Ver los {{ rankedItems.length }} resultados en Aplicaciones <span aria-hidden="true">→</span>
+          </a>
+        </li>
+        <li v-if="globalResults.length === 0" role="presentation" class="px-5 py-4 text-center text-sm text-body">
+          Sin resultados para “{{ trimmedQuery }}”.
         </li>
       </ul>
     </Transition>
@@ -146,7 +293,9 @@ const globalResults = computed(() => {
 
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 
 .fade-enter-from,

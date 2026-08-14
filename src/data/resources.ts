@@ -7,6 +7,13 @@ export const resourceTypes: { id: ResourceType; label: string }[] = [
   { id: 'link', label: 'Enlaces' },
 ];
 
+export const resourceStyles: Record<ResourceType, { icon: string; tile: string }> = {
+  manual: { icon: '📘', tile: 'bg-sky-500/10 text-sky-800' },
+  template: { icon: '📝', tile: 'bg-indigo-500/10 text-indigo-700' },
+  folder: { icon: '📁', tile: 'bg-amber-500/10 text-electric' },
+  link: { icon: '🔗', tile: 'bg-teal-500/10 text-accent' },
+};
+
 export const resources: Resource[] = [
   {
     id: 'manual-erp',

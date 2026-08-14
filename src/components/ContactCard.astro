@@ -6,21 +6,20 @@ interface Props {
   index?: number;
 }
 
-const { contact, index = 0 } = Astro.props;
+const { contact, index = 0 }: Props = Astro.props;
 const initials = contact.name
   .split(' ')
   .slice(0, 2)
   .map((word) => word.charAt(0))
   .join('');
+const phoneDigits = contact.phone.replace(/\D/g, '');
+const contactRowClass =
+  '-mx-2 flex min-h-11 items-center gap-2 rounded-lg px-2 text-electric transition-colors hover:bg-ink';
 ---
 
-<div
-  data-reveal
-  style={`--reveal-delay: ${index * 0.06}s`}
-  class="lift rounded-2xl border border-edge bg-surface p-5"
->
+<div data-reveal style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`} class="lift rounded-2xl border border-edge bg-surface p-5">
   <div class="flex items-center gap-3">
-    <span class="flex h-11 w-11 items-center justify-center rounded-full bg-accent/10 font-bold text-accent">
+    <span aria-hidden="true" class="flex h-11 w-11 items-center justify-center rounded-full bg-accent/10 font-bold text-accent">
       {initials}
     </span>
     <div>
@@ -28,10 +27,15 @@ const initials = contact.name
       <p class="text-sm text-body">{contact.role} · {contact.company}</p>
     </div>
   </div>
-  <div class="mt-4 space-y-1 text-sm">
-    <a href={`mailto:${contact.email}`} class="block text-electric transition-colors hover:text-bright">{contact.email}</a>
-    <a href={`tel:${contact.phone.replace(/[^+\d]/g, '')}`} class="block text-body transition-colors hover:text-bright">
-      {contact.phone}{contact.extension && ` · ext. ${contact.extension}`}
+  <div class="mt-4 grid gap-1 text-sm">
+    <a href={`mailto:${contact.email}`} class={contactRowClass}>
+      <span aria-hidden="true">✉</span>{contact.email}
+    </a>
+    <a href={`tel:+${phoneDigits}`} class={contactRowClass}>
+      <span aria-hidden="true">☎</span>{contact.phone}{contact.extension && ` · ext. ${contact.extension}`}
+    </a>
+    <a href={`https://wa.me/${phoneDigits}`} target="_blank" rel="noopener" class={contactRowClass}>
+      <span aria-hidden="true">💬</span>WhatsApp<span class="sr-only"> (se abre en una pestaña nueva)</span>
     </a>
   </div>
 </div>

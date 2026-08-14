@@ -20,7 +20,14 @@ const { title, description = 'Portal unificado de Grupo Empresarial CAP' } = Ast
     <meta name="robots" content="noindex" />
     <meta name="theme-color" content="#f7f6f3" />
     <title>{title}</title>
-    <noscript><style>[data-reveal]{opacity:1;transform:none}</style></noscript>
+    <script is:inline>
+      document.documentElement.classList.add('js-reveal');
+      window.addEventListener('load', () => {
+        if (!document.documentElement.dataset.revealReady) {
+          document.documentElement.classList.remove('js-reveal');
+        }
+      });
+    </script>
     <ClientRouter />
   </head>
   <body class="flex min-h-screen flex-col bg-ink font-sans text-bright antialiased">
@@ -54,6 +61,7 @@ const { title, description = 'Portal unificado de Grupo Empresarial CAP' } = Ast
           { threshold: 0.15 }
         );
         elements.forEach((element) => observer?.observe(element));
+        document.documentElement.dataset.revealReady = 'true';
       }
 
       document.addEventListener('astro:page-load', setupReveal);
