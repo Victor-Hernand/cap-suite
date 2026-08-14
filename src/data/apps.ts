@@ -171,3 +171,12 @@ export const apps: AppLink[] = [
     logo: 'https://www.google.com/s2/favicons?domain=teams.microsoft.com&sz=64',
   },
 ];
+
+export const upcomingApps: { name: string; description: string }[] = [
+  { name: 'Correos profesionales', description: 'Gestión de correo corporativo.' },
+  { name: 'Cotizaciones', description: 'Generador de cotizaciones.' },
+  { name: 'Firma electrónica PDF', description: 'Firmar documentos PDF.' },
+  { name: 'Traductor ES–EN', description: 'Traducción de documentos y textos.' },
+  { name: 'To-Do + Pomodoro', description: 'Tareas personales con temporizador.' },
+  { name: 'Contratos tipo', description: 'Plantillas de contratos.' },
+];

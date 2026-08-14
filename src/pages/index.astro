@@ -58,6 +58,27 @@ const sections = [
     </div>
   </section>
 
+  <section class="mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {
+        [
+          { value: apps.length, label: 'Herramientas' },
+          { value: companies.length, label: 'Empresas del grupo' },
+          { value: siteConfig.collaboratorsLabel, label: 'Colaboradores' },
+        ].map((stat, index) => (
+          <div
+            data-reveal
+            style={`--reveal-delay: ${index * 0.04}s`}
+            class="rounded-2xl border border-edge bg-surface p-5 text-center"
+          >
+            <p class="text-3xl font-black tracking-tight">{stat.value}</p>
+            <p class="mt-1 font-mono text-xs uppercase tracking-widest text-accent">{stat.label}</p>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
   <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
     <SectionHeader
       eyebrow="Accesos rápidos"

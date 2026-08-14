@@ -2,7 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import SearchFilter from '../components/SearchFilter.vue';
-import { apps, appCategories } from '../data/apps';
+import { apps, appCategories, upcomingApps } from '../data/apps';
 ---
 
 <Layout title="Aplicaciones — CAP Suite">
@@ -15,6 +15,28 @@ import { apps, appCategories } from '../data/apps';
     />
     <div class="mt-10">
       <SearchFilter client:load mode="catalog" apps={apps} categories={appCategories} />
+    </div>
+
+    <div class="mt-16">
+      <p class="font-mono text-xs uppercase tracking-widest text-accent">En camino</p>
+      <h2 class="mt-2 text-xl font-bold tracking-tight">Próximamente</h2>
+      <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {
+          upcomingApps.map((app, index) => (
+            <div
+              data-reveal
+              style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`}
+              class="rounded-2xl border border-dashed border-edge-strong bg-surface/60 p-5"
+            >
+              <span class="text-[10px] font-mono uppercase tracking-wider rounded-full bg-teal-500/10 px-2 py-0.5 text-accent">
+                Próximamente
+              </span>
+              <h3 class="mt-3 font-semibold text-bright">{app.name}</h3>
+              <p class="mt-1 text-sm text-body">{app.description}</p>
+            </div>
+          ))
+        }
+      </div>
     </div>
   </section>
 </Layout>
