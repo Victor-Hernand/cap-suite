@@ -8,6 +8,8 @@ export interface AppLink {
   category: AppCategory;
   featured: boolean;
   company?: string;
+  logo?: string;
+  badge?: 'nuevo';
 }
 
 export type ResourceType = 'manual' | 'template' | 'folder' | 'link';
