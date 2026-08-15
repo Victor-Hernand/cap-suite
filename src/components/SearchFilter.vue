@@ -9,11 +9,13 @@ const props = withDefaults(
     apps?: AppLink[];
     categories?: { id: AppCategory; label: string }[];
     searchItems?: SearchItem[];
+    compact?: boolean;
   }>(),
   {
     apps: () => [],
     categories: () => [],
     searchItems: () => [],
+    compact: false,
   }
 );
 
@@ -25,6 +27,7 @@ const activeIndex = ref(-1);
 const listboxId = useId();
 
 const isGlobal = computed(() => props.mode === 'global');
+const isCompact = computed(() => props.compact && isGlobal.value);
 const trimmedQuery = computed(() => query.value.trim());
 
 const normalize = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
@@ -154,7 +157,11 @@ onMounted(() => {
       :aria-expanded="isGlobal ? isListboxOpen : undefined"
       :aria-controls="isGlobal ? listboxId : undefined"
       :aria-activedescendant="activeOptionId"
-      class="w-full rounded-xl border border-edge-strong bg-surface px-5 py-3.5 text-bright shadow-sm placeholder-body transition-colors duration-300 focus:border-accent"
+      :class="
+        isCompact
+          ? 'rounded-lg border border-edge-strong bg-surface px-3 py-1.5 text-sm w-36 focus:w-56 transition-all sm:w-40 sm:focus:w-64'
+          : 'w-full rounded-xl border border-edge-strong bg-surface px-5 py-3.5 text-bright shadow-sm placeholder-body transition-colors duration-300 focus:border-accent'
+      "
       @keydown="onKeydown"
     />
 
@@ -229,7 +236,11 @@ onMounted(() => {
         :id="listboxId"
         role="listbox"
         :aria-label="`Resultados para ${trimmedQuery}`"
-        class="absolute inset-x-0 top-full z-30 mt-2 max-h-80 divide-y divide-edge overflow-y-auto rounded-2xl border border-edge-strong bg-surface shadow-xl"
+        :class="
+          isCompact
+            ? 'absolute right-0 top-full z-30 mt-2 max-h-80 w-[min(90vw,24rem)] divide-y divide-edge overflow-y-auto rounded-2xl border border-edge-strong bg-surface shadow-xl'
+            : 'absolute inset-x-0 top-full z-30 mt-2 max-h-80 divide-y divide-edge overflow-y-auto rounded-2xl border border-edge-strong bg-surface shadow-xl'
+        "
       >
         <li
           v-for="(item, index) in globalResults"
