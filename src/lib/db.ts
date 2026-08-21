@@ -2,6 +2,7 @@ import Database from 'better-sqlite3';
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { readEnv } from './env';
+import { slugify } from './slug';
 
 export type Db = Database.Database;
 
@@ -146,6 +147,194 @@ export function deleteApp(db: Db, id: number): AppRow | null {
 
 export function setAppFeatured(db: Db, id: number, featured: boolean): void {
   db.prepare(`UPDATE apps SET featured = ?, updated_at = datetime('now') WHERE id = ?`).run(featured ? 1 : 0, id);
+}
+
+export interface ResourceRow {
+  id: number;
+  name: string;
+  description: string;
+  type: string;
+  url: string | null;
+  filePath: string | null;
+  sortOrder: number;
+}
+
+export interface ResourceInput {
+  name: string;
+  description: string;
+  type: string;
+  url: string | null;
+  filePath: string | null;
+}
+
+const RESOURCE_SELECT = `SELECT id, name, description, type, url,
+  file_path AS filePath, sort_order AS sortOrder FROM resources`;
+
+export function listResources(db: Db): ResourceRow[] {
+  return db.prepare(`${RESOURCE_SELECT} ORDER BY sort_order, id`).all() as ResourceRow[];
+}
+
+export function getResource(db: Db, id: number): ResourceRow | null {
+  return (db.prepare(`${RESOURCE_SELECT} WHERE id = ?`).get(id) as ResourceRow | undefined) ?? null;
+}
+
+export function createResource(db: Db, input: ResourceInput): ResourceRow {
+  const result = db
+    .prepare(`INSERT INTO resources (name, description, type, url, file_path, sort_order)
+      VALUES (@name, @description, @type, @url, @filePath, @sortOrder)`)
+    .run({ ...input, sortOrder: nextSortOrder(db, 'resources') });
+  return getResource(db, Number(result.lastInsertRowid))!;
+}
+
+export function updateResource(db: Db, id: number, input: ResourceInput): ResourceRow | null {
+  db.prepare(`UPDATE resources SET name = @name, description = @description, type = @type,
+    url = @url, file_path = @filePath, updated_at = datetime('now') WHERE id = @id`)
+    .run({ ...input, id });
+  return getResource(db, id);
+}
+
+export function deleteResource(db: Db, id: number): ResourceRow | null {
+  const row = getResource(db, id);
+  if (row) db.prepare('DELETE FROM resources WHERE id = ?').run(id);
+  return row;
+}
+
+export function listRecentResources(db: Db, limit: number): ResourceRow[] {
+  return db
+    .prepare(`${RESOURCE_SELECT} ORDER BY updated_at DESC, id DESC LIMIT ?`)
+    .all(limit) as ResourceRow[];
+}
+
+export interface ContactRow {
+  id: number;
+  name: string;
+  role: string;
+  department: string;
+  company: string;
+  phone: string;
+  email: string;
+  extension: string | null;
+  sortOrder: number;
+}
+
+export interface ContactInput {
+  name: string;
+  role: string;
+  department: string;
+  company: string;
+  phone: string;
+  email: string;
+  extension: string | null;
+}
+
+const CONTACT_SELECT = `SELECT id, name, role, department, company, phone, email,
+  extension, sort_order AS sortOrder FROM contacts`;
+
+export function listContacts(db: Db): ContactRow[] {
+  return db.prepare(`${CONTACT_SELECT} ORDER BY sort_order, id`).all() as ContactRow[];
+}
+
+export function getContact(db: Db, id: number): ContactRow | null {
+  return (db.prepare(`${CONTACT_SELECT} WHERE id = ?`).get(id) as ContactRow | undefined) ?? null;
+}
+
+export function createContact(db: Db, input: ContactInput): ContactRow {
+  const result = db
+    .prepare(`INSERT INTO contacts (name, role, department, company, phone, email, extension, sort_order)
+      VALUES (@name, @role, @department, @company, @phone, @email, @extension, @sortOrder)`)
+    .run({ ...input, sortOrder: nextSortOrder(db, 'contacts') });
+  return getContact(db, Number(result.lastInsertRowid))!;
+}
+
+export function updateContact(db: Db, id: number, input: ContactInput): ContactRow | null {
+  db.prepare(`UPDATE contacts SET name = @name, role = @role, department = @department,
+    company = @company, phone = @phone, email = @email, extension = @extension,
+    updated_at = datetime('now') WHERE id = @id`)
+    .run({ ...input, id });
+  return getContact(db, id);
+}
+
+export function deleteContact(db: Db, id: number): ContactRow | null {
+  const row = getContact(db, id);
+  if (row) db.prepare('DELETE FROM contacts WHERE id = ?').run(id);
+  return row;
+}
+
+export interface CompanyRow {
+  id: number;
+  slug: string;
+  name: string;
+  segment: string;
+  description: string;
+  slogan: string;
+  color: string;
+  url: string | null;
+  sortOrder: number;
+}
+
+export interface CompanyInput {
+  name: string;
+  segment: string;
+  description: string;
+  slogan: string;
+  color: string;
+  url: string | null;
+}
+
+const COMPANY_SELECT = `SELECT id, slug, name, segment, description, slogan, color,
+  url, sort_order AS sortOrder FROM companies`;
+
+export function listCompanies(db: Db): CompanyRow[] {
+  return db.prepare(`${COMPANY_SELECT} ORDER BY sort_order, id`).all() as CompanyRow[];
+}
+
+export function getCompany(db: Db, id: number): CompanyRow | null {
+  return (db.prepare(`${COMPANY_SELECT} WHERE id = ?`).get(id) as CompanyRow | undefined) ?? null;
+}
+
+export function createCompany(db: Db, input: CompanyInput): CompanyRow {
+  const base = slugify(input.name) || 'empresa';
+  let slug = base;
+  let attempt = 2;
+  while (db.prepare('SELECT 1 FROM companies WHERE slug = ?').get(slug)) {
+    slug = `${base}-${attempt}`;
+    attempt += 1;
+  }
+  const result = db
+    .prepare(`INSERT INTO companies (slug, name, segment, description, slogan, color, url, sort_order)
+      VALUES (@slug, @name, @segment, @description, @slogan, @color, @url, @sortOrder)`)
+    .run({ ...input, slug, sortOrder: nextSortOrder(db, 'companies') });
+  return getCompany(db, Number(result.lastInsertRowid))!;
+}
+
+export function updateCompany(db: Db, id: number, input: CompanyInput): CompanyRow | null {
+  db.prepare(`UPDATE companies SET name = @name, segment = @segment, description = @description,
+    slogan = @slogan, color = @color, url = @url, updated_at = datetime('now') WHERE id = @id`)
+    .run({ ...input, id });
+  return getCompany(db, id);
+}
+
+export function deleteCompany(db: Db, id: number): CompanyRow | null {
+  const row = getCompany(db, id);
+  if (row) db.prepare('DELETE FROM companies WHERE id = ?').run(id);
+  return row;
+}
+
+export function counts(db: Db) {
+  const count = (table: string) =>
+    (db.prepare(`SELECT COUNT(*) AS total FROM ${table}`).get() as { total: number }).total;
+  return {
+    apps: count('apps'),
+    resources: count('resources'),
+    contacts: count('contacts'),
+    companies: count('companies'),
+  };
+}
+
+export function companyColorFor(db: Db, label: string | null): string | null {
+  if (!label) return null;
+  const row = db.prepare('SELECT color FROM companies WHERE name = ?').get(label) as { color: string } | undefined;
+  return row?.color ?? null;
 }
 
 const SORTABLE_TABLES = ['apps', 'resources', 'contacts', 'companies'] as const;
