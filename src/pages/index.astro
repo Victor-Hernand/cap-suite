@@ -3,8 +3,23 @@ import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import AppCard from '../components/AppCard.astro';
 import { siteConfig } from '../data/site';
-import { apps } from '../data/apps';
-import { companies } from '../data/companies';
+import { getDb, listApps, listCompanies } from '../lib/db';
+import { logoSrc } from '../lib/assets';
+import type { AppCategory } from '../data/types';
+
+const db = getDb();
+const apps = listApps(db).map((app) => ({
+  id: String(app.id),
+  name: app.name,
+  description: app.description,
+  url: app.url,
+  category: app.category as AppCategory,
+  featured: app.featured,
+  company: app.companyLabel ?? undefined,
+  logo: logoSrc(app.logoPath),
+  badge: app.badge as 'nuevo' | undefined,
+}));
+const companiesCount = listCompanies(db).length;
 
 const featuredApps = apps.filter((app) => app.featured);
 
@@ -30,7 +45,7 @@ const sections = [
   {
     href: '/empresas',
     title: 'Empresas',
-    description: `Las ${companies.length} empresas que forman Grupo CAP.`,
+    description: `Las ${companiesCount} empresas que forman Grupo CAP.`,
     icon: '🏢',
   },
 ];
@@ -58,7 +73,7 @@ const sections = [
       {
         [
           { value: apps.length, label: 'Herramientas' },
-          { value: companies.length, label: 'Empresas del grupo' },
+          { value: companiesCount, label: 'Empresas del grupo' },
           { value: siteConfig.collaboratorsLabel, label: 'Colaboradores' },
         ].map((stat, index) => (
           <div

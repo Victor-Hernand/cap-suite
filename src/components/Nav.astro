@@ -1,9 +1,11 @@
 ---
-import { siteConfig, buildSearchItems } from '../data/site';
+import { siteConfig } from '../data/site';
+import { getDb } from '../lib/db';
+import { buildSearchItems } from '../lib/search';
 import SearchFilter from './SearchFilter.vue';
 
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
-const searchItems = buildSearchItems();
+const searchItems = buildSearchItems(getDb());
 ---
 
 <header class="sticky top-0 z-40 border-b border-edge bg-ink/80 backdrop-blur-md">

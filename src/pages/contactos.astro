@@ -2,7 +2,18 @@
 import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import ContactCard from '../components/ContactCard.astro';
-import { contacts } from '../data/contacts';
+import { getDb, listContacts } from '../lib/db';
+
+const db = getDb();
+const contacts = listContacts(db).map((contact) => ({
+  name: contact.name,
+  role: contact.role,
+  department: contact.department,
+  company: contact.company,
+  phone: contact.phone,
+  email: contact.email,
+  extension: contact.extension ?? undefined,
+}));
 
 const departments = [...new Set(contacts.map((contact) => contact.department))];
 const groups = departments.map((department) => ({

@@ -2,7 +2,18 @@
 import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import ResourceCard from '../components/ResourceCard.astro';
-import { resources, resourceTypes } from '../data/resources';
+import { getDb, listResources } from '../lib/db';
+import { resourceTypes } from '../data/resources';
+import type { ResourceType } from '../data/types';
+
+const db = getDb();
+const resources = listResources(db).map((resource) => ({
+  id: String(resource.id),
+  name: resource.name,
+  description: resource.description,
+  url: resource.url ?? `/files/${resource.filePath}`,
+  type: resource.type as ResourceType,
+}));
 
 const groups = resourceTypes
   .map((type) => ({

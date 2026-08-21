@@ -2,7 +2,19 @@
 import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import CompanyCard from '../components/CompanyCard.astro';
-import { companies, companiesIntro } from '../data/companies';
+import { getDb, listCompanies } from '../lib/db';
+import { companiesIntro } from '../data/companies';
+
+const db = getDb();
+const companies = listCompanies(db).map((company) => ({
+  id: company.slug,
+  name: company.name,
+  segment: company.segment,
+  description: company.description,
+  slogan: company.slogan,
+  color: company.color,
+  url: company.url ?? undefined,
+}));
 ---
 
 <Layout title="Empresas — CAP Suite">

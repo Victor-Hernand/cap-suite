@@ -2,7 +2,24 @@
 import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import SearchFilter from '../components/SearchFilter.vue';
-import { apps, appCategories, upcomingApps } from '../data/apps';
+import { getDb, listApps } from '../lib/db';
+import { logoSrc } from '../lib/assets';
+import { appCategories } from '../data/categories';
+import { upcomingApps } from '../data/apps';
+import type { AppCategory } from '../data/types';
+
+const db = getDb();
+const apps = listApps(db).map((app) => ({
+  id: String(app.id),
+  name: app.name,
+  description: app.description,
+  url: app.url,
+  category: app.category as AppCategory,
+  featured: app.featured,
+  company: app.companyLabel ?? undefined,
+  logo: logoSrc(app.logoPath),
+  badge: app.badge as 'nuevo' | undefined,
+}));
 ---
 
 <Layout title="Aplicaciones — CAP Suite">
