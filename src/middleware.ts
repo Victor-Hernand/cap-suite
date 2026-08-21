@@ -5,7 +5,7 @@ import { readEnv } from './lib/env';
 export const onRequest = defineMiddleware((context, next) => {
   const { pathname } = context.url;
   const isAdminPage = pathname.startsWith('/admin') && pathname !== '/admin/login';
-  const isProtectedAction = pathname.startsWith('/_actions/') && !pathname.includes('auth.login');
+  const isProtectedAction = pathname.startsWith('/_actions/') && pathname !== '/_actions/auth.login';
   if (!isAdminPage && !isProtectedAction) return next();
 
   const secret = readEnv('SESSION_SECRET');
