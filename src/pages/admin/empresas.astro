@@ -1,0 +1,58 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import CollectionManager from '../../components/admin/CollectionManager.vue';
+import { getDb, listCompanies } from '../../lib/db';
+
+const rows = listCompanies(getDb()).map((company) => ({
+  ...company,
+  ledColor: company.color,
+  companyLabel: company.segment,
+}));
+
+interface Column {
+  key: string;
+  label: string;
+  kind?: 'text' | 'muted' | 'led' | 'toggle';
+}
+
+interface Field {
+  name: string;
+  label: string;
+  kind: 'text' | 'url' | 'email' | 'textarea' | 'select' | 'toggle' | 'file-logo' | 'file-doc';
+  options?: { value: string; label: string }[];
+  suggestions?: string[];
+  required?: boolean;
+  placeholder?: string;
+}
+
+const columns: Column[] = [
+  { key: 'name', label: 'Nombre' },
+  { key: 'companyLabel', label: 'Segmento', kind: 'led' },
+  { key: 'slogan', label: 'Slogan', kind: 'muted' },
+];
+
+const fields: Field[] = [
+  { name: 'name', label: 'NOMBRE', kind: 'text', required: true },
+  { name: 'segment', label: 'SEGMENTO', kind: 'text', required: true },
+  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true },
+  { name: 'slogan', label: 'SLOGAN', kind: 'text', required: true },
+  { name: 'color', label: 'COLOR (HEX)', kind: 'text', required: true, placeholder: '#C62828' },
+  { name: 'url', label: 'SITIO WEB', kind: 'text', placeholder: 'https://… (opcional)' },
+];
+---
+
+<AdminLayout title="Empresas" active="empresas">
+  <h1 class="text-2xl font-extrabold">Empresas</h1>
+  <p class="mt-1 text-sm text-body">{rows.length} empresas del grupo</p>
+  <div class="mt-5">
+    <CollectionManager
+      client:load
+      collection="companies"
+      entityName="empresa"
+      entityNamePlural="empresas"
+      rows={rows}
+      columns={columns}
+      fields={fields}
+    />
+  </div>
+</AdminLayout>
