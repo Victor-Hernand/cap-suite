@@ -13,9 +13,11 @@ import {
   createResource,
   updateResource,
   deleteResource,
+  getContact,
   createContact,
   updateContact,
   deleteContact,
+  getCompany,
   createCompany,
   updateCompany,
   deleteCompany,
@@ -111,6 +113,19 @@ async function resolveResourceSource(
   }
   if (previous && (previous.url || previous.filePath)) return previous;
   throw new ActionError({ code: 'BAD_REQUEST', message: 'Indica un enlace o sube un archivo.' });
+}
+
+function toResourceInput(
+  form: { name: string; description: string; type: string },
+  source: { url: string | null; filePath: string | null },
+) {
+  return {
+    name: form.name,
+    description: form.description,
+    type: form.type,
+    url: source.url,
+    filePath: source.filePath,
+  };
 }
 
 const contactFormFields = {
@@ -252,13 +267,7 @@ export const server = {
       input: z.object(resourceFormFields),
       handler: async (form) => {
         const source = await resolveResourceSource(form);
-        return createResource(getDb(), {
-          name: form.name,
-          description: form.description,
-          type: form.type,
-          url: source.url,
-          filePath: source.filePath,
-        });
+        return createResource(getDb(), toResourceInput(form, source));
       },
     }),
     update: defineAction({
@@ -269,13 +278,7 @@ export const server = {
         const existing = getResource(db, form.id);
         if (!existing) throw new ActionError({ code: 'NOT_FOUND', message: 'El recurso no existe.' });
         const source = await resolveResourceSource(form, existing);
-        return updateResource(db, form.id, {
-          name: form.name,
-          description: form.description,
-          type: form.type,
-          url: source.url,
-          filePath: source.filePath,
-        });
+        return updateResource(db, form.id, toResourceInput(form, source));
       },
     }),
     remove: defineAction({
@@ -303,7 +306,13 @@ export const server = {
     update: defineAction({
       accept: 'form',
       input: z.object({ ...contactFormFields, id: z.number().int().positive() }),
-      handler: async (form) => updateContact(getDb(), form.id, toContactInput(form)),
+      handler: async (form) => {
+        const db = getDb();
+        if (!getContact(db, form.id)) {
+          throw new ActionError({ code: 'NOT_FOUND', message: 'El contacto no existe.' });
+        }
+        return updateContact(db, form.id, toContactInput(form));
+      },
     }),
     remove: defineAction({
       input: idInput,
@@ -329,7 +338,13 @@ export const server = {
     update: defineAction({
       accept: 'form',
       input: z.object({ ...companyFormFields, id: z.number().int().positive() }),
-      handler: async (form) => updateCompany(getDb(), form.id, toCompanyInput(form)),
+      handler: async (form) => {
+        const db = getDb();
+        if (!getCompany(db, form.id)) {
+          throw new ActionError({ code: 'NOT_FOUND', message: 'La empresa no existe.' });
+        }
+        return updateCompany(db, form.id, toCompanyInput(form));
+      },
     }),
     remove: defineAction({
       input: idInput,
