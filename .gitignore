@@ -1,5 +1,7 @@
 node_modules/
 dist/
 .astro/
+data/
+uploads/
 .superpowers/
 .DS_Store
