@@ -6,19 +6,16 @@ import '../styles/global.css';
 
 interface Props {
   title: string;
-  description?: string;
 }
 
-const { title, description = 'Portal unificado de Grupo Empresarial CAP' } = Astro.props;
+const { title } = Astro.props;
 ---
 
 <html lang="es">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description} />
     <meta name="robots" content="noindex" />
-    <meta name="theme-color" content="#f7f6f3" />
     <title>{title}</title>
     <script is:inline>
       document.documentElement.classList.add('js-reveal');
@@ -30,15 +27,15 @@ const { title, description = 'Portal unificado de Grupo Empresarial CAP' } = Ast
     </script>
     <ClientRouter />
   </head>
-  <body class="flex min-h-screen flex-col bg-ink font-sans text-bright antialiased">
+  <body class="min-h-screen bg-base font-sans text-ink [background-image:radial-gradient(130%_90%_at_50%_-25%,#ffffff_0%,#eef0f3_65%)]">
     <a
       href="#contenido"
-      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-bright focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
+      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
     >
       Saltar al contenido
     </a>
     <Nav />
-    <main id="contenido" class="flex-1">
+    <main id="contenido" class="page-enter">
       <slot />
     </main>
     <Footer />

@@ -1,42 +1,41 @@
 ---
-import { siteConfig } from '../data/site';
-import { getDb } from '../lib/db';
+import { getDb, listCompanies } from '../lib/db';
 import { buildSearchItems } from '../lib/search';
+import { siteConfig } from '../data/site';
 import SearchFilter from './SearchFilter.vue';
 
+const db = getDb();
+const spectrum = listCompanies(db).map((company) => company.color).join(',');
+const searchItems = buildSearchItems(db);
 const currentPath = Astro.url.pathname.replace(/\/$/, '') || '/';
-const searchItems = buildSearchItems(getDb());
 ---
 
-<header class="sticky top-0 z-40 border-b border-edge bg-ink/80 backdrop-blur-md">
-  <div class="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:flex-nowrap sm:px-6">
-    <a href="/" class="flex shrink-0 items-center gap-2 text-lg font-bold tracking-tight">
-      <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#f59e0b] text-sm font-black text-bright">C</span>
-      <span>{siteConfig.name}</span>
-    </a>
-    <div class="order-3 w-full min-w-0 sm:order-2 sm:w-auto sm:flex-1">
-      <nav class="-my-1 flex min-w-0 items-center gap-1 overflow-x-auto py-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {
-          siteConfig.nav.map((item) => {
-            const isActive = currentPath === item.href;
-            return (
-              <a
-                href={item.href}
-                aria-current={isActive ? 'page' : undefined}
-                class:list={[
-                  'whitespace-nowrap rounded-lg px-3 py-2 transition-colors duration-200',
-                  isActive ? 'bg-accent/10 font-semibold text-accent' : 'text-body hover:bg-edge hover:text-bright',
-                ]}
-              >
-                {item.label}
-              </a>
-            );
-          })
-        }
+<header class="sticky top-0 z-40 bg-base/90 backdrop-blur">
+  <div class="mx-auto max-w-6xl px-4 sm:px-6">
+    <div class="flex items-center justify-between py-4">
+      <a href="/" class="text-sm font-bold tracking-[0.32em] text-ink">CAP&nbsp;SUITE</a>
+      <nav class="hidden items-center gap-6 text-[11px] tracking-wider text-muted sm:flex">
+        {siteConfig.nav.map((item) => (
+          <a
+            href={item.href}
+            class:list={['uppercase transition-colors hover:text-ink', currentPath === item.href && 'font-bold text-ink']}
+          >
+            {item.label}
+          </a>
+        ))}
       </nav>
-    </div>
-    <div class="order-2 ml-auto shrink-0 sm:order-3 sm:ml-0">
       <SearchFilter client:load mode="global" searchItems={searchItems} compact />
     </div>
+    <nav class="flex flex-wrap items-center gap-x-4 gap-y-2 pb-3 text-[11px] tracking-wider text-muted sm:hidden">
+      {siteConfig.nav.map((item) => (
+        <a
+          href={item.href}
+          class:list={['uppercase transition-colors hover:text-ink', currentPath === item.href && 'font-bold text-ink']}
+        >
+          {item.label}
+        </a>
+      ))}
+    </nav>
+    <div class="ambient-strip" style={`background:linear-gradient(90deg,${spectrum})`}></div>
   </div>
 </header>

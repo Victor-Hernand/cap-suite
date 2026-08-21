@@ -1,12 +1,10 @@
 ---
 import { siteConfig } from '../data/site';
-
-const year = new Date().getFullYear();
 ---
 
-<footer class="border-t border-edge">
-  <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-sm text-body sm:flex-row sm:px-6">
-    <p>{siteConfig.footerNote}</p>
-    <p>© {year} Grupo Empresarial CAP</p>
+<footer class="mt-16 border-t border-edge">
+  <div class="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-8 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <p class="text-sm font-bold tracking-[0.32em] text-ink">CAP&nbsp;SUITE</p>
+    <p class="font-mono text-[10px] uppercase tracking-widest text-muted">{siteConfig.footerNote}</p>
   </div>
 </footer>

@@ -13,10 +13,10 @@ if (result && !result.error) return Astro.redirect('/admin');
     <meta name="robots" content="noindex" />
     <title>Acceso admin — CAP Suite</title>
   </head>
-  <body class="flex min-h-screen items-center justify-center bg-ink font-sans">
+  <body class="flex min-h-screen items-center justify-center bg-base font-sans">
     <form method="POST" action={actions.auth.login} class="w-full max-w-sm rounded-2xl border border-edge bg-surface p-8 shadow-sm">
-      <p class="text-sm font-bold tracking-[0.32em] text-bright">CAP&nbsp;SUITE</p>
-      <h1 class="mt-4 text-xl font-extrabold text-bright">Acceso de administración</h1>
+      <p class="text-sm font-bold tracking-[0.32em] text-ink">CAP&nbsp;SUITE</p>
+      <h1 class="mt-4 text-xl font-extrabold text-ink">Acceso de administración</h1>
       {result?.error && <p class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{result.error.message}</p>}
       <label class="mt-5 block text-xs font-bold tracking-wider text-body" for="password">CONTRASEÑA</label>
       <input
@@ -25,9 +25,9 @@ if (result && !result.error) return Astro.redirect('/admin');
         type="password"
         required
         autofocus
-        class="mt-2 w-full rounded-lg border border-edge px-3 py-2 text-bright focus:border-accent"
+        class="mt-2 w-full rounded-lg border border-edge px-3 py-2 text-ink focus:border-ink"
       />
-      <button type="submit" class="mt-5 w-full rounded-lg bg-bright py-2.5 font-bold text-white">Entrar</button>
+      <button type="submit" class="mt-5 w-full rounded-lg bg-ink py-2.5 font-bold text-white">Entrar</button>
     </form>
   </body>
 </html>
