@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
-import SearchFilter from '../components/SearchFilter.vue';
+import AppCard from '../components/AppCard.astro';
 import { getDb, listApps } from '../lib/db';
 import { logoSrc } from '../lib/assets';
 import { appCategories } from '../data/categories';
@@ -20,6 +20,10 @@ const apps = listApps(db).map((app) => ({
   logo: logoSrc(app.logoPath),
   badge: app.badge as 'nuevo' | undefined,
 }));
+
+const categorySections = appCategories
+  .map((category) => ({ ...category, apps: apps.filter((app) => app.category === category.id) }))
+  .filter((section) => section.apps.length > 0);
 ---
 
 <Layout title="Aplicaciones — CAP Suite">
@@ -28,11 +32,23 @@ const apps = listApps(db).map((app) => ({
       as="h1"
       eyebrow="Aplicaciones"
       title="Todos los sistemas del grupo"
-      description="Busca por nombre o filtra por categoría. Cada tarjeta abre el sistema en una pestaña nueva."
+      description="Cada tarjeta abre el sistema en una pestaña nueva. Usa ⌘K para buscar por nombre."
     />
-    <div class="mt-10">
-      <SearchFilter client:load mode="catalog" apps={apps} categories={appCategories} />
-    </div>
+
+    {categorySections.length === 0 && (
+      <p class="mt-10 rounded-2xl border border-dashed border-edge-strong p-10 text-center text-sm text-body">
+        Aún no hay aplicaciones registradas.
+      </p>
+    )}
+
+    {categorySections.map((section) => (
+      <div class="mt-12">
+        <h2 class="font-mono text-xs uppercase tracking-widest text-muted">{section.label}</h2>
+        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {section.apps.map((app, index) => <AppCard app={app} index={index} />)}
+        </div>
+      </div>
+    ))}
 
     <div class="mt-16">
       <p class="font-mono text-xs uppercase tracking-widest text-accent">En camino</p>
