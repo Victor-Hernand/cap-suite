@@ -21,7 +21,10 @@ test('token expirado falla', () => {
 test('firma alterada falla', () => {
   const token = createSessionToken(SECRET, 1000);
   const [exp] = token.split('.');
-  expect(verifySessionToken(`${exp}.deadbeef`, SECRET)).toBe(false);
+  // nowMs explícito y anterior a exp: si esto pasara sin pasar nowMs, el
+  // token ya estaría expirado de todos modos y el test no probaría nada
+  // sobre la verificación de firma.
+  expect(verifySessionToken(`${exp}.deadbeef`, SECRET, 2000)).toBe(false);
 });
 
 test('secreto distinto falla', () => {

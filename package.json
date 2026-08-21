@@ -2,7 +2,9 @@
   "name": "cap-suite",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22" },
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -12,7 +14,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@astrojs/node": "^9.0.0",
+    "@astrojs/node": "^9.5.5",
     "@astrojs/vue": "^5.1.4",
     "astro": "^5.18.2",
     "better-sqlite3": "^13.0.3",
