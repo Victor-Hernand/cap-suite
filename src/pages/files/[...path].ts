@@ -24,9 +24,14 @@ export const GET: APIRoute = async ({ params }) => {
   const relativePath = params.path ?? '';
   const absolutePath = resolveUploadPath(relativePath);
   if (!absolutePath) return new Response('No encontrado', { status: 404 });
-  const info = await stat(absolutePath);
-  const contentType = CONTENT_TYPES[extname(absolutePath).toLowerCase()] ?? 'application/octet-stream';
-  return new Response(Readable.toWeb(createReadStream(absolutePath)) as ReadableStream, {
-    headers: { 'Content-Type': contentType, 'Content-Length': String(info.size) },
-  });
+  try {
+    const info = await stat(absolutePath);
+    if (!info.isFile()) return new Response('No encontrado', { status: 404 });
+    const contentType = CONTENT_TYPES[extname(absolutePath).toLowerCase()] ?? 'application/octet-stream';
+    return new Response(Readable.toWeb(createReadStream(absolutePath)) as ReadableStream, {
+      headers: { 'Content-Type': contentType, 'Content-Length': String(info.size) },
+    });
+  } catch {
+    return new Response('No encontrado', { status: 404 });
+  }
 };
