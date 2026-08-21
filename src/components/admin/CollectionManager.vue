@@ -27,6 +27,7 @@ const props = defineProps<{
   columns: Column[];
   fields: Field[];
   entityName: string;
+  entityNamePlural: string;
 }>();
 
 const group = computed(() => actions[props.collection]);
@@ -103,6 +104,7 @@ async function moveRowBy(id: number, direction: 'up' | 'down') {
 }
 
 async function toggleFeatured(row: Row) {
+  if (props.collection !== 'apps') return;
   await actions.apps.toggleFeatured({ id: row.id, featured: !row.featured });
   window.location.reload();
 }
@@ -130,7 +132,7 @@ async function toggleFeatured(row: Row) {
 
     <div class="mt-4 overflow-hidden rounded-xl border border-edge bg-surface">
       <div v-if="props.rows.length === 0" class="px-5 py-10 text-center text-sm text-body">
-        Aún no hay {{ props.entityName }}s. Crea la primera con el botón "Nueva {{ props.entityName }}".
+        Aún no hay {{ props.entityNamePlural }}. Crea la primera con el botón "Nueva {{ props.entityName }}".
       </div>
       <div v-else-if="visibleRows.length === 0" class="px-5 py-10 text-center text-sm text-body">
         Nada coincide con "{{ filterText }}".
