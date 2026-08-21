@@ -27,7 +27,7 @@ const { title } = Astro.props;
     </script>
     <ClientRouter />
   </head>
-  <body class="min-h-screen bg-base font-sans text-ink [background-image:radial-gradient(130%_90%_at_50%_-25%,#ffffff_0%,#eef0f3_65%)]">
+  <body class="flex min-h-screen flex-col bg-base font-sans text-ink [background-image:radial-gradient(130%_90%_at_50%_-25%,#ffffff_0%,#eef0f3_65%)]">
     <a
       href="#contenido"
       class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
@@ -35,7 +35,7 @@ const { title } = Astro.props;
       Saltar al contenido
     </a>
     <Nav />
-    <main id="contenido" class="page-enter">
+    <main id="contenido" class="flex-1 page-enter">
       <slot />
     </main>
     <Footer />
