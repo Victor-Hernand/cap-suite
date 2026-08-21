@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS companies (
   slogan TEXT NOT NULL,
   color TEXT NOT NULL,
   url TEXT,
+  logo_path TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -54,17 +55,27 @@ CREATE TABLE IF NOT EXISTS contacts (
   phone TEXT NOT NULL,
   email TEXT NOT NULL,
   extension TEXT,
+  photo_path TEXT,
   sort_order INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `;
 
+function ensureColumn(db: Db, table: string, column: string, definition: string): void {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+  if (!columns.some((entry) => entry.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`);
+  }
+}
+
 export function openDb(path = readEnv('DATABASE_PATH') ?? 'data/cap-suite.db'): Db {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new Database(path);
   db.pragma('journal_mode = WAL');
   db.exec(SCHEMA);
+  ensureColumn(db, 'companies', 'logo_path', 'TEXT');
+  ensureColumn(db, 'contacts', 'photo_path', 'TEXT');
   return db;
 }
 
@@ -214,6 +225,7 @@ export interface ContactRow {
   phone: string;
   email: string;
   extension: string | null;
+  photoPath: string | null;
   sortOrder: number;
 }
 
@@ -225,10 +237,11 @@ export interface ContactInput {
   phone: string;
   email: string;
   extension: string | null;
+  photoPath?: string | null;
 }
 
 const CONTACT_SELECT = `SELECT id, name, role, department, company, phone, email,
-  extension, sort_order AS sortOrder FROM contacts`;
+  extension, photo_path AS photoPath, sort_order AS sortOrder FROM contacts`;
 
 export function listContacts(db: Db): ContactRow[] {
   return db.prepare(`${CONTACT_SELECT} ORDER BY sort_order, id`).all() as ContactRow[];
@@ -240,17 +253,17 @@ export function getContact(db: Db, id: number): ContactRow | null {
 
 export function createContact(db: Db, input: ContactInput): ContactRow {
   const result = db
-    .prepare(`INSERT INTO contacts (name, role, department, company, phone, email, extension, sort_order)
-      VALUES (@name, @role, @department, @company, @phone, @email, @extension, @sortOrder)`)
-    .run({ ...input, sortOrder: nextSortOrder(db, 'contacts') });
+    .prepare(`INSERT INTO contacts (name, role, department, company, phone, email, extension, photo_path, sort_order)
+      VALUES (@name, @role, @department, @company, @phone, @email, @extension, @photoPath, @sortOrder)`)
+    .run({ ...input, photoPath: input.photoPath ?? null, sortOrder: nextSortOrder(db, 'contacts') });
   return getContact(db, Number(result.lastInsertRowid))!;
 }
 
 export function updateContact(db: Db, id: number, input: ContactInput): ContactRow | null {
   db.prepare(`UPDATE contacts SET name = @name, role = @role, department = @department,
-    company = @company, phone = @phone, email = @email, extension = @extension,
+    company = @company, phone = @phone, email = @email, extension = @extension, photo_path = @photoPath,
     updated_at = datetime('now') WHERE id = @id`)
-    .run({ ...input, id });
+    .run({ ...input, photoPath: input.photoPath ?? null, id });
   return getContact(db, id);
 }
 
@@ -269,6 +282,7 @@ export interface CompanyRow {
   slogan: string;
   color: string;
   url: string | null;
+  logoPath: string | null;
   sortOrder: number;
 }
 
@@ -279,10 +293,11 @@ export interface CompanyInput {
   slogan: string;
   color: string;
   url: string | null;
+  logoPath?: string | null;
 }
 
 const COMPANY_SELECT = `SELECT id, slug, name, segment, description, slogan, color,
-  url, sort_order AS sortOrder FROM companies`;
+  url, logo_path AS logoPath, sort_order AS sortOrder FROM companies`;
 
 export function listCompanies(db: Db): CompanyRow[] {
   return db.prepare(`${COMPANY_SELECT} ORDER BY sort_order, id`).all() as CompanyRow[];
@@ -301,16 +316,16 @@ export function createCompany(db: Db, input: CompanyInput): CompanyRow {
     attempt += 1;
   }
   const result = db
-    .prepare(`INSERT INTO companies (slug, name, segment, description, slogan, color, url, sort_order)
-      VALUES (@slug, @name, @segment, @description, @slogan, @color, @url, @sortOrder)`)
-    .run({ ...input, slug, sortOrder: nextSortOrder(db, 'companies') });
+    .prepare(`INSERT INTO companies (slug, name, segment, description, slogan, color, url, logo_path, sort_order)
+      VALUES (@slug, @name, @segment, @description, @slogan, @color, @url, @logoPath, @sortOrder)`)
+    .run({ ...input, slug, logoPath: input.logoPath ?? null, sortOrder: nextSortOrder(db, 'companies') });
   return getCompany(db, Number(result.lastInsertRowid))!;
 }
 
 export function updateCompany(db: Db, id: number, input: CompanyInput): CompanyRow | null {
   db.prepare(`UPDATE companies SET name = @name, segment = @segment, description = @description,
-    slogan = @slogan, color = @color, url = @url, updated_at = datetime('now') WHERE id = @id`)
-    .run({ ...input, id });
+    slogan = @slogan, color = @color, url = @url, logo_path = @logoPath, updated_at = datetime('now') WHERE id = @id`)
+    .run({ ...input, logoPath: input.logoPath ?? null, id });
   return getCompany(db, id);
 }
 

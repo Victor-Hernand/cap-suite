@@ -136,17 +136,22 @@ const contactFormFields = {
   phone: z.string().min(1, 'El teléfono es obligatorio'),
   email: z.string().email('Correo inválido'),
   extension: z.string().optional(),
+  photo: z.instanceof(File).optional(),
+  photoUrl: z.string().optional(),
 };
 
-function toContactInput(form: {
-  name: string;
-  role: string;
-  department: string;
-  company: string;
-  phone: string;
-  email: string;
-  extension?: string;
-}) {
+function toContactInput(
+  form: {
+    name: string;
+    role: string;
+    department: string;
+    company: string;
+    phone: string;
+    email: string;
+    extension?: string;
+  },
+  photoPath: string | null,
+) {
   return {
     name: form.name,
     role: form.role,
@@ -155,6 +160,7 @@ function toContactInput(form: {
     phone: form.phone,
     email: form.email,
     extension: form.extension?.trim() ? form.extension.trim() : null,
+    photoPath,
   };
 }
 
@@ -165,16 +171,21 @@ const companyFormFields = {
   slogan: z.string().min(1, 'El eslogan es obligatorio'),
   color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color hex inválido'),
   url: z.string().optional(),
+  logo: z.instanceof(File).optional(),
+  logoUrl: z.string().optional(),
 };
 
-function toCompanyInput(form: {
-  name: string;
-  segment: string;
-  description: string;
-  slogan: string;
-  color: string;
-  url?: string;
-}) {
+function toCompanyInput(
+  form: {
+    name: string;
+    segment: string;
+    description: string;
+    slogan: string;
+    color: string;
+    url?: string;
+  },
+  logoPath: string | null,
+) {
   return {
     name: form.name,
     segment: form.segment,
@@ -182,6 +193,7 @@ function toCompanyInput(form: {
     slogan: form.slogan,
     color: form.color,
     url: form.url?.trim() ? form.url.trim() : null,
+    logoPath,
   };
 }
 
@@ -301,23 +313,33 @@ export const server = {
     create: defineAction({
       accept: 'form',
       input: z.object(contactFormFields),
-      handler: async (form) => createContact(getDb(), toContactInput(form)),
+      handler: async (form) => {
+        const photoPath = await resolveLogoPath({ logo: form.photo, logoUrl: form.photoUrl });
+        return createContact(getDb(), toContactInput(form, photoPath));
+      },
     }),
     update: defineAction({
       accept: 'form',
       input: z.object({ ...contactFormFields, id: z.number().int().positive() }),
       handler: async (form) => {
         const db = getDb();
-        if (!getContact(db, form.id)) {
+        const existing = getContact(db, form.id);
+        if (!existing) {
           throw new ActionError({ code: 'NOT_FOUND', message: 'El contacto no existe.' });
         }
-        return updateContact(db, form.id, toContactInput(form));
+        const photoPath = await resolveLogoPath({
+          logo: form.photo,
+          logoUrl: form.photoUrl,
+          previousPath: existing.photoPath,
+        });
+        return updateContact(db, form.id, toContactInput(form, photoPath));
       },
     }),
     remove: defineAction({
       input: idInput,
       handler: async ({ id }) => {
-        deleteContact(getDb(), id);
+        const deleted = deleteContact(getDb(), id);
+        if (deleted?.photoPath) deleteUpload(deleted.photoPath);
         return { ok: true };
       },
     }),
@@ -333,23 +355,33 @@ export const server = {
     create: defineAction({
       accept: 'form',
       input: z.object(companyFormFields),
-      handler: async (form) => createCompany(getDb(), toCompanyInput(form)),
+      handler: async (form) => {
+        const logoPath = await resolveLogoPath({ logo: form.logo, logoUrl: form.logoUrl });
+        return createCompany(getDb(), toCompanyInput(form, logoPath));
+      },
     }),
     update: defineAction({
       accept: 'form',
       input: z.object({ ...companyFormFields, id: z.number().int().positive() }),
       handler: async (form) => {
         const db = getDb();
-        if (!getCompany(db, form.id)) {
+        const existing = getCompany(db, form.id);
+        if (!existing) {
           throw new ActionError({ code: 'NOT_FOUND', message: 'La empresa no existe.' });
         }
-        return updateCompany(db, form.id, toCompanyInput(form));
+        const logoPath = await resolveLogoPath({
+          logo: form.logo,
+          logoUrl: form.logoUrl,
+          previousPath: existing.logoPath,
+        });
+        return updateCompany(db, form.id, toCompanyInput(form, logoPath));
       },
     }),
     remove: defineAction({
       input: idInput,
       handler: async ({ id }) => {
-        deleteCompany(getDb(), id);
+        const deleted = deleteCompany(getDb(), id);
+        if (deleted?.logoPath) deleteUpload(deleted.logoPath);
         return { ok: true };
       },
     }),

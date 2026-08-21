@@ -7,6 +7,7 @@ const rows = listCompanies(getDb()).map((company) => ({
   ...company,
   ledColor: company.color,
   companyLabel: company.segment,
+  logoUrl: company.logoPath?.startsWith('http') ? company.logoPath : '',
 }));
 
 interface Column {
@@ -38,6 +39,8 @@ const fields: Field[] = [
   { name: 'slogan', label: 'SLOGAN', kind: 'text', required: true },
   { name: 'color', label: 'COLOR (HEX)', kind: 'text', required: true, placeholder: '#C62828' },
   { name: 'url', label: 'SITIO WEB', kind: 'text', placeholder: 'https://… (opcional)' },
+  { name: 'logo', label: 'LOGO', kind: 'file-logo' },
+  { name: 'logoUrl', label: 'O URL DE LOGO EXTERNO', kind: 'text', placeholder: 'https://… (opcional)' },
 ];
 ---
 

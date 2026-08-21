@@ -3,7 +3,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import CollectionManager from '../../components/admin/CollectionManager.vue';
 import { getDb, listContacts } from '../../lib/db';
 
-const rows = listContacts(getDb()).map((contact) => ({ ...contact }));
+const rows = listContacts(getDb()).map((contact) => ({
+  ...contact,
+  photoUrl: contact.photoPath?.startsWith('http') ? contact.photoPath : '',
+}));
 
 interface Column {
   key: string;
@@ -36,6 +39,8 @@ const fields: Field[] = [
   { name: 'phone', label: 'TELÉFONO', kind: 'text', required: true },
   { name: 'email', label: 'CORREO', kind: 'email', required: true },
   { name: 'extension', label: 'EXTENSIÓN', kind: 'text', placeholder: 'opcional' },
+  { name: 'photo', label: 'FOTO', kind: 'file-logo' },
+  { name: 'photoUrl', label: 'O URL DE FOTO EXTERNA', kind: 'text', placeholder: 'https://… (opcional)' },
 ];
 ---
 

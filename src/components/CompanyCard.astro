@@ -1,29 +1,90 @@
 ---
 import type { CompanyRow } from '../lib/db';
+import { logoSrc } from '../lib/assets';
 
 interface Props {
   company: CompanyRow;
+  systemsCount?: number;
+  erpUrl?: string | null;
 }
 
-const { company } = Astro.props;
+const { company, systemsCount = 0, erpUrl = null } = Astro.props;
+
+const logo = logoSrc(company.logoPath);
+const monogram = company.name.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase();
+
+const marketMatch = company.segment.match(/\b(B2B|B2C)\b/);
+const market = marketMatch?.[1] ?? null;
+const segmentLabel = market
+  ? company.segment.replace(/\s*\b(B2B|B2C)\b\s*/, ' ').trim()
+  : company.segment;
 ---
 
-<article class="overflow-hidden rounded-xl border border-edge bg-surface shadow-[0_1px_6px_rgba(21,24,29,0.05)]">
-  <div class="h-[3px]" style={`background:${company.color}`}></div>
-  <div class="p-4">
-    <p class="text-sm font-bold text-ink">{company.name}</p>
-    <p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted">{company.segment}</p>
-    <p class="mt-3 text-sm italic text-body">“{company.slogan}”</p>
-    <p class="mt-2 text-sm text-body">{company.description}</p>
-    {company.url && (
-      <a
-        href={company.url}
-        target="_blank"
-        rel="noopener"
-        class="mt-3 inline-block font-mono text-[10px] uppercase tracking-[0.16em] text-muted transition-colors hover:text-ink"
+<article
+  class="group flex h-full flex-col rounded-xl border border-edge bg-surface shadow-[0_1px_6px_rgba(21,24,29,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+>
+  <div class="flex items-start gap-3 p-4 pb-3">
+    {logo ? (
+      <img
+        src={logo}
+        alt={`Logo de ${company.name}`}
+        width="44"
+        height="44"
+        class="h-11 w-11 shrink-0 rounded-lg border border-edge bg-white object-contain p-1"
+      />
+    ) : (
+      <span
+        class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg font-mono text-sm font-bold text-white"
+        style={`background:${company.color}`}
+        aria-hidden="true"
       >
-        Sitio web →
-      </a>
+        {monogram}
+      </span>
     )}
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-bold text-ink">{company.name}</p>
+      <p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted">{segmentLabel}</p>
+    </div>
+    {market && (
+      <span class="shrink-0 rounded border border-edge bg-base px-1.5 py-0.5 font-mono text-[9px] font-medium tracking-[0.12em] text-body">
+        {market}
+      </span>
+    )}
+  </div>
+
+  <div class="px-4">
+    <p class="border-l-2 pl-3 text-sm italic text-body" style={`border-color:${company.color}`}>
+      “{company.slogan}”
+    </p>
+    <p class="mt-3 text-sm leading-relaxed text-body">{company.description}</p>
+  </div>
+
+  <div class="mt-auto flex items-center justify-between gap-3 border-t border-edge px-4 py-3">
+    <span class="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.14em] text-muted">
+      <span class="h-1.5 w-1.5 rounded-full" style={`background:${company.color}`}></span>
+      {systemsCount} {systemsCount === 1 ? 'sistema' : 'sistemas'}
+    </span>
+    <span class="flex items-center gap-3">
+      {erpUrl && (
+        <a
+          href={erpUrl}
+          target="_blank"
+          rel="noopener"
+          class="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-ink transition-colors hover:opacity-70"
+        >
+          Abrir ERP →
+        </a>
+      )}
+      {company.url && (
+        <a
+          href={company.url}
+          target="_blank"
+          rel="noopener"
+          class="font-mono text-[10px] uppercase tracking-[0.14em] text-muted transition-colors hover:text-ink"
+        >
+          Sitio web →
+        </a>
+      )}
+    </span>
   </div>
 </article>
