@@ -1,15 +1,38 @@
 ---
-import AppCardContent from './AppCardContent.vue';
-import type { AppLink } from '../data/types';
+import { getDb, companyColorFor } from '../lib/db';
+import { appCategories } from '../data/categories';
+import type { AppRow } from '../lib/db';
+import { logoSrc } from '../lib/assets';
 
 interface Props {
-  app: AppLink;
-  index?: number;
+  app: AppRow;
 }
 
-const { app, index = 0 }: Props = Astro.props;
+const { app } = Astro.props;
+const ledColor = companyColorFor(getDb(), app.companyLabel) ?? '#15181D';
+const categoryLabel = appCategories.find((category) => category.id === app.category)?.label ?? app.category;
+const logo = logoSrc(app.logoPath);
 ---
 
-<div class="h-full" data-reveal style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`}>
-  <AppCardContent app={app} />
-</div>
+<a
+  href={app.url}
+  target="_blank"
+  rel="noopener"
+  class="group flex flex-col rounded-xl border border-edge bg-surface p-4 shadow-[0_1px_6px_rgba(21,24,29,0.05)] transition-all hover:-translate-y-0.5 hover:shadow-md"
+>
+  <div class="flex items-center justify-between">
+    {logo
+      ? <img src={logo} alt="" width="26" height="26" class="h-[26px] w-[26px] rounded-md object-contain" />
+      : <span class="flex h-[26px] w-[26px] items-center justify-center rounded-md bg-base font-mono text-[10px] text-body">{app.name.slice(0, 2).toUpperCase()}</span>}
+    <span
+      class="h-1.5 w-1.5 rounded-full"
+      style={`background:${ledColor};box-shadow:0 0 6px ${ledColor}99`}
+      title={app.companyLabel ?? undefined}
+    ></span>
+  </div>
+  <p class="mt-3 flex items-center gap-2 text-sm font-bold text-ink">
+    {app.name}
+    {app.badge && <span class="rounded bg-admin-gold/20 px-1.5 py-0.5 font-mono text-[8px] uppercase tracking-widest text-ink">{app.badge}</span>}
+  </p>
+  <p class="mt-0.5 font-mono text-[9px] uppercase tracking-[0.16em] text-muted">{categoryLabel}</p>
+</a>

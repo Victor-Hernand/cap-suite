@@ -3,72 +3,58 @@ import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import AppCard from '../components/AppCard.astro';
 import { getDb, listApps } from '../lib/db';
-import { logoSrc } from '../lib/assets';
 import { appCategories } from '../data/categories';
-import { upcomingApps } from '../data/apps';
-import type { AppCategory } from '../data/types';
 
 const db = getDb();
-const apps = listApps(db).map((app) => ({
-  id: String(app.id),
-  name: app.name,
-  description: app.description,
-  url: app.url,
-  category: app.category as AppCategory,
-  featured: app.featured,
-  company: app.companyLabel ?? undefined,
-  logo: logoSrc(app.logoPath),
-  badge: app.badge as 'nuevo' | undefined,
-}));
+const apps = listApps(db);
 
 const categorySections = appCategories
   .map((category) => ({ ...category, apps: apps.filter((app) => app.category === category.id) }))
   .filter((section) => section.apps.length > 0);
+
+const upcomingApps = [
+  { name: 'Correos profesionales', description: 'Gestión de correo corporativo.' },
+  { name: 'Cotizaciones', description: 'Generador de cotizaciones.' },
+  { name: 'Firma electrónica PDF', description: 'Firmar documentos PDF.' },
+  { name: 'Traductor ES–EN', description: 'Traducción de documentos y textos.' },
+  { name: 'To-Do + Pomodoro', description: 'Tareas personales con temporizador.' },
+  { name: 'Contratos tipo', description: 'Plantillas de contratos.' },
+];
 ---
 
 <Layout title="Aplicaciones — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <SectionHeader
-      as="h1"
-      eyebrow="Aplicaciones"
-      title="Todos los sistemas del grupo"
-      description="Cada tarjeta abre el sistema en una pestaña nueva. Usa ⌘K para buscar por nombre."
-    />
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-6 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Aplicaciones" title="Todos los sistemas del grupo" />
 
     {categorySections.length === 0 && (
-      <p class="mt-10 rounded-2xl border border-dashed border-edge-strong p-10 text-center text-sm text-body">
+      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
         Aún no hay aplicaciones registradas.
       </p>
     )}
 
     {categorySections.map((section) => (
-      <div class="mt-12">
-        <h2 class="font-mono text-xs uppercase tracking-widest text-muted">{section.label}</h2>
-        <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {section.apps.map((app, index) => <AppCard app={app} index={index} />)}
+      <div class="mt-10">
+        <div class="flex items-baseline justify-between border-b border-edge pb-2">
+          <h2 class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{section.label}</h2>
+          <span class="font-mono text-[10px] tracking-[0.18em] text-muted">
+            {section.apps.length} {section.apps.length === 1 ? 'sistema' : 'sistemas'}
+          </span>
+        </div>
+        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {section.apps.map((app) => <AppCard app={app} />)}
         </div>
       </div>
     ))}
 
-    <div class="mt-16">
-      <p class="font-mono text-xs uppercase tracking-widest text-accent">En camino</p>
-      <h2 class="mt-2 text-xl font-bold tracking-tight">Próximamente</h2>
-      <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {
-          upcomingApps.map((app, index) => (
-            <div
-              data-reveal
-              style={`--reveal-delay: ${Math.min(index, 6) * 0.04}s`}
-              class="rounded-2xl border border-dashed border-edge-strong bg-surface/60 p-5"
-            >
-              <span class="text-[10px] font-mono uppercase tracking-wider rounded-full bg-teal-500/10 px-2 py-0.5 text-accent">
-                Próximamente
-              </span>
-              <h3 class="mt-3 font-semibold text-bright">{app.name}</h3>
-              <p class="mt-1 text-sm text-body">{app.description}</p>
-            </div>
-          ))
-        }
+    <div class="mt-12">
+      <h2 class="border-b border-edge pb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">En camino</h2>
+      <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {upcomingApps.map((app) => (
+          <div class="rounded-xl border border-dashed border-edge-strong p-4">
+            <p class="text-sm font-bold text-ink">{app.name}</p>
+            <p class="mt-1 text-sm text-body">{app.description}</p>
+          </div>
+        ))}
       </div>
     </div>
   </section>

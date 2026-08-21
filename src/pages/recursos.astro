@@ -3,49 +3,38 @@ import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import ResourceCard from '../components/ResourceCard.astro';
 import { getDb, listResources } from '../lib/db';
-import { resourceTypes } from '../data/resources';
-import type { ResourceType } from '../data/types';
+import { resourceTypes } from '../data/categories';
 
 const db = getDb();
-const resources = listResources(db).map((resource) => ({
-  id: String(resource.id),
-  name: resource.name,
-  description: resource.description,
-  url: resource.url ?? `/files/${resource.filePath}`,
-  type: resource.type as ResourceType,
-}));
+const resources = listResources(db);
 
 const groups = resourceTypes
-  .map((type) => ({
-    label: type.label,
-    items: resources.filter((resource) => resource.type === type.id),
-  }))
+  .map((type) => ({ label: type.label, items: resources.filter((resource) => resource.type === type.id) }))
   .filter((group) => group.items.length > 0);
 ---
 
 <Layout title="Recursos — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <SectionHeader
-      as="h1"
-      eyebrow="Recursos"
-      title="Materiales y documentos"
-      description="Manuales, plantillas y carpetas compartidas del grupo."
-    />
-    <div class="mt-10 space-y-12">
-      {
-        groups.map((group) => (
-          <div>
-            <h2 class="text-xl font-bold tracking-tight" data-reveal>
-              {group.label}
-            </h2>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {group.items.map((resource, index) => (
-                <ResourceCard resource={resource} index={index} />
-              ))}
-            </div>
-          </div>
-        ))
-      }
-    </div>
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Recursos" title="Materiales y documentos" />
+
+    {groups.length === 0 && (
+      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
+        Aún no hay recursos publicados.
+      </p>
+    )}
+
+    {groups.map((group) => (
+      <div class="mt-10">
+        <div class="flex items-baseline justify-between border-b border-edge pb-2">
+          <h2 class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{group.label}</h2>
+          <span class="font-mono text-[10px] tracking-[0.18em] text-muted">
+            {group.items.length} {group.items.length === 1 ? 'recurso' : 'recursos'}
+          </span>
+        </div>
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {group.items.map((resource) => <ResourceCard resource={resource} />)}
+        </div>
+      </div>
+    ))}
   </section>
 </Layout>

@@ -5,15 +5,7 @@ import ContactCard from '../components/ContactCard.astro';
 import { getDb, listContacts } from '../lib/db';
 
 const db = getDb();
-const contacts = listContacts(db).map((contact) => ({
-  name: contact.name,
-  role: contact.role,
-  department: contact.department,
-  company: contact.company,
-  phone: contact.phone,
-  email: contact.email,
-  extension: contact.extension ?? undefined,
-}));
+const contacts = listContacts(db);
 
 const departments = [...new Set(contacts.map((contact) => contact.department))];
 const groups = departments.map((department) => ({
@@ -23,31 +15,27 @@ const groups = departments.map((department) => ({
 ---
 
 <Layout title="Contactos — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <p class="mb-8 rounded-2xl border border-edge-strong bg-amber-500/10 p-4 text-sm text-bright">
-      <strong class="font-semibold">Directorio en construcción:</strong> estos datos son de ejemplo.
-    </p>
-    <SectionHeader
-      as="h1"
-      eyebrow="Contactos"
-      title="Directorio del grupo"
-      description="Personas clave por departamento, con teléfono y correo directo."
-    />
-    <div class="mt-10 space-y-12">
-      {
-        groups.map((group) => (
-          <div>
-            <h2 class="text-xl font-bold tracking-tight" data-reveal>
-              {group.department}
-            </h2>
-            <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {group.items.map((contact, index) => (
-                <ContactCard contact={contact} index={index} />
-              ))}
-            </div>
-          </div>
-        ))
-      }
-    </div>
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Contactos" title="Directorio del grupo" />
+
+    {groups.length === 0 && (
+      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
+        Aún no hay contactos en el directorio.
+      </p>
+    )}
+
+    {groups.map((group) => (
+      <div class="mt-10">
+        <div class="flex items-baseline justify-between border-b border-edge pb-2">
+          <h2 class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{group.department}</h2>
+          <span class="font-mono text-[10px] tracking-[0.18em] text-muted">
+            {group.items.length} {group.items.length === 1 ? 'persona' : 'personas'}
+          </span>
+        </div>
+        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {group.items.map((contact) => <ContactCard contact={contact} />)}
+        </div>
+      </div>
+    ))}
   </section>
 </Layout>

@@ -59,72 +59,8 @@
   color: var(--color-ink);
 }
 
-.lift {
-  transition:
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 14px 40px -12px rgb(30 39 53 / 0.18);
-}
-
-.blob {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(60px);
-  pointer-events: none;
-}
-
-.blob-drift {
-  animation: blob-drift 14s ease-in-out infinite;
-  will-change: transform;
-}
-
-@keyframes blob-drift {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-  50% {
-    transform: translate(24px, -18px) scale(1.06);
-  }
-}
-
-/* El estado oculto solo existe bajo `.js-reveal`, que el script inline del <head>
-   pone y retira si el observer no llegó a arrancar: sin JavaScript la página se ve completa. */
-.js-reveal [data-reveal]:not(.revealed) {
-  opacity: 0;
-  transform: translateY(12px);
-}
-
-[data-reveal] {
-  transition:
-    opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  transition-delay: var(--reveal-delay, 0s);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .page-enter {
-    animation: none;
-  }
-
-  .js-reveal [data-reveal]:not(.revealed) {
-    opacity: 1;
-    transform: none;
-    transition: none;
-  }
-
-  .lift,
-  .lift:hover {
-    transition: none;
-    transform: none;
-    box-shadow: none;
-  }
-
-  .blob-drift {
     animation: none;
   }
 

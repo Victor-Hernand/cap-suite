@@ -3,25 +3,30 @@ import Layout from '../layouts/Layout.astro';
 import SectionHeader from '../components/SectionHeader.astro';
 import CompanyCard from '../components/CompanyCard.astro';
 import { getDb, listCompanies } from '../lib/db';
-import { companiesIntro } from '../data/companies';
 
 const db = getDb();
-const companies = listCompanies(db).map((company) => ({
-  id: company.slug,
-  name: company.name,
-  segment: company.segment,
-  description: company.description,
-  slogan: company.slogan,
-  color: company.color,
-  url: company.url ?? undefined,
-}));
+const companies = listCompanies(db);
+
+const companiesIntro = {
+  title: 'Las empresas del grupo',
+  description:
+    'Grupo Empresarial CAP es un conglomerado automotriz líder en Honduras. Cada empresa del grupo cubre un eslabón de la cadena: importación, distribución, venta al detalle, servicio e instalación, y logística.',
+};
 ---
 
 <Layout title="Empresas — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-    <SectionHeader as="h1" eyebrow="Grupo Empresarial CAP" title={companiesIntro.title} description={companiesIntro.description} />
-    <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {companies.map((company, index) => <CompanyCard company={company} index={index} />)}
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Grupo Empresarial CAP" title={companiesIntro.title} />
+    <p class="mt-3 max-w-2xl text-sm text-body">{companiesIntro.description}</p>
+
+    {companies.length === 0 && (
+      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
+        Aún no hay empresas registradas.
+      </p>
+    )}
+
+    <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {companies.map((company) => <CompanyCard company={company} />)}
     </div>
   </section>
 </Layout>

@@ -1,4 +1,4 @@
-import type { AppCategory } from './types';
+import type { AppCategory, ResourceType } from './types';
 
 export const appCategories: { id: AppCategory; label: string }[] = [
   { id: 'erp', label: 'ERP FastBI' },
@@ -9,11 +9,9 @@ export const appCategories: { id: AppCategory; label: string }[] = [
   { id: 'marketing', label: 'Marketing y Clientes' },
 ];
 
-export const categoryStyles: Record<AppCategory, { tile: string }> = {
-  erp: { tile: 'bg-amber-500/10 text-electric' },
-  microsoft365: { tile: 'bg-sky-500/10 text-sky-800' },
-  portals: { tile: 'bg-teal-500/10 text-accent' },
-  tools: { tile: 'bg-indigo-500/10 text-indigo-700' },
-  talent: { tile: 'bg-rose-500/10 text-rose-700' },
-  marketing: { tile: 'bg-fuchsia-500/10 text-fuchsia-700' },
-};
+export const resourceTypes: { id: ResourceType; label: string; badge: string }[] = [
+  { id: 'manual', label: 'Manuales', badge: 'MANUAL' },
+  { id: 'template', label: 'Plantillas', badge: 'PLANTILLA' },
+  { id: 'folder', label: 'Carpetas compartidas', badge: 'CARPETA' },
+  { id: 'link', label: 'Enlaces', badge: 'ENLACE' },
+];
