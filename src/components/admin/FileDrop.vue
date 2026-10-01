@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { labelClass } from './formStyles';
 
 const props = defineProps<{
   name: string;
@@ -33,7 +34,7 @@ function onDrop(event: DragEvent) {
 
 <template>
   <div>
-    <p class="mb-1 text-[10px] font-bold tracking-wider text-body">{{ props.label }}</p>
+    <p :class="labelClass">{{ props.label }}</p>
     <div
       class="cursor-pointer rounded-lg border border-dashed p-4 text-center text-xs transition-colors"
       :class="dragging ? 'border-ink bg-white' : 'border-edge-strong bg-base text-muted'"

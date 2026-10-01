@@ -1,28 +1,15 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import CollectionManager from '../../components/admin/CollectionManager.vue';
+import type { Column, Field } from '../../components/admin/types';
 import { getDb, listContacts } from '../../lib/db';
+import { departments } from '../../data/departments';
+import { FIELD_MAX, PHONE_HINT } from '../../lib/fieldRules';
 
 const rows = listContacts(getDb()).map((contact) => ({
   ...contact,
   photoUrl: contact.photoPath?.startsWith('http') ? contact.photoPath : '',
 }));
-
-interface Column {
-  key: string;
-  label: string;
-  kind?: 'text' | 'muted' | 'led' | 'toggle';
-}
-
-interface Field {
-  name: string;
-  label: string;
-  kind: 'text' | 'url' | 'email' | 'textarea' | 'select' | 'toggle' | 'file-logo' | 'file-doc';
-  options?: { value: string; label: string }[];
-  suggestions?: string[];
-  required?: boolean;
-  placeholder?: string;
-}
 
 const columns: Column[] = [
   { key: 'name', label: 'Nombre' },
@@ -32,15 +19,29 @@ const columns: Column[] = [
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true },
-  { name: 'role', label: 'CARGO', kind: 'text', required: true },
-  { name: 'department', label: 'DEPARTAMENTO', kind: 'text', required: true },
-  { name: 'company', label: 'EMPRESA', kind: 'text', required: true },
-  { name: 'phone', label: 'TELÉFONO', kind: 'text', required: true },
-  { name: 'email', label: 'CORREO', kind: 'email', required: true },
-  { name: 'extension', label: 'EXTENSIÓN', kind: 'text', placeholder: 'opcional' },
+  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'role', label: 'CARGO', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
+  {
+    name: 'department',
+    label: 'DEPARTAMENTO',
+    kind: 'select',
+    required: true,
+    options: departments.map((department) => ({ value: department, label: department })),
+  },
+  { name: 'company', label: 'EMPRESA', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
+  {
+    name: 'phone',
+    label: 'TELÉFONO',
+    kind: 'tel',
+    required: true,
+    placeholder: '+504 9999-9999',
+    hint: PHONE_HINT,
+    maxLength: FIELD_MAX.phone,
+  },
+  { name: 'email', label: 'CORREO', kind: 'email', required: true, maxLength: FIELD_MAX.email },
+  { name: 'extension', label: 'EXTENSIÓN', kind: 'text', placeholder: 'opcional, solo números', maxLength: FIELD_MAX.extension },
   { name: 'photo', label: 'FOTO', kind: 'file-logo' },
-  { name: 'photoUrl', label: 'O URL DE FOTO EXTERNA', kind: 'text', placeholder: 'https://… (opcional)' },
+  { name: 'photoUrl', label: 'O URL DE FOTO EXTERNA', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
 ];
 ---
 
@@ -52,6 +53,7 @@ const fields: Field[] = [
       client:load
       collection="contacts"
       entityName="contacto"
+      entityGender="m"
       entityNamePlural="contactos"
       rows={rows}
       columns={columns}

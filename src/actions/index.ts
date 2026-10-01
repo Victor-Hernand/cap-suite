@@ -22,28 +22,36 @@ import {
   updateCompany,
   deleteCompany,
   moveRow,
+  hasDuplicate,
+  UNIQUE_COLUMN,
+  type SortableTable,
 } from '../lib/db';
 import { storeUpload, validateUpload, deleteUpload } from '../lib/uploads';
-import { appCategories } from '../data/categories';
+import { appFormFields, companyFormFields, contactFormFields, resourceFormFields } from './formSchemas';
 
 const delay = (ms: number) => new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
 
-const CATEGORY_IDS = appCategories.map((category) => category.id) as [string, ...string[]];
+const DUPLICATE_MESSAGES: Record<SortableTable, (value: string) => string> = {
+  apps: (value) => `Ya existe una aplicación llamada «${value}». Usa otro nombre o edita la existente.`,
+  resources: (value) => `Ya existe un recurso llamado «${value}». Usa otro nombre o edita el existente.`,
+  contacts: (value) => `Ya existe un contacto con el correo ${value}. Edita el contacto existente.`,
+  companies: (value) => `Ya existe una empresa llamada «${value}». Usa otro nombre o edita la existente.`,
+};
+
+/** Rechaza el alta o edición si otro registro ya usa el valor único de la colección. */
+function assertUnique<T extends SortableTable>(
+  table: T,
+  form: Record<(typeof UNIQUE_COLUMN)[T], string>,
+  excludeId?: number,
+): void {
+  const value = form[UNIQUE_COLUMN[table]];
+  if (hasDuplicate(getDb(), table, value, excludeId)) {
+    throw new ActionError({ code: 'CONFLICT', message: DUPLICATE_MESSAGES[table](value) });
+  }
+}
 
 const idInput = z.object({ id: z.number().int().positive() });
 const moveInput = idInput.extend({ direction: z.enum(['up', 'down']) });
-
-const appFormFields = {
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  description: z.string().min(1, 'La descripción es obligatoria'),
-  url: z.string().url('Debe ser una URL válida'),
-  category: z.enum(CATEGORY_IDS),
-  companyLabel: z.string().optional(),
-  badge: z.string().optional(),
-  featured: z.boolean().optional(),
-  logo: z.instanceof(File).optional(),
-  logoUrl: z.string().optional(),
-};
 
 async function resolveLogoPath(input: {
   logo?: File;
@@ -85,16 +93,6 @@ function toAppInput(
   };
 }
 
-const resourceTypes = z.enum(['manual', 'template', 'folder', 'link']);
-
-const resourceFormFields = {
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  description: z.string().min(1, 'La descripción es obligatoria'),
-  type: resourceTypes,
-  url: z.string().optional(),
-  file: z.instanceof(File).optional(),
-};
-
 async function resolveResourceSource(
   form: { url?: string; file?: File },
   previous?: { url: string | null; filePath: string | null },
@@ -112,7 +110,7 @@ async function resolveResourceSource(
     return { url: form.url!.trim(), filePath: null };
   }
   if (previous && (previous.url || previous.filePath)) return previous;
-  throw new ActionError({ code: 'BAD_REQUEST', message: 'Indica un enlace o sube un archivo.' });
+  throw new ActionError({ code: 'BAD_REQUEST', message: 'El recurso necesita un enlace o un archivo: escribe la dirección web o sube el documento.' });
 }
 
 function toResourceInput(
@@ -127,18 +125,6 @@ function toResourceInput(
     filePath: source.filePath,
   };
 }
-
-const contactFormFields = {
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  role: z.string().min(1, 'El cargo es obligatorio'),
-  department: z.string().min(1, 'El departamento es obligatorio'),
-  company: z.string().min(1, 'La empresa es obligatoria'),
-  phone: z.string().min(1, 'El teléfono es obligatorio'),
-  email: z.string().email('Correo inválido'),
-  extension: z.string().optional(),
-  photo: z.instanceof(File).optional(),
-  photoUrl: z.string().optional(),
-};
 
 function toContactInput(
   form: {
@@ -163,17 +149,6 @@ function toContactInput(
     photoPath,
   };
 }
-
-const companyFormFields = {
-  name: z.string().min(1, 'El nombre es obligatorio'),
-  segment: z.string().min(1, 'El segmento es obligatorio'),
-  description: z.string().min(1, 'La descripción es obligatoria'),
-  slogan: z.string().min(1, 'El eslogan es obligatorio'),
-  color: z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Color hex inválido'),
-  url: z.string().optional(),
-  logo: z.instanceof(File).optional(),
-  logoUrl: z.string().optional(),
-};
 
 function toCompanyInput(
   form: {
@@ -231,6 +206,7 @@ export const server = {
       accept: 'form',
       input: z.object(appFormFields),
       handler: async (form) => {
+        assertUnique('apps', form);
         const logoPath = await resolveLogoPath({ logo: form.logo, logoUrl: form.logoUrl });
         return createApp(getDb(), toAppInput(form, logoPath));
       },
@@ -239,6 +215,7 @@ export const server = {
       accept: 'form',
       input: z.object({ ...appFormFields, id: z.number().int().positive() }),
       handler: async (form) => {
+        assertUnique('apps', form, form.id);
         const db = getDb();
         const existing = getApp(db, form.id);
         if (!existing) throw new ActionError({ code: 'NOT_FOUND', message: 'La aplicación no existe.' });
@@ -278,6 +255,7 @@ export const server = {
       accept: 'form',
       input: z.object(resourceFormFields),
       handler: async (form) => {
+        assertUnique('resources', form);
         const source = await resolveResourceSource(form);
         return createResource(getDb(), toResourceInput(form, source));
       },
@@ -286,6 +264,7 @@ export const server = {
       accept: 'form',
       input: z.object({ ...resourceFormFields, id: z.number().int().positive() }),
       handler: async (form) => {
+        assertUnique('resources', form, form.id);
         const db = getDb();
         const existing = getResource(db, form.id);
         if (!existing) throw new ActionError({ code: 'NOT_FOUND', message: 'El recurso no existe.' });
@@ -314,6 +293,7 @@ export const server = {
       accept: 'form',
       input: z.object(contactFormFields),
       handler: async (form) => {
+        assertUnique('contacts', form);
         const photoPath = await resolveLogoPath({ logo: form.photo, logoUrl: form.photoUrl });
         return createContact(getDb(), toContactInput(form, photoPath));
       },
@@ -322,6 +302,7 @@ export const server = {
       accept: 'form',
       input: z.object({ ...contactFormFields, id: z.number().int().positive() }),
       handler: async (form) => {
+        assertUnique('contacts', form, form.id);
         const db = getDb();
         const existing = getContact(db, form.id);
         if (!existing) {
@@ -356,6 +337,7 @@ export const server = {
       accept: 'form',
       input: z.object(companyFormFields),
       handler: async (form) => {
+        assertUnique('companies', form);
         const logoPath = await resolveLogoPath({ logo: form.logo, logoUrl: form.logoUrl });
         return createCompany(getDb(), toCompanyInput(form, logoPath));
       },
@@ -364,6 +346,7 @@ export const server = {
       accept: 'form',
       input: z.object({ ...companyFormFields, id: z.number().int().positive() }),
       handler: async (form) => {
+        assertUnique('companies', form, form.id);
         const db = getDb();
         const existing = getCompany(db, form.id);
         if (!existing) {

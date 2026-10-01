@@ -1,37 +1,38 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, toRef } from 'vue';
 import { actions, isInputError } from 'astro:actions';
-import FileDrop from './FileDrop.vue';
-
-type Row = Record<string, unknown> & { id: number };
-
-interface Column {
-  key: string;
-  label: string;
-  kind?: 'text' | 'muted' | 'led' | 'toggle';
-}
-
-interface Field {
-  name: string;
-  label: string;
-  kind: 'text' | 'url' | 'email' | 'textarea' | 'select' | 'toggle' | 'file-logo' | 'file-doc';
-  options?: { value: string; label: string }[];
-  suggestions?: string[];
-  required?: boolean;
-  placeholder?: string;
-}
+import FormField from './FormField.vue';
+import { useTableView } from './useTableView';
+import { alertErrorClass, inputClass, pagerButtonClass } from './formStyles';
+import { UPLOAD_RULES, uploadLimitLabel } from '../../lib/fieldRules';
+import { FILE_FIELD_UPLOAD_KIND, type Collection, type Column, type Field, type Row } from './types';
 
 const props = defineProps<{
-  collection: 'apps' | 'resources' | 'contacts' | 'companies';
+  collection: Collection;
   rows: Row[];
   columns: Column[];
   fields: Field[];
   entityName: string;
   entityNamePlural: string;
+  /** Género gramatical de la entidad: "Nuevo recurso" / "Nueva empresa". */
+  entityGender: 'm' | 'f';
 }>();
 
 const group = computed(() => actions[props.collection]);
-const filterText = ref('');
+const {
+  filterText,
+  sortKey,
+  sortDirection,
+  page,
+  pageCount,
+  pageRows,
+  rangeStart,
+  rangeEnd,
+  totalFiltered,
+  isManualOrder,
+  toggleSort,
+} = useTableView(toRef(props, 'rows'), toRef(props, 'columns'));
+
 const modalOpen = ref(false);
 const editingRow = ref<Row | null>(null);
 const submitting = ref(false);
@@ -40,26 +41,33 @@ const fieldErrors = ref<Record<string, string[]>>({});
 const pendingDeleteId = ref<number | null>(null);
 const formRef = ref<HTMLFormElement | null>(null);
 
-const visibleRows = computed(() => {
-  const query = filterText.value.trim().toLowerCase();
-  if (!query) return props.rows;
-  return props.rows.filter((row) =>
-    props.columns.some((column) => String(row[column.key] ?? '').toLowerCase().includes(query)),
-  );
-});
+const newLabel = computed(() => `${props.entityGender === 'f' ? 'Nueva' : 'Nuevo'} ${props.entityName}`);
+const firstOneLabel = computed(() => (props.entityGender === 'f' ? 'la primera' : 'el primero'));
+const hasRequiredFields = computed(() => props.fields.some((field) => field.required));
+const columnSpan = computed(() => props.columns.length + 1);
 
-function openCreate() {
-  editingRow.value = null;
+const SORT_STATE = {
+  none: { icon: '↕', aria: 'none' },
+  asc: { icon: '↑', aria: 'ascending' },
+  desc: { icon: '↓', aria: 'descending' },
+} as const;
+
+type ActionFailure = { code?: string; status?: number; message: string };
+type ActionResult = { error?: ActionFailure };
+
+function sortState(key: string) {
+  return SORT_STATE[sortKey.value === key ? sortDirection.value : 'none'];
+}
+
+function openForm(row: Row | null = null) {
+  editingRow.value = row;
   formError.value = '';
   fieldErrors.value = {};
   modalOpen.value = true;
 }
 
-function openEdit(row: Row) {
-  editingRow.value = row;
-  formError.value = '';
-  fieldErrors.value = {};
-  modalOpen.value = true;
+function closeModal() {
+  if (!submitting.value) modalOpen.value = false;
 }
 
 function initialValue(field: Field): string {
@@ -67,46 +75,79 @@ function initialValue(field: Field): string {
   return raw === null || raw === undefined ? '' : String(raw);
 }
 
+/** Traduce un error de acción a un mensaje que explique la causa y qué hacer. */
+function describeError(error: ActionFailure): string {
+  if (error.status === 413 || error.code === 'CONTENT_TOO_LARGE') {
+    return `El archivo es demasiado grande para subirlo. Los logos admiten hasta ${uploadLimitLabel('logos')} y los documentos hasta ${uploadLimitLabel('docs')}.`;
+  }
+  if (error.code === 'UNAUTHORIZED' || error.code === 'FORBIDDEN') {
+    return 'Tu sesión expiró. Vuelve a iniciar sesión y repite el cambio.';
+  }
+  if (['BAD_REQUEST', 'CONFLICT', 'NOT_FOUND'].includes(error.code ?? '')) return error.message;
+  return 'No se pudo completar la acción por un error del servidor. Intenta de nuevo; si persiste, avisa a Tecnología.';
+}
+
+function oversizedFileMessage(formData: FormData): string | null {
+  for (const field of props.fields) {
+    if (field.kind !== 'file-logo' && field.kind !== 'file-doc') continue;
+    const kind = FILE_FIELD_UPLOAD_KIND[field.kind];
+    const file = formData.get(field.name);
+    if (file instanceof File && file.size > UPLOAD_RULES[kind].maxBytes) {
+      return `«${file.name}» pesa más de ${uploadLimitLabel(kind)}, el máximo para ${field.label.toLowerCase()}. Comprímelo o usa un archivo más liviano.`;
+    }
+  }
+  return null;
+}
+
+/** Ejecuta una acción y recarga si salió bien; si no, deja el motivo en formError. */
+async function runAction(call: () => Promise<ActionResult>) {
+  try {
+    const { error } = await call();
+    if (!error) {
+      window.location.reload();
+      return;
+    }
+    if (isInputError(error)) {
+      fieldErrors.value = error.fields;
+      formError.value = 'Revisa los campos marcados en rojo.';
+    } else {
+      formError.value = describeError(error);
+    }
+  } catch {
+    formError.value = 'No hay conexión con el servidor. Revisa tu red e intenta de nuevo.';
+  }
+}
+
 async function submitForm() {
   if (!formRef.value || submitting.value) return;
-  submitting.value = true;
   formError.value = '';
   fieldErrors.value = {};
   const formData = new FormData(formRef.value);
+  const fileError = oversizedFileMessage(formData);
+  if (fileError) {
+    formError.value = fileError;
+    return;
+  }
   if (editingRow.value) formData.set('id', String(editingRow.value.id));
   const action = editingRow.value ? group.value.update : group.value.create;
-  const { error } = await action(formData);
+
+  submitting.value = true;
+  await runAction(() => action(formData));
   submitting.value = false;
-  if (!error) {
-    window.location.reload();
-    return;
-  }
-  if (isInputError(error)) {
-    fieldErrors.value = error.fields;
-  } else {
-    formError.value = error.message;
-  }
 }
 
-async function removeRow(id: number) {
-  const { error } = await group.value.remove({ id });
-  if (error) {
-    formError.value = error.message;
-    pendingDeleteId.value = null;
-    return;
-  }
-  window.location.reload();
+function removeRow(id: number) {
+  pendingDeleteId.value = null;
+  runAction(() => group.value.remove({ id }));
 }
 
-async function moveRowBy(id: number, direction: 'up' | 'down') {
-  await group.value.move({ id, direction });
-  window.location.reload();
+function moveRowBy(id: number, direction: 'up' | 'down') {
+  runAction(() => group.value.move({ id, direction }));
 }
 
-async function toggleFeatured(row: Row) {
+function toggleFeatured(row: Row) {
   if (props.collection !== 'apps') return;
-  await actions.apps.toggleFeatured({ id: row.id, featured: !row.featured });
-  window.location.reload();
+  runAction(() => actions.apps.toggleFeatured({ id: row.id, featured: !row.featured }));
 }
 </script>
 
@@ -117,39 +158,55 @@ async function toggleFeatured(row: Row) {
         v-model="filterText"
         type="search"
         placeholder="Filtrar…"
-        class="w-48 rounded-lg border border-edge bg-surface px-3 py-2 text-sm"
+        aria-label="Filtrar la tabla"
+        :class="[inputClass, 'w-56']"
       />
-      <button
-        type="button"
-        class="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white"
-        @click="openCreate"
-      >
-        + Nueva {{ props.entityName }}
+      <button type="button" class="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white" @click="openForm()">
+        + {{ newLabel }}
       </button>
     </div>
 
-    <p v-if="formError && !modalOpen" class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ formError }}</p>
+    <p v-if="formError && !modalOpen" :class="[alertErrorClass, 'mt-3']" role="alert">{{ formError }}</p>
 
-    <div class="mt-4 overflow-hidden rounded-xl border border-edge bg-surface">
+    <div class="mt-4 overflow-x-auto rounded-xl border border-edge bg-surface">
       <div v-if="props.rows.length === 0" class="px-5 py-10 text-center text-sm text-body">
-        Aún no hay {{ props.entityNamePlural }}. Crea la primera con el botón "Nueva {{ props.entityName }}".
+        Aún no hay {{ props.entityNamePlural }}. Crea {{ firstOneLabel }} con el botón «{{ newLabel }}».
       </div>
-      <div v-else-if="visibleRows.length === 0" class="px-5 py-10 text-center text-sm text-body">
-        Nada coincide con "{{ filterText }}".
+      <div v-else-if="totalFiltered === 0" class="px-5 py-10 text-center text-sm text-body">
+        Nada coincide con «{{ filterText }}».
       </div>
       <table v-else class="w-full text-left text-sm">
         <thead>
           <tr class="border-b border-edge font-mono text-[9px] uppercase tracking-widest text-muted">
-            <th v-for="column in props.columns" :key="column.key" class="px-4 py-2 font-medium">{{ column.label }}</th>
-            <th class="px-4 py-2"></th>
+            <th
+              v-for="column in props.columns"
+              :key="column.key"
+              class="px-4 py-2 font-medium"
+              :aria-sort="sortState(column.key).aria"
+            >
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 whitespace-nowrap uppercase tracking-widest hover:text-ink"
+                :class="sortKey === column.key ? 'text-ink' : ''"
+                :title="`Ordenar por ${column.label.toLowerCase()}`"
+                @click="toggleSort(column.key)"
+              >
+                {{ column.label }} <span aria-hidden="true">{{ sortState(column.key).icon }}</span>
+              </button>
+            </th>
+            <th class="px-4 py-2"><span class="sr-only">Acciones</span></th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in visibleRows" :key="row.id" class="border-b border-edge/60 last:border-b-0">
+          <tr v-for="row in pageRows" :key="row.id" class="border-b border-edge/60 last:border-b-0">
             <td v-for="column in props.columns" :key="column.key" class="px-4 py-3">
-              <span v-if="column.kind === 'led'" class="flex items-center gap-2">
-                <span class="h-1.5 w-1.5 rounded-full" :style="{ background: String(row.ledColor ?? '#15181D') }"></span>
-                {{ row[column.key] ?? '—' }}
+              <span
+                v-if="column.kind === 'led'"
+                class="flex min-w-[7rem] max-w-[16rem] items-center gap-2"
+                :title="String(row[column.key] ?? '')"
+              >
+                <span class="h-1.5 w-1.5 shrink-0 rounded-full" :style="{ background: String(row.ledColor ?? '#15181D') }"></span>
+                <span class="truncate">{{ row[column.key] ?? '—' }}</span>
               </span>
               <button
                 v-else-if="column.kind === 'toggle'"
@@ -164,13 +221,19 @@ async function toggleFeatured(row: Row) {
                   :class="row[column.key] ? 'right-0.5' : 'left-0.5'"
                 ></span>
               </button>
-              <span v-else-if="column.kind === 'muted'" class="text-muted">{{ row[column.key] ?? '—' }}</span>
-              <span v-else class="font-semibold">{{ row[column.key] ?? '—' }}</span>
+              <span
+                v-else
+                class="block min-w-[7rem] max-w-[16rem] truncate"
+                :class="column.kind === 'muted' ? 'text-muted' : 'font-semibold text-ink'"
+                :title="String(row[column.key] ?? '')"
+              >{{ row[column.key] ?? '—' }}</span>
             </td>
             <td class="px-4 py-3 text-right whitespace-nowrap">
-              <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Subir" @click="moveRowBy(row.id, 'up')">↑</button>
-              <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Bajar" @click="moveRowBy(row.id, 'down')">↓</button>
-              <button type="button" class="ml-2 font-semibold hover:underline" @click="openEdit(row)">Editar</button>
+              <template v-if="isManualOrder">
+                <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Subir" @click="moveRowBy(row.id, 'up')">↑</button>
+                <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Bajar" @click="moveRowBy(row.id, 'down')">↓</button>
+              </template>
+              <button type="button" class="ml-2 font-semibold text-ink hover:underline" @click="openForm(row)">Editar</button>
               <button
                 v-if="pendingDeleteId !== row.id"
                 type="button"
@@ -187,86 +250,80 @@ async function toggleFeatured(row: Row) {
             </td>
           </tr>
         </tbody>
+        <tfoot v-if="pageCount > 1">
+          <tr>
+            <td :colspan="columnSpan" class="border-t border-edge px-4 py-2">
+              <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-body">
+                <span>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalFiltered }}</span>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    :class="pagerButtonClass"
+                    :disabled="page === 1"
+                    @click="page -= 1"
+                  >Anterior</button>
+                  <span>Página {{ page }} de {{ pageCount }}</span>
+                  <button
+                    type="button"
+                    :class="pagerButtonClass"
+                    :disabled="page === pageCount"
+                    @click="page += 1"
+                  >Siguiente</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tfoot>
       </table>
     </div>
 
-    <div v-if="modalOpen" class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-6 pt-16" @click.self="modalOpen = false">
+    <div
+      v-if="modalOpen"
+      class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-6 pt-16"
+      @click.self="closeModal"
+    >
+      <!-- novalidate: la validación nativa del navegador sale en su idioma; los mensajes los da el servidor. -->
       <form
         ref="formRef"
-        class="w-full max-w-lg rounded-2xl bg-surface p-6 shadow-xl"
+        class="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-surface text-ink shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="collection-form-title"
+        novalidate
         @submit.prevent="submitForm"
       >
-        <div class="flex items-center justify-between">
-          <h2 class="text-lg font-extrabold">
-            {{ editingRow ? `Editar ${props.entityName}` : `Nueva ${props.entityName}` }}
+        <div class="flex items-center justify-between border-b border-edge px-6 py-4">
+          <h2 id="collection-form-title" class="text-lg font-extrabold text-ink">
+            {{ editingRow ? `Editar ${props.entityName}` : newLabel }}
           </h2>
-          <button type="button" class="text-muted hover:text-ink" aria-label="Cerrar" @click="modalOpen = false">✕</button>
+          <button type="button" class="text-muted hover:text-ink" aria-label="Cerrar" @click="closeModal">✕</button>
         </div>
-        <p v-if="formError" class="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{{ formError }}</p>
-        <div class="mt-4 grid grid-cols-1 gap-4">
-          <div v-for="field in props.fields" :key="field.name">
-            <template v-if="field.kind === 'toggle'">
-              <label class="flex items-center gap-2 text-sm font-semibold">
-                <input type="checkbox" :name="field.name" :checked="Boolean(editingRow?.[field.name])" />
-                {{ field.label }}
-              </label>
-            </template>
-            <FileDrop
-              v-else-if="field.kind === 'file-logo' || field.kind === 'file-doc'"
-              :name="field.name"
-              :label="field.label"
-              :hint="field.kind === 'file-logo' ? 'PNG/SVG/JPG/WebP, máx. 2 MB' : 'PDF u Office, máx. 20 MB'"
-              :accept="field.kind === 'file-logo' ? '.png,.svg,.jpg,.jpeg,.webp' : '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx'"
+        <div class="overflow-y-auto px-6 py-4">
+          <p v-if="formError" :class="[alertErrorClass, 'mb-4']" role="alert">{{ formError }}</p>
+          <div class="grid grid-cols-1 gap-4">
+            <FormField
+              v-for="field in props.fields"
+              :key="field.name"
+              :field="field"
+              :value="initialValue(field)"
+              :error="fieldErrors[field.name]?.[0]"
             />
-            <template v-else>
-              <label class="mb-1 block text-[10px] font-bold tracking-wider text-body" :for="`field-${field.name}`">
-                {{ field.label }}
-              </label>
-              <textarea
-                v-if="field.kind === 'textarea'"
-                :id="`field-${field.name}`"
-                :name="field.name"
-                :required="field.required"
-                rows="3"
-                class="w-full rounded-lg border border-edge px-3 py-2 text-sm"
-                :value="initialValue(field)"
-              ></textarea>
-              <select
-                v-else-if="field.kind === 'select'"
-                :id="`field-${field.name}`"
-                :name="field.name"
-                class="w-full rounded-lg border border-edge bg-surface px-3 py-2 text-sm"
-              >
-                <option
-                  v-for="option in field.options"
-                  :key="option.value"
-                  :value="option.value"
-                  :selected="initialValue(field) === option.value"
-                >{{ option.label }}</option>
-              </select>
-              <input
-                v-else
-                :id="`field-${field.name}`"
-                :name="field.name"
-                :type="field.kind === 'url' ? 'url' : field.kind === 'email' ? 'email' : 'text'"
-                :required="field.required"
-                :placeholder="field.placeholder"
-                :list="field.suggestions ? `list-${field.name}` : undefined"
-                class="w-full rounded-lg border border-edge px-3 py-2 text-sm"
-                :value="initialValue(field)"
-              />
-              <datalist v-if="field.suggestions" :id="`list-${field.name}`">
-                <option v-for="suggestion in field.suggestions" :key="suggestion" :value="suggestion"></option>
-              </datalist>
-              <p v-if="fieldErrors[field.name]" class="mt-1 text-xs text-red-700">{{ fieldErrors[field.name][0] }}</p>
-            </template>
           </div>
         </div>
-        <div class="mt-6 flex justify-end gap-2">
-          <button type="button" class="rounded-lg border border-edge px-4 py-2 text-sm" @click="modalOpen = false">Cancelar</button>
-          <button type="submit" class="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white" :disabled="submitting">
-            {{ submitting ? 'Guardando…' : `Guardar ${props.entityName}` }}
-          </button>
+        <div class="flex items-center justify-between gap-2 border-t border-edge px-6 py-4">
+          <p v-if="hasRequiredFields" class="text-xs text-muted"><span class="text-red-700">*</span> Campo obligatorio</p>
+          <div class="ml-auto flex gap-2">
+            <button type="button" class="rounded-lg border border-edge px-4 py-2 text-sm text-ink" @click="closeModal">
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              class="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
+              :disabled="submitting"
+            >
+              {{ submitting ? 'Guardando…' : `Guardar ${props.entityName}` }}
+            </button>
+          </div>
         </div>
       </form>
     </div>

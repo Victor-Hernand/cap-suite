@@ -44,6 +44,30 @@
   color-scheme: light;
 }
 
+/* Color propio en los controles en vez de heredarlo: heredado, el texto de inputs y
+   títulos del admin salía casi invisible en algunos navegadores (QA "Baja legibilidad"). */
+@layer base {
+  input,
+  select,
+  textarea {
+    color: var(--color-ink);
+  }
+
+  ::placeholder {
+    color: var(--color-muted);
+    opacity: 1;
+  }
+}
+
+.admin-select {
+  appearance: none;
+  color-scheme: light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%237d838e'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
+  background-position: right 0.6rem center;
+  background-repeat: no-repeat;
+  background-size: 1.1rem;
+}
+
 :where(a, button, input, [tabindex]) {
   scroll-margin-top: 5rem;
 }

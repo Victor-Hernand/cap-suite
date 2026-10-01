@@ -17,6 +17,10 @@ export default defineConfig({
   adapter: node({ mode: 'standalone' }),
   security: {
     checkOrigin: true,
+    // Por defecto Astro corta las acciones en 1 MB y Recursos admite documentos de
+    // hasta 20 MB (UPLOAD_RULES.docs en src/lib/fieldRules.ts) más los demás campos.
+    // Astro no permite fijarlo por acción: el límite es global a propósito.
+    actionBodySizeLimit: 21 * 1024 * 1024,
     allowedDomains: [
       {
         hostname: siteUrl.hostname,

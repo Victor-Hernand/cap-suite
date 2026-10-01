@@ -1,28 +1,14 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import CollectionManager from '../../components/admin/CollectionManager.vue';
+import type { Column, Field } from '../../components/admin/types';
+import { FIELD_MAX } from '../../lib/fieldRules';
 import { getDb, listResources } from '../../lib/db';
 
 const rows = listResources(getDb()).map((resource) => ({
   ...resource,
   source: resource.url ?? `Archivo: ${resource.filePath}`,
 }));
-
-interface Column {
-  key: string;
-  label: string;
-  kind?: 'text' | 'muted' | 'led' | 'toggle';
-}
-
-interface Field {
-  name: string;
-  label: string;
-  kind: 'text' | 'url' | 'email' | 'textarea' | 'select' | 'toggle' | 'file-logo' | 'file-doc';
-  options?: { value: string; label: string }[];
-  suggestions?: string[];
-  required?: boolean;
-  placeholder?: string;
-}
 
 const columns: Column[] = [
   { key: 'name', label: 'Nombre' },
@@ -31,12 +17,13 @@ const columns: Column[] = [
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true },
-  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true },
+  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
   {
     name: 'type',
     label: 'TIPO',
     kind: 'select',
+    required: true,
     options: [
       { value: 'manual', label: 'Manual' },
       { value: 'template', label: 'Plantilla' },
@@ -44,7 +31,14 @@ const fields: Field[] = [
       { value: 'link', label: 'Enlace' },
     ],
   },
-  { name: 'url', label: 'ENLACE', kind: 'text', placeholder: 'https://… (o sube un archivo abajo)' },
+  {
+    name: 'url',
+    label: 'ENLACE',
+    kind: 'url',
+    placeholder: 'https://… (o sube un archivo abajo)',
+    hint: 'Pega la dirección completa copiada del navegador, por ejemplo de SharePoint.',
+    maxLength: FIELD_MAX.url,
+  },
   { name: 'file', label: 'ARCHIVO', kind: 'file-doc' },
 ];
 ---
@@ -57,6 +51,7 @@ const fields: Field[] = [
       client:load
       collection="resources"
       entityName="recurso"
+      entityGender="m"
       entityNamePlural="recursos"
       rows={rows}
       columns={columns}

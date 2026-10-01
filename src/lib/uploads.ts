@@ -3,19 +3,9 @@ import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
 import { readEnv } from './env';
 import { slugify } from './slug';
+import { UPLOAD_RULES, uploadLimitLabel, type UploadKind } from './fieldRules';
 
-export const LOGO_MAX_BYTES = 2 * 1024 * 1024;
-export const DOC_MAX_BYTES = 20 * 1024 * 1024;
-
-export type UploadKind = 'logos' | 'docs';
-
-const ALLOWED_EXTENSIONS: Record<UploadKind, Set<string>> = {
-  logos: new Set(['.png', '.svg', '.jpg', '.jpeg', '.webp']),
-  docs: new Set(['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx']),
-};
-
-const MAX_BYTES: Record<UploadKind, number> = { logos: LOGO_MAX_BYTES, docs: DOC_MAX_BYTES };
-const LIMIT_LABEL: Record<UploadKind, string> = { logos: '2 MB', docs: '20 MB' };
+export type { UploadKind };
 
 export function uploadsDir(): string {
   return resolve(readEnv('UPLOADS_DIR') ?? 'uploads');
@@ -23,11 +13,12 @@ export function uploadsDir(): string {
 
 export function validateUpload(file: File, kind: UploadKind): string | null {
   const extension = extname(file.name).toLowerCase();
-  if (!ALLOWED_EXTENSIONS[kind].has(extension)) {
-    return `Tipo de archivo no permitido (${extension || 'sin extensión'}).`;
+  const rules = UPLOAD_RULES[kind];
+  if (!rules.extensions.includes(extension)) {
+    return `Tipo de archivo no permitido (${extension || 'sin extensión'}). Sube un archivo ${rules.extensions.join(', ')}.`;
   }
-  if (file.size > MAX_BYTES[kind]) {
-    return `El archivo supera el límite de ${LIMIT_LABEL[kind]}.`;
+  if (file.size > rules.maxBytes) {
+    return `El archivo pesa más de ${uploadLimitLabel(kind)}, el máximo permitido. Comprímelo o usa un archivo más liviano.`;
   }
   return null;
 }

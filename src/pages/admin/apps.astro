@@ -1,6 +1,8 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import CollectionManager from '../../components/admin/CollectionManager.vue';
+import type { Column, Field } from '../../components/admin/types';
+import { FIELD_MAX } from '../../lib/fieldRules';
 import { getDb, listApps, listCompanies, companyColorFor } from '../../lib/db';
 import { appCategories } from '../../data/categories';
 
@@ -12,22 +14,6 @@ const rows = listApps(db).map((app) => ({
   logoUrl: app.logoPath?.startsWith('http') ? app.logoPath : '',
 }));
 
-interface Column {
-  key: string;
-  label: string;
-  kind?: 'text' | 'muted' | 'led' | 'toggle';
-}
-
-interface Field {
-  name: string;
-  label: string;
-  kind: 'text' | 'url' | 'email' | 'textarea' | 'select' | 'toggle' | 'file-logo' | 'file-doc';
-  options?: { value: string; label: string }[];
-  suggestions?: string[];
-  required?: boolean;
-  placeholder?: string;
-}
-
 const columns: Column[] = [
   { key: 'name', label: 'Nombre' },
   { key: 'category', label: 'Categoría', kind: 'muted' },
@@ -36,25 +22,27 @@ const columns: Column[] = [
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true },
-  { name: 'url', label: 'URL', kind: 'url', required: true, placeholder: 'https://…' },
-  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true },
+  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'url', label: 'URL', kind: 'url', required: true, placeholder: 'https://…', maxLength: FIELD_MAX.url },
+  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
   {
     name: 'category',
     label: 'CATEGORÍA',
     kind: 'select',
+    required: true,
     options: appCategories.map((category) => ({ value: category.id, label: category.label })),
   },
   {
     name: 'companyLabel',
     label: 'EMPRESA',
-    kind: 'text',
-    suggestions: ['Grupo CAP', ...companies.map((company) => company.name)],
+    kind: 'select',
+    placeholder: 'Sin empresa',
+    options: ['Grupo CAP', ...companies.map((company) => company.name)].map((name) => ({ value: name, label: name })),
   },
   { name: 'logo', label: 'LOGO', kind: 'file-logo' },
-  { name: 'logoUrl', label: 'O URL DE LOGO EXTERNO', kind: 'text', placeholder: 'https://… (opcional)' },
+  { name: 'logoUrl', label: 'O URL DE LOGO EXTERNO', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
   { name: 'featured', label: 'Destacada en inicio', kind: 'toggle' },
-  { name: 'badge', label: 'BADGE', kind: 'text', placeholder: 'nuevo (opcional)' },
+  { name: 'badge', label: 'BADGE', kind: 'text', placeholder: 'nuevo (opcional)', maxLength: FIELD_MAX.badge },
 ];
 ---
 
@@ -66,6 +54,7 @@ const fields: Field[] = [
       client:load
       collection="apps"
       entityName="aplicación"
+      entityGender="f"
       entityNamePlural="aplicaciones"
       rows={rows}
       columns={columns}

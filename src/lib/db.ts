@@ -3,6 +3,7 @@ import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { readEnv } from './env';
 import { slugify } from './slug';
+import { duplicateKey } from './fieldRules';
 
 export type Db = Database.Database;
 
@@ -372,4 +373,24 @@ export function moveRow(db: Db, table: SortableTable, id: number, direction: 'up
     db.prepare(`UPDATE ${table} SET sort_order = ? WHERE id = ?`).run(current.sortOrder, neighbor.id);
   });
   swap();
+}
+
+// Columna que identifica un registro de forma única dentro de cada colección.
+export const UNIQUE_COLUMN = {
+  apps: 'name',
+  resources: 'name',
+  contacts: 'email',
+  companies: 'name',
+} as const satisfies Record<SortableTable, string>;
+
+/**
+ * ¿Ya existe otro registro con el mismo valor (sin distinguir mayúsculas ni espacios)?
+ * Se compara en JS porque lower() de SQLite no pliega acentos ("Á" ≠ "á").
+ */
+export function hasDuplicate(db: Db, table: SortableTable, value: string, excludeId?: number): boolean {
+  if (!SORTABLE_TABLES.includes(table)) return false;
+  const column = UNIQUE_COLUMN[table];
+  const target = duplicateKey(value);
+  const rows = db.prepare(`SELECT id, ${column} AS value FROM ${table}`).all() as { id: number; value: string }[];
+  return rows.some((row) => row.id !== excludeId && duplicateKey(row.value) === target);
 }
