@@ -24,7 +24,9 @@ import {
   moveRow,
   hasDuplicate,
   getManual,
-  saveManual,
+  createManual,
+  updateManual,
+  deleteManual,
   UNIQUE_COLUMN,
   type SortableTable,
 } from '../lib/db';
@@ -44,6 +46,7 @@ const DUPLICATE_MESSAGES: Record<SortableTable, (value: string) => string> = {
   resources: (value) => `Ya existe un recurso llamado «${value}». Usa otro nombre o edita el existente.`,
   contacts: (value) => `Ya existe un contacto con el correo ${value}. Edita el contacto existente.`,
   companies: (value) => `Ya existe una empresa llamada «${value}». Usa otro nombre o edita la existente.`,
+  manuals: (value) => `Ya existe un manual llamado «${value}». Usa otro título o edita el existente.`,
 };
 
 /** Rechaza el alta o edición si otro registro ya usa el valor único de la colección. */
@@ -135,6 +138,19 @@ function toResourceInput(
     url: source.url,
     filePath: source.filePath,
   };
+}
+
+// Sin PDF nuevo se conserva el actual; el enlace vacío quita el video.
+async function resolveManualInput(
+  form: { title: string; description?: string; videoUrl?: string; pdf?: File },
+  previousPdfPath: string | null = null,
+) {
+  const videoUrl = form.videoUrl?.trim() || null;
+  const pdfPath = hasFile(form.pdf) ? await replaceUpload(form.pdf, 'manual', previousPdfPath) : previousPdfPath;
+  if (!videoUrl && !pdfPath) {
+    throw new ActionError({ code: 'BAD_REQUEST', message: 'El manual necesita un video o un PDF: pega el enlace de Loom o sube el documento.' });
+  }
+  return { title: form.title, description: form.description?.trim() || null, videoUrl, pdfPath };
 }
 
 function toContactInput(
@@ -387,16 +403,38 @@ export const server = {
       },
     }),
   },
-  manual: {
-    // Sin PDF nuevo se conserva el actual; el enlace vacío quita el video.
-    save: defineAction({
+  manuals: {
+    create: defineAction({
       accept: 'form',
       input: z.object(manualFormFields),
       handler: async (form) => {
+        assertUnique('manuals', form);
+        return createManual(getDb(), await resolveManualInput(form));
+      },
+    }),
+    update: defineAction({
+      accept: 'form',
+      input: z.object({ ...manualFormFields, id: z.number().int().positive() }),
+      handler: async (form) => {
+        assertUnique('manuals', form, form.id);
         const db = getDb();
-        const current = getManual(db);
-        const pdfPath = hasFile(form.pdf) ? await replaceUpload(form.pdf, 'manual', current.pdfPath) : current.pdfPath;
-        saveManual(db, { videoUrl: form.videoUrl?.trim() || null, pdfPath });
+        const existing = getManual(db, form.id);
+        if (!existing) throw new ActionError({ code: 'NOT_FOUND', message: 'El manual no existe.' });
+        return updateManual(db, form.id, await resolveManualInput(form, existing.pdfPath));
+      },
+    }),
+    remove: defineAction({
+      input: idInput,
+      handler: async ({ id }) => {
+        const deleted = deleteManual(getDb(), id);
+        if (deleted?.pdfPath) deleteUpload(deleted.pdfPath);
+        return { ok: true };
+      },
+    }),
+    move: defineAction({
+      input: moveInput,
+      handler: async ({ id, direction }) => {
+        moveRow(getDb(), 'manuals', id, direction);
         return { ok: true };
       },
     }),

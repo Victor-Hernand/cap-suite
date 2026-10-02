@@ -98,6 +98,8 @@ export const companyFormFields = {
 };
 
 export const manualFormFields = {
+  title: requiredText('El título', FIELD_MAX.name),
+  description: optionalText('La descripción', FIELD_MAX.description),
   videoUrl: boundedText('El enlace del video', FIELD_MAX.url)
     .refine(
       (value) => !value || loomEmbedUrl(value) !== null,

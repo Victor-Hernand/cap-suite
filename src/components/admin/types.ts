@@ -24,7 +24,7 @@ export interface Field {
   maxLength?: number;
 }
 
-export type Collection = 'apps' | 'resources' | 'contacts' | 'companies';
+export type Collection = 'apps' | 'resources' | 'contacts' | 'companies' | 'manuals';
 
 /** Tipo de subida (reglas en fieldRules.UPLOAD_RULES) que corresponde a cada campo de archivo. */
 const FILE_FIELD_UPLOAD_KIND = {

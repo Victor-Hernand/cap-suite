@@ -73,7 +73,7 @@ test('contacts CRUD y counts', () => {
     extension: null,
   });
   createCompany(db, company);
-  expect(counts(db)).toEqual({ apps: 0, resources: 0, contacts: 1, companies: 1 });
+  expect(counts(db)).toEqual({ apps: 0, resources: 0, contacts: 1, companies: 1, manuals: 0 });
   expect(listContacts(db)[0].name).toBe('Ana Cruz');
 });
 

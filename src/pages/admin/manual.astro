@@ -1,62 +1,73 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import ManualEditor from '../../components/admin/ManualEditor.vue';
-import { getDb, getManual } from '../../lib/db';
-import { basename } from 'node:path';
-import { loomEmbedUrl } from '../../lib/loom';
+import CollectionManager from '../../components/admin/CollectionManager.vue';
+import type { Column, Field } from '../../components/admin/types';
+import { FIELD_MAX } from '../../lib/fieldRules';
+import { getDb, listManuals } from '../../lib/db';
 
-const manual = getManual(getDb());
-const videoEmbedUrl = loomEmbedUrl(manual.videoUrl);
-const pdfUrl = manual.pdfPath ? `/admin/manual/pdf?v=${encodeURIComponent(basename(manual.pdfPath))}` : null;
-const sectionLabelClass = 'font-mono text-[10px] uppercase tracking-widest text-muted';
-const emptyStateClass = 'rounded-xl border border-dashed border-edge-strong bg-surface px-5 py-10 text-center text-sm text-body';
+const manuals = listManuals(getDb()).map((manual) => ({
+  ...manual,
+  contentLabels: [manual.videoUrl && 'Video', manual.pdfPath && 'PDF'].filter((label) => !!label),
+}));
+
+const rows = manuals.map((manual) => ({ ...manual, content: manual.contentLabels.join(' + ') }));
+
+const columns: Column[] = [
+  { key: 'title', label: 'Título' },
+  { key: 'content', label: 'Contenido', kind: 'muted' },
+];
+
+const fields: Field[] = [
+  { name: 'title', label: 'TÍTULO', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', maxLength: FIELD_MAX.description },
+  {
+    name: 'videoUrl',
+    label: 'VIDEO DE LOOM',
+    kind: 'url',
+    placeholder: 'https://www.loom.com/share/…',
+    hint: 'En Loom usa «Share» → «Copy link» y pégalo aquí. Déjalo vacío para quitar el video.',
+    maxLength: FIELD_MAX.url,
+  },
+  {
+    name: 'pdf',
+    label: 'MANUAL EN PDF',
+    kind: 'file-manual',
+    hint: 'Al editar, si no subes uno nuevo se conserva el PDF actual.',
+  },
+];
+
+const badgeClass = 'rounded bg-base px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted';
 ---
 
-<AdminLayout title="Manual" active="manual">
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-extrabold">Manual de uso</h1>
-      <p class="mt-1 text-sm text-body">Video y documento para aprender a usar el panel de administración.</p>
+<AdminLayout title="Manuales" active="manual">
+  <h1 class="text-2xl font-extrabold">Manuales de uso</h1>
+  <p class="mt-1 text-sm text-body">Videos y documentos para aprender a usar el panel de administración.</p>
+
+  {manuals.length > 0 && (
+    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {manuals.map((manual) => (
+        <a href={`/admin/manual/${manual.id}`} class="flex flex-col rounded-xl border border-edge bg-surface p-5 transition-shadow hover:shadow-md">
+          <span class="font-bold text-ink">{manual.title}</span>
+          {manual.description && <span class="mt-1 line-clamp-2 text-sm text-body">{manual.description}</span>}
+          <span class="mt-3 flex gap-2">
+            {manual.contentLabels.map((label) => <span class={badgeClass}>{label}</span>)}
+          </span>
+        </a>
+      ))}
     </div>
-    <ManualEditor client:load videoUrl={manual.videoUrl ?? ''} hasPdf={!!pdfUrl} />
+  )}
+
+  <h2 class="mt-10 font-mono text-[10px] uppercase tracking-widest text-muted">Administrar manuales</h2>
+  <div class="mt-3">
+    <CollectionManager
+      client:load
+      collection="manuals"
+      entityName="manual"
+      entityGender="m"
+      entityNamePlural="manuales"
+      rows={rows}
+      columns={columns}
+      fields={fields}
+    />
   </div>
-
-  <section class="mt-6 max-w-4xl">
-    <h2 class={sectionLabelClass}>Video</h2>
-    {videoEmbedUrl ? (
-      <div class="mt-3 aspect-video overflow-hidden rounded-xl border border-edge bg-ink-solid">
-        <iframe
-          src={videoEmbedUrl}
-          title="Video del manual de uso"
-          class="h-full w-full"
-          allow="fullscreen"
-          allowfullscreen
-        ></iframe>
-      </div>
-    ) : (
-      <p class:list={[emptyStateClass, 'mt-3']}>Aún no se ha cargado el video del manual. Usa «Editar manual» para agregarlo.</p>
-    )}
-  </section>
-
-  <section class="mt-8 max-w-4xl">
-    <div class="flex items-baseline justify-between gap-3">
-      <h2 class={sectionLabelClass}>Documento PDF</h2>
-      {pdfUrl && (
-        <div class="flex gap-4 text-xs font-semibold">
-          <a href={pdfUrl} target="_blank" rel="noopener" class="text-ink hover:underline">Abrir en pestaña nueva ↗</a>
-          <a href={pdfUrl} download="manual-cap-suite.pdf" class="text-ink hover:underline">Descargar</a>
-        </div>
-      )}
-    </div>
-    {pdfUrl ? (
-      <iframe
-        src={pdfUrl}
-        title="Manual de uso en PDF"
-        loading="lazy"
-        class="mt-3 h-[80vh] w-full rounded-xl border border-edge bg-surface"
-      ></iframe>
-    ) : (
-      <p class:list={[emptyStateClass, 'mt-3']}>Aún no se ha cargado el PDF del manual. Usa «Editar manual» para subirlo.</p>
-    )}
-  </section>
 </AdminLayout>

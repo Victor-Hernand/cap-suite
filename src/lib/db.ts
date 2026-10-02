@@ -61,9 +61,14 @@ CREATE TABLE IF NOT EXISTS contacts (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
-CREATE TABLE IF NOT EXISTS settings (
-  key TEXT PRIMARY KEY,
-  value TEXT NOT NULL,
+CREATE TABLE IF NOT EXISTS manuals (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  video_url TEXT,
+  pdf_path TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `;
@@ -82,7 +87,24 @@ export function openDb(path = readEnv('DATABASE_PATH') ?? 'data/cap-suite.db'): 
   db.exec(SCHEMA);
   ensureColumn(db, 'companies', 'logo_path', 'TEXT');
   ensureColumn(db, 'contacts', 'photo_path', 'TEXT');
+  migrateSingleManual(db);
   return db;
+}
+
+/** La primera versión guardaba un único manual en la tabla settings: pasa a ser una fila de manuals. */
+function migrateSingleManual(db: Db): void {
+  const hasSettings = db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'settings'").get();
+  if (!hasSettings) return;
+  const settingQuery = db.prepare('SELECT value FROM settings WHERE key = ?');
+  const setting = (key: string) => (settingQuery.get(key) as { value: string } | undefined)?.value ?? null;
+  const videoUrl = setting('manual_video_url');
+  const pdfPath = setting('manual_pdf_path');
+  db.transaction(() => {
+    if (videoUrl || pdfPath) {
+      createManual(db, { title: 'Manual del panel', description: null, videoUrl, pdfPath });
+    }
+    db.exec('DROP TABLE settings');
+  })();
 }
 
 let singleton: Db | null = null;
@@ -349,6 +371,7 @@ export function counts(db: Db) {
     resources: count('resources'),
     contacts: count('contacts'),
     companies: count('companies'),
+    manuals: count('manuals'),
   };
 }
 
@@ -358,41 +381,50 @@ export function companyColorFor(db: Db, label: string | null): string | null {
   return row?.color ?? null;
 }
 
-function getSetting(db: Db, key: string): string | null {
-  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
-  return row?.value ?? null;
-}
-
-/** Guarda el valor de la clave; null la elimina. */
-function setSetting(db: Db, key: string, value: string | null): void {
-  if (value === null) {
-    db.prepare('DELETE FROM settings WHERE key = ?').run(key);
-    return;
-  }
-  db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)
-    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`).run(key, value);
-}
-
-export interface Manual {
+export interface ManualRow {
+  id: number;
+  title: string;
+  description: string | null;
   videoUrl: string | null;
   pdfPath: string | null;
+  sortOrder: number;
 }
 
-export function getManual(db: Db): Manual {
-  return {
-    videoUrl: getSetting(db, 'manual_video_url'),
-    pdfPath: getSetting(db, 'manual_pdf_path'),
-  };
+export type ManualInput = Omit<ManualRow, 'id' | 'sortOrder'>;
+
+const MANUAL_SELECT = `SELECT id, title, description, video_url AS videoUrl,
+  pdf_path AS pdfPath, sort_order AS sortOrder FROM manuals`;
+
+export function listManuals(db: Db): ManualRow[] {
+  return db.prepare(`${MANUAL_SELECT} ORDER BY sort_order, id`).all() as ManualRow[];
 }
 
-export function saveManual(db: Db, manual: Manual): void {
-  db.transaction(() => {
-    setSetting(db, 'manual_video_url', manual.videoUrl);
-    setSetting(db, 'manual_pdf_path', manual.pdfPath);
-  })();
+export function getManual(db: Db, id: number): ManualRow | null {
+  return (db.prepare(`${MANUAL_SELECT} WHERE id = ?`).get(id) as ManualRow | undefined) ?? null;
 }
 
-const SORTABLE_TABLES = ['apps', 'resources', 'contacts', 'companies'] as const;
+export function createManual(db: Db, input: ManualInput): ManualRow {
+  const result = db
+    .prepare(`INSERT INTO manuals (title, description, video_url, pdf_path, sort_order)
+      VALUES (@title, @description, @videoUrl, @pdfPath, @sortOrder)`)
+    .run({ ...input, sortOrder: nextSortOrder(db, 'manuals') });
+  return getManual(db, Number(result.lastInsertRowid))!;
+}
+
+export function updateManual(db: Db, id: number, input: ManualInput): ManualRow | null {
+  db.prepare(`UPDATE manuals SET title = @title, description = @description, video_url = @videoUrl,
+    pdf_path = @pdfPath, updated_at = datetime('now') WHERE id = @id`)
+    .run({ ...input, id });
+  return getManual(db, id);
+}
+
+export function deleteManual(db: Db, id: number): ManualRow | null {
+  const row = getManual(db, id);
+  if (row) db.prepare('DELETE FROM manuals WHERE id = ?').run(id);
+  return row;
+}
+
+const SORTABLE_TABLES = ['apps', 'resources', 'contacts', 'companies', 'manuals'] as const;
 export type SortableTable = (typeof SORTABLE_TABLES)[number];
 
 export function moveRow(db: Db, table: SortableTable, id: number, direction: 'up' | 'down'): void {
@@ -420,6 +452,7 @@ export const UNIQUE_COLUMN = {
   resources: 'name',
   contacts: 'email',
   companies: 'name',
+  manuals: 'title',
 } as const satisfies Record<SortableTable, string>;
 
 /**
