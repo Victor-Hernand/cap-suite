@@ -23,11 +23,19 @@ import {
   deleteCompany,
   moveRow,
   hasDuplicate,
+  getManual,
+  saveManual,
   UNIQUE_COLUMN,
   type SortableTable,
 } from '../lib/db';
-import { storeUpload, validateUpload, deleteUpload } from '../lib/uploads';
-import { appFormFields, companyFormFields, contactFormFields, resourceFormFields } from './formSchemas';
+import { storeUpload, validateUpload, deleteUpload, type UploadKind } from '../lib/uploads';
+import {
+  appFormFields,
+  companyFormFields,
+  contactFormFields,
+  manualFormFields,
+  resourceFormFields,
+} from './formSchemas';
 
 const delay = (ms: number) => new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
 
@@ -53,18 +61,26 @@ function assertUnique<T extends SortableTable>(
 const idInput = z.object({ id: z.number().int().positive() });
 const moveInput = idInput.extend({ direction: z.enum(['up', 'down']) });
 
+function hasFile(file?: File): file is File {
+  return !!file && file.size > 0;
+}
+
+/** Valida y guarda el archivo nuevo; el anterior se borra solo después de guardar el nuevo. */
+async function replaceUpload(file: File, kind: UploadKind, previousPath?: string | null): Promise<string> {
+  const error = validateUpload(file, kind);
+  if (error) throw new ActionError({ code: 'BAD_REQUEST', message: error });
+  const storedPath = await storeUpload(file, kind);
+  if (previousPath) deleteUpload(previousPath);
+  return storedPath;
+}
+
 async function resolveLogoPath(input: {
   logo?: File;
   logoUrl?: string;
   previousPath?: string | null;
 }): Promise<string | null> {
   const { logo, logoUrl, previousPath } = input;
-  if (logo && logo.size > 0) {
-    const error = validateUpload(logo, 'logos');
-    if (error) throw new ActionError({ code: 'BAD_REQUEST', message: error });
-    if (previousPath) deleteUpload(previousPath);
-    return await storeUpload(logo, 'logos');
-  }
+  if (hasFile(logo)) return replaceUpload(logo, 'logos', previousPath);
   if (logoUrl && logoUrl.trim() !== '') return logoUrl.trim();
   return previousPath ?? null;
 }
@@ -97,15 +113,10 @@ async function resolveResourceSource(
   form: { url?: string; file?: File },
   previous?: { url: string | null; filePath: string | null },
 ) {
-  const hasUrl = !!form.url?.trim();
-  const hasFile = !!form.file && form.file.size > 0;
-  if (hasFile) {
-    const error = validateUpload(form.file!, 'docs');
-    if (error) throw new ActionError({ code: 'BAD_REQUEST', message: error });
-    if (previous?.filePath) deleteUpload(previous.filePath);
-    return { url: null, filePath: await storeUpload(form.file!, 'docs') };
+  if (hasFile(form.file)) {
+    return { url: null, filePath: await replaceUpload(form.file, 'docs', previous?.filePath) };
   }
-  if (hasUrl) {
+  if (form.url?.trim()) {
     if (previous?.filePath) deleteUpload(previous.filePath);
     return { url: form.url!.trim(), filePath: null };
   }
@@ -372,6 +383,20 @@ export const server = {
       input: moveInput,
       handler: async ({ id, direction }) => {
         moveRow(getDb(), 'companies', id, direction);
+        return { ok: true };
+      },
+    }),
+  },
+  manual: {
+    // Sin PDF nuevo se conserva el actual; el enlace vacío quita el video.
+    save: defineAction({
+      accept: 'form',
+      input: z.object(manualFormFields),
+      handler: async (form) => {
+        const db = getDb();
+        const current = getManual(db);
+        const pdfPath = hasFile(form.pdf) ? await replaceUpload(form.pdf, 'manual', current.pdfPath) : current.pdfPath;
+        saveManual(db, { videoUrl: form.videoUrl?.trim() || null, pdfPath });
         return { ok: true };
       },
     }),

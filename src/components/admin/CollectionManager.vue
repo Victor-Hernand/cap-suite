@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, toRef } from 'vue';
-import { actions, isInputError } from 'astro:actions';
-import FormField from './FormField.vue';
+import { actions } from 'astro:actions';
+import FormModal from './FormModal.vue';
 import { useTableView } from './useTableView';
-import { alertErrorClass, inputClass, pagerButtonClass } from './formStyles';
-import { UPLOAD_RULES, uploadLimitLabel } from '../../lib/fieldRules';
-import { FILE_FIELD_UPLOAD_KIND, type Collection, type Column, type Field, type Row } from './types';
+import { useActionForm } from './useActionForm';
+import { alertErrorClass, inputClass, pagerButtonClass, primaryButtonClass } from './formStyles';
+import type { Collection, Column, Field, Row } from './types';
 
 const props = defineProps<{
   collection: Collection;
@@ -32,18 +32,14 @@ const {
   isManualOrder,
   toggleSort,
 } = useTableView(toRef(props, 'rows'), toRef(props, 'columns'));
+const { submitting, formError, fieldErrors, resetErrors, runAction, submit } = useActionForm();
 
 const modalOpen = ref(false);
 const editingRow = ref<Row | null>(null);
-const submitting = ref(false);
-const formError = ref('');
-const fieldErrors = ref<Record<string, string[]>>({});
 const pendingDeleteId = ref<number | null>(null);
-const formRef = ref<HTMLFormElement | null>(null);
 
 const newLabel = computed(() => `${props.entityGender === 'f' ? 'Nueva' : 'Nuevo'} ${props.entityName}`);
 const firstOneLabel = computed(() => (props.entityGender === 'f' ? 'la primera' : 'el primero'));
-const hasRequiredFields = computed(() => props.fields.some((field) => field.required));
 const columnSpan = computed(() => props.columns.length + 1);
 
 const SORT_STATE = {
@@ -52,88 +48,29 @@ const SORT_STATE = {
   desc: { icon: '↓', aria: 'descending' },
 } as const;
 
-type ActionFailure = { code?: string; status?: number; message: string };
-type ActionResult = { error?: ActionFailure };
-
 function sortState(key: string) {
   return SORT_STATE[sortKey.value === key ? sortDirection.value : 'none'];
 }
 
 function openForm(row: Row | null = null) {
   editingRow.value = row;
-  formError.value = '';
-  fieldErrors.value = {};
+  resetErrors();
   modalOpen.value = true;
 }
 
-function closeModal() {
-  if (!submitting.value) modalOpen.value = false;
-}
-
-function initialValue(field: Field): string {
-  const raw = editingRow.value?.[field.name];
-  return raw === null || raw === undefined ? '' : String(raw);
-}
-
-/** Traduce un error de acción a un mensaje que explique la causa y qué hacer. */
-function describeError(error: ActionFailure): string {
-  if (error.status === 413 || error.code === 'CONTENT_TOO_LARGE') {
-    return `El archivo es demasiado grande para subirlo. Los logos admiten hasta ${uploadLimitLabel('logos')} y los documentos hasta ${uploadLimitLabel('docs')}.`;
-  }
-  if (error.code === 'UNAUTHORIZED' || error.code === 'FORBIDDEN') {
-    return 'Tu sesión expiró. Vuelve a iniciar sesión y repite el cambio.';
-  }
-  if (['BAD_REQUEST', 'CONFLICT', 'NOT_FOUND'].includes(error.code ?? '')) return error.message;
-  return 'No se pudo completar la acción por un error del servidor. Intenta de nuevo; si persiste, avisa a Tecnología.';
-}
-
-function oversizedFileMessage(formData: FormData): string | null {
+const initialValues = computed(() => {
+  const values: Record<string, string> = {};
   for (const field of props.fields) {
-    if (field.kind !== 'file-logo' && field.kind !== 'file-doc') continue;
-    const kind = FILE_FIELD_UPLOAD_KIND[field.kind];
-    const file = formData.get(field.name);
-    if (file instanceof File && file.size > UPLOAD_RULES[kind].maxBytes) {
-      return `«${file.name}» pesa más de ${uploadLimitLabel(kind)}, el máximo para ${field.label.toLowerCase()}. Comprímelo o usa un archivo más liviano.`;
-    }
+    const raw = editingRow.value?.[field.name];
+    values[field.name] = raw === null || raw === undefined ? '' : String(raw);
   }
-  return null;
-}
+  return values;
+});
 
-/** Ejecuta una acción y recarga si salió bien; si no, deja el motivo en formError. */
-async function runAction(call: () => Promise<ActionResult>) {
-  try {
-    const { error } = await call();
-    if (!error) {
-      window.location.reload();
-      return;
-    }
-    if (isInputError(error)) {
-      fieldErrors.value = error.fields;
-      formError.value = 'Revisa los campos marcados en rojo.';
-    } else {
-      formError.value = describeError(error);
-    }
-  } catch {
-    formError.value = 'No hay conexión con el servidor. Revisa tu red e intenta de nuevo.';
-  }
-}
-
-async function submitForm() {
-  if (!formRef.value || submitting.value) return;
-  formError.value = '';
-  fieldErrors.value = {};
-  const formData = new FormData(formRef.value);
-  const fileError = oversizedFileMessage(formData);
-  if (fileError) {
-    formError.value = fileError;
-    return;
-  }
+function submitForm(formData: FormData) {
   if (editingRow.value) formData.set('id', String(editingRow.value.id));
   const action = editingRow.value ? group.value.update : group.value.create;
-
-  submitting.value = true;
-  await runAction(() => action(formData));
-  submitting.value = false;
+  submit(props.fields, formData, () => action(formData));
 }
 
 function removeRow(id: number) {
@@ -161,7 +98,7 @@ function toggleFeatured(row: Row) {
         aria-label="Filtrar la tabla"
         :class="[inputClass, 'w-56']"
       />
-      <button type="button" class="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white" @click="openForm()">
+      <button type="button" :class="primaryButtonClass" @click="openForm()">
         + {{ newLabel }}
       </button>
     </div>
@@ -277,55 +214,17 @@ function toggleFeatured(row: Row) {
       </table>
     </div>
 
-    <div
+    <FormModal
       v-if="modalOpen"
-      class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-6 pt-16"
-      @click.self="closeModal"
-    >
-      <!-- novalidate: la validación nativa del navegador sale en su idioma; los mensajes los da el servidor. -->
-      <form
-        ref="formRef"
-        class="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-surface text-ink shadow-xl"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="collection-form-title"
-        novalidate
-        @submit.prevent="submitForm"
-      >
-        <div class="flex items-center justify-between border-b border-edge px-6 py-4">
-          <h2 id="collection-form-title" class="text-lg font-extrabold text-ink">
-            {{ editingRow ? `Editar ${props.entityName}` : newLabel }}
-          </h2>
-          <button type="button" class="text-muted hover:text-ink" aria-label="Cerrar" @click="closeModal">✕</button>
-        </div>
-        <div class="overflow-y-auto px-6 py-4">
-          <p v-if="formError" :class="[alertErrorClass, 'mb-4']" role="alert">{{ formError }}</p>
-          <div class="grid grid-cols-1 gap-4">
-            <FormField
-              v-for="field in props.fields"
-              :key="field.name"
-              :field="field"
-              :value="initialValue(field)"
-              :error="fieldErrors[field.name]?.[0]"
-            />
-          </div>
-        </div>
-        <div class="flex items-center justify-between gap-2 border-t border-edge px-6 py-4">
-          <p v-if="hasRequiredFields" class="text-xs text-muted"><span class="text-red-700">*</span> Campo obligatorio</p>
-          <div class="ml-auto flex gap-2">
-            <button type="button" class="rounded-lg border border-edge px-4 py-2 text-sm text-ink" @click="closeModal">
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-              :disabled="submitting"
-            >
-              {{ submitting ? 'Guardando…' : `Guardar ${props.entityName}` }}
-            </button>
-          </div>
-        </div>
-      </form>
-    </div>
+      :title="editingRow ? `Editar ${props.entityName}` : newLabel"
+      :submit-label="`Guardar ${props.entityName}`"
+      :fields="props.fields"
+      :initial-values="initialValues"
+      :submitting="submitting"
+      :form-error="formError"
+      :field-errors="fieldErrors"
+      @close="modalOpen = false"
+      @submit="submitForm"
+    />
   </div>
 </template>

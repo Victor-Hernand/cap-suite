@@ -14,5 +14,8 @@ export const fieldErrorClass = 'mt-1 text-xs text-red-700';
 
 export const alertErrorClass = 'rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700';
 
+export const primaryButtonClass =
+  'rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60';
+
 export const pagerButtonClass =
   'rounded-lg border border-edge px-3 py-1 font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-40';

@@ -2,6 +2,7 @@ import { z } from 'astro/zod';
 import { appCategories, resourceTypes } from '../data/categories';
 import { departments } from '../data/departments';
 import { FIELD_MAX, PHONE_HINT, isHttpUrl, normalizePhone } from '../lib/fieldRules';
+import { loomEmbedUrl } from '../lib/loom';
 
 // trim() va antes de min(1): un campo con solo espacios cuenta como vacío.
 type Gender = 'm' | 'f';
@@ -94,4 +95,14 @@ export const companyFormFields = {
   url: optionalUrl('El sitio web'),
   logo: z.instanceof(File).optional(),
   logoUrl: optionalUrl('La URL del logo'),
+};
+
+export const manualFormFields = {
+  videoUrl: boundedText('El enlace del video', FIELD_MAX.url)
+    .refine(
+      (value) => !value || loomEmbedUrl(value) !== null,
+      'Pega el enlace para compartir de Loom, por ejemplo https://www.loom.com/share/…',
+    )
+    .optional(),
+  pdf: z.instanceof(File).optional(),
 };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import FileDrop from './FileDrop.vue';
-import { FILE_FIELD_UPLOAD_KIND, type Field } from './types';
+import { uploadKindOf, type Field } from './types';
 import { fieldErrorClass, inputClass, labelClass, selectClass, textareaClass } from './formStyles';
 import { PHONE_DISALLOWED_CHARS, UPLOAD_RULES, uploadLimitLabel } from '../../lib/fieldRules';
 
@@ -29,8 +29,8 @@ const inputType = computed(() => {
 });
 
 const uploadRules = computed(() => {
-  if (props.field.kind !== 'file-logo' && props.field.kind !== 'file-doc') return null;
-  const kind = FILE_FIELD_UPLOAD_KIND[props.field.kind];
+  const kind = uploadKindOf(props.field);
+  if (!kind) return null;
   const rules = UPLOAD_RULES[kind];
   return { accept: rules.extensions.join(','), hint: `${rules.description}, máx. ${uploadLimitLabel(kind)}` };
 });
@@ -58,6 +58,7 @@ function sanitizeTelInput(event: Event) {
       :label="field.label"
       :hint="uploadRules.hint"
       :accept="uploadRules.accept"
+      :note="field.hint"
     />
 
     <template v-else>

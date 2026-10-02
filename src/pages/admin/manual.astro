@@ -1,0 +1,62 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import ManualEditor from '../../components/admin/ManualEditor.vue';
+import { getDb, getManual } from '../../lib/db';
+import { basename } from 'node:path';
+import { loomEmbedUrl } from '../../lib/loom';
+
+const manual = getManual(getDb());
+const videoEmbedUrl = loomEmbedUrl(manual.videoUrl);
+const pdfUrl = manual.pdfPath ? `/admin/manual/pdf?v=${encodeURIComponent(basename(manual.pdfPath))}` : null;
+const sectionLabelClass = 'font-mono text-[10px] uppercase tracking-widest text-muted';
+const emptyStateClass = 'rounded-xl border border-dashed border-edge-strong bg-surface px-5 py-10 text-center text-sm text-body';
+---
+
+<AdminLayout title="Manual" active="manual">
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold">Manual de uso</h1>
+      <p class="mt-1 text-sm text-body">Video y documento para aprender a usar el panel de administración.</p>
+    </div>
+    <ManualEditor client:load videoUrl={manual.videoUrl ?? ''} hasPdf={!!pdfUrl} />
+  </div>
+
+  <section class="mt-6 max-w-4xl">
+    <h2 class={sectionLabelClass}>Video</h2>
+    {videoEmbedUrl ? (
+      <div class="mt-3 aspect-video overflow-hidden rounded-xl border border-edge bg-ink-solid">
+        <iframe
+          src={videoEmbedUrl}
+          title="Video del manual de uso"
+          class="h-full w-full"
+          allow="fullscreen"
+          allowfullscreen
+        ></iframe>
+      </div>
+    ) : (
+      <p class:list={[emptyStateClass, 'mt-3']}>Aún no se ha cargado el video del manual. Usa «Editar manual» para agregarlo.</p>
+    )}
+  </section>
+
+  <section class="mt-8 max-w-4xl">
+    <div class="flex items-baseline justify-between gap-3">
+      <h2 class={sectionLabelClass}>Documento PDF</h2>
+      {pdfUrl && (
+        <div class="flex gap-4 text-xs font-semibold">
+          <a href={pdfUrl} target="_blank" rel="noopener" class="text-ink hover:underline">Abrir en pestaña nueva ↗</a>
+          <a href={pdfUrl} download="manual-cap-suite.pdf" class="text-ink hover:underline">Descargar</a>
+        </div>
+      )}
+    </div>
+    {pdfUrl ? (
+      <iframe
+        src={pdfUrl}
+        title="Manual de uso en PDF"
+        loading="lazy"
+        class="mt-3 h-[80vh] w-full rounded-xl border border-edge bg-surface"
+      ></iframe>
+    ) : (
+      <p class:list={[emptyStateClass, 'mt-3']}>Aún no se ha cargado el PDF del manual. Usa «Editar manual» para subirlo.</p>
+    )}
+  </section>
+</AdminLayout>

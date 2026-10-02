@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { extname, join, resolve, sep } from 'node:path';
+import { extname, join, relative, resolve, sep } from 'node:path';
 import { readEnv } from './env';
 import { slugify } from './slug';
 import { UPLOAD_RULES, uploadLimitLabel, type UploadKind } from './fieldRules';
@@ -37,6 +37,17 @@ export function resolveUploadPath(relativePath: string): string | null {
   const absolute = resolve(uploadsDir(), relativePath);
   if (!absolute.startsWith(uploadsDir() + sep)) return null;
   return existsSync(absolute) ? absolute : null;
+}
+
+function isPublicKind(directory: string): directory is UploadKind {
+  return Object.hasOwn(UPLOAD_RULES, directory) && UPLOAD_RULES[directory as UploadKind].isPublic;
+}
+
+/** Como resolveUploadPath, pero solo para tipos públicos: es lo que expone la ruta /files. */
+export function resolvePublicUploadPath(relativePath: string): string | null {
+  const absolute = resolveUploadPath(relativePath);
+  if (!absolute) return null;
+  return isPublicKind(relative(uploadsDir(), absolute).split(sep)[0]) ? absolute : null;
 }
 
 export function deleteUpload(relativePath: string): void {

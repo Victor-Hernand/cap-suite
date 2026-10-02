@@ -61,6 +61,11 @@ CREATE TABLE IF NOT EXISTS contacts (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 function ensureColumn(db: Db, table: string, column: string, definition: string): void {
@@ -351,6 +356,40 @@ export function companyColorFor(db: Db, label: string | null): string | null {
   if (!label) return null;
   const row = db.prepare('SELECT color FROM companies WHERE name = ?').get(label) as { color: string } | undefined;
   return row?.color ?? null;
+}
+
+function getSetting(db: Db, key: string): string | null {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key) as { value: string } | undefined;
+  return row?.value ?? null;
+}
+
+/** Guarda el valor de la clave; null la elimina. */
+function setSetting(db: Db, key: string, value: string | null): void {
+  if (value === null) {
+    db.prepare('DELETE FROM settings WHERE key = ?').run(key);
+    return;
+  }
+  db.prepare(`INSERT INTO settings (key, value) VALUES (?, ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = datetime('now')`).run(key, value);
+}
+
+export interface Manual {
+  videoUrl: string | null;
+  pdfPath: string | null;
+}
+
+export function getManual(db: Db): Manual {
+  return {
+    videoUrl: getSetting(db, 'manual_video_url'),
+    pdfPath: getSetting(db, 'manual_pdf_path'),
+  };
+}
+
+export function saveManual(db: Db, manual: Manual): void {
+  db.transaction(() => {
+    setSetting(db, 'manual_video_url', manual.videoUrl);
+    setSetting(db, 'manual_pdf_path', manual.pdfPath);
+  })();
 }
 
 const SORTABLE_TABLES = ['apps', 'resources', 'contacts', 'companies'] as const;

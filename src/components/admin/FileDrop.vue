@@ -7,6 +7,8 @@ const props = defineProps<{
   label: string;
   hint: string;
   accept: string;
+  /** Aclaración bajo el selector, p. ej. qué pasa si no se sube nada. */
+  note?: string;
 }>();
 
 const inputRef = ref<HTMLInputElement | null>(null);
@@ -53,6 +55,7 @@ function onDrop(event: DragEvent) {
         Arrastra un archivo o <span class="font-bold text-ink">explora</span> · {{ props.hint }}
       </template>
     </div>
+    <p v-if="props.note" class="mt-1 text-xs text-muted">{{ props.note }}</p>
     <input ref="inputRef" type="file" :name="props.name" :accept="props.accept" class="hidden" @change="onPicked" />
   </div>
 </template>
