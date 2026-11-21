@@ -11,6 +11,8 @@ const props = defineProps<{
   note?: string;
 }>();
 
+const emit = defineEmits<{ change: [file: File | null] }>();
+
 const inputRef = ref<HTMLInputElement | null>(null);
 const dragging = ref(false);
 const fileName = ref('');
@@ -20,7 +22,9 @@ function openPicker() {
 }
 
 function onPicked() {
-  fileName.value = inputRef.value?.files?.[0]?.name ?? '';
+  const file = inputRef.value?.files?.[0] ?? null;
+  fileName.value = file?.name ?? '';
+  emit('change', file);
 }
 
 function onDrop(event: DragEvent) {
@@ -31,6 +35,7 @@ function onDrop(event: DragEvent) {
   transfer.items.add(file);
   inputRef.value.files = transfer.files;
   fileName.value = file.name;
+  emit('change', file);
 }
 </script>
 

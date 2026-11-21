@@ -6,6 +6,7 @@ import {
   deleteResource,
   createContact,
   listContacts,
+  listContactsByDepartment,
   createCompany,
   listCompanies,
   updateCompany,
@@ -73,7 +74,7 @@ test('contacts CRUD y counts', () => {
     extension: null,
   });
   createCompany(db, company);
-  expect(counts(db)).toEqual({ apps: 0, resources: 0, contacts: 1, companies: 1, manuals: 0 });
+  expect(counts(db)).toEqual({ apps: 0, resources: 0, contacts: 1, companies: 1, manuals: 0, policies: 0 });
   expect(listContacts(db)[0].name).toBe('Ana Cruz');
 });
 
@@ -86,4 +87,12 @@ test('updateCompany conserva slug y listRecentResources ordena por updated_at', 
   db.prepare(`UPDATE resources SET updated_at = datetime('now', '-1 day') WHERE name = 'Viejo'`).run();
   createResource(db, { name: 'Nuevo', description: 'x', type: 'link', url: 'https://b.hn', filePath: null });
   expect(listRecentResources(db, 1)[0].name).toBe('Nuevo');
+});
+
+test('listContactsByDepartment devuelve solo ese departamento', () => {
+  const db = openDb(':memory:');
+  const base = { role: 'Analista', company: 'Inversiones S&M', phone: '+58 412 000 0000', extension: null };
+  createContact(db, { ...base, name: 'Ana Compras', department: 'Compras e Importaciones', email: 'ana@example.com' });
+  createContact(db, { ...base, name: 'Luis Legal', department: 'Legal', email: 'luis@example.com' });
+  expect(listContactsByDepartment(db, 'Compras e Importaciones').map((contact) => contact.name)).toEqual(['Ana Compras']);
 });

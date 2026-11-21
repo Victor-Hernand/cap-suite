@@ -259,7 +259,7 @@ export const contacts: Contact[] = [
   {
     name: 'Nombre Apellido',
     role: 'Gerente General',
-    department: 'Gerencia',
+    department: 'Gerencia Administrativa',
     company: 'Grupo CAP',
     phone: '+504 9990-0823',
     email: 'gerencia@cap.hn',
@@ -267,7 +267,7 @@ export const contacts: Contact[] = [
   {
     name: 'Nombre Apellido',
     role: 'Gerente de Tecnología',
-    department: 'Tecnología',
+    department: 'Tecnología y Desarrollo',
     company: 'Grupo CAP',
     phone: '+504 9000-0000',
     email: 'ti@cap.hn',
@@ -276,7 +276,7 @@ export const contacts: Contact[] = [
   {
     name: 'Nombre Apellido',
     role: 'Soporte Técnico',
-    department: 'Tecnología',
+    department: 'Tecnología y Desarrollo',
     company: 'Grupo CAP',
     phone: '+504 9000-0001',
     email: 'soporte@cap.hn',
@@ -285,7 +285,7 @@ export const contacts: Contact[] = [
   {
     name: 'Nombre Apellido',
     role: 'Jefe de Recursos Humanos',
-    department: 'Recursos Humanos',
+    department: 'Talento Humano',
     company: 'Grupo CAP',
     phone: '+504 9000-0002',
     email: 'rrhh@cap.hn',
@@ -293,7 +293,7 @@ export const contacts: Contact[] = [
   {
     name: 'Nombre Apellido',
     role: 'Contadora General',
-    department: 'Contabilidad',
+    department: 'Contabilidad General',
     company: 'Grupo CAP',
     phone: '+504 9000-0003',
     email: 'contabilidad@cap.hn',
@@ -302,7 +302,7 @@ export const contacts: Contact[] = [
   {
     name: 'Nombre Apellido',
     role: 'Gerente de Ventas',
-    department: 'Ventas',
+    department: 'Comercial e Inteligencia de Negocios',
     company: 'Inversiones S&M',
     phone: '+504 9000-0004',
     email: 'ventas@sym.hn',

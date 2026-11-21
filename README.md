@@ -34,3 +34,16 @@ Requisitos del despliegue real:
 | `HOST` / `PORT` | bind del servidor | `0.0.0.0` / `4321` |
 
 El panel de administración vive en `/admin`. `data/` y `uploads/` deben respaldarse.
+
+## Políticas y departamentos
+
+Rutas públicas: `/politicas` (biblioteca con filtros), `/politicas/<slug>` (ficha), `/departamentos` y `/departamentos/<slug>` (políticas, procesos, formatos, enlaces y avisos del área). Las políticas también aparecen en el buscador ⌘K.
+
+Rutas de administración: `/admin/politicas` (alta, edición, versiones y publicación) y `/admin/departamentos/<slug>` (procesos, formatos, enlaces y avisos).
+
+- Una política nace en **Borrador** y no se ve en ninguna superficie pública. Para publicarla hay que subir el documento oficial y usar «Publicar versión»; eso la pasa a Vigente y registra la versión en el control de cambios.
+- «Publicar versión» registra su propia línea en el control de cambios; si esa versión ya estaba en el historial, reemplaza esa línea en lugar de duplicarla. Una política que vuelve a Borrador conserva su última versión publicada para volver a publicarla, pero deja de verse en público.
+- `npm run seed` carga las 15 políticas de ejemplo del mockup ya publicadas pero sin documento oficial (el mockup no trae archivos; se suben desde el editor), y el contenido de ejemplo del departamento Compras e Importaciones (procesos, formatos, enlaces y avisos). Los enlaces de anexos, formatos y accesos son marcadores `example.com`; antes de salir a producción hay que reemplazar esos datos por los reales y subir los documentos oficiales.
+- Los archivos de políticas y los formatos de departamento se suben con el tipo de subida `policies` (PDF, Office e imágenes) a `UPLOADS_DIR`. Cada archivo admite hasta 20 MB y los archivos nuevos de un mismo guardado suman como máximo 20 MB: si una política lleva más, se guarda y se agregan los demás después.
+- Al primer arranque, los departamentos de los contactos existentes se renombran al catálogo de 17 departamentos. Las equivalencias dudosas (Gerencia, Créditos y Cobros, Bodega, Operaciones) hay que revisarlas a mano en `/admin/contactos`.
+- Fuera de alcance por no haber login de usuarios: «Marcar como leída», preguntas, reportes de incumplimiento, supervisión de lectura y las clasificaciones Confidencial y Restringida.

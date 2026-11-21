@@ -1,0 +1,25 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PolicyTable from '../../../components/admin/PolicyTable.vue';
+import { labelOf, policyStatuses, policyTypes } from '../../../data/policies';
+import { getDb } from '../../../lib/db';
+import { listPolicies } from '../../../lib/policies';
+
+const rows = listPolicies(getDb()).map((policy) => ({
+  id: policy.id,
+  title: policy.title,
+  department: policy.department,
+  typeLabel: labelOf(policyTypes, policy.type),
+  status: policy.status,
+  statusLabel: labelOf(policyStatuses, policy.status),
+  version: policy.version ?? '',
+}));
+---
+
+<AdminLayout title="Políticas" active="politicas">
+  <h1 class="text-2xl font-extrabold">Políticas</h1>
+  <p class="mt-1 text-sm text-body">{rows.length} documentos normativos</p>
+  <div class="mt-5">
+    <PolicyTable client:load rows={rows} />
+  </div>
+</AdminLayout>

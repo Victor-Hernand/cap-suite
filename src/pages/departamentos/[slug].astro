@@ -1,0 +1,193 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ContactCard from '../../components/ContactCard.astro';
+import PolicyBadges from '../../components/PolicyBadges.astro';
+import { getDb, listContactsByDepartment } from '../../lib/db';
+import { listVisiblePolicies } from '../../lib/policies';
+import { formats as formatStore, links as linkStore, notices as noticeStore, processes as processStore, splitSteps } from '../../lib/departmentContent';
+import { EMPTY_FILTERS, filtersToQuery } from '../../lib/policyFilter';
+import { findDepartmentBySlug } from '../../data/departments';
+import { formatDate } from '../../lib/dates';
+import { cardClass, emptyStateClass, eyebrowClass } from '../../lib/publicStyles';
+
+const department = findDepartmentBySlug(Astro.params.slug ?? '');
+if (!department) return new Response(null, { status: 404 });
+
+const db = getDb();
+const policies = listVisiblePolicies(db, department.name);
+const processes = processStore.list(db, department.name).map((process) => ({ ...process, stepList: splitSteps(process.steps) }));
+const formats = formatStore.list(db, department.name);
+const links = linkStore.list(db, department.name);
+const notices = noticeStore.list(db, department.name);
+const team = listContactsByDepartment(db, department.name);
+
+const allPoliciesQuery = filtersToQuery({ ...EMPTY_FILTERS, department: department.name });
+const counters = [
+  { label: 'Políticas', value: policies.length },
+  { label: 'Procesos', value: processes.length },
+  { label: 'Formatos', value: formats.length },
+  { label: 'Personas', value: team.length },
+];
+
+const blockClass = `${cardClass} p-5`;
+const rowClass = 'flex items-center justify-between gap-3 rounded-lg border border-edge px-3 py-2 text-sm text-ink hover:bg-base';
+
+function formatHref(format: { url: string | null; filePath: string | null }): string {
+  return format.url ?? `/files/${format.filePath}`;
+}
+---
+
+<Layout title={`${department.name} — CAP Suite`}>
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <a href="/departamentos" class="text-sm font-semibold text-body hover:text-ink">&larr; Volver a Departamentos</a>
+
+    <header class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+      <div>
+        <p class={eyebrowClass}>Departamento</p>
+        <h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{department.name}</h1>
+        <p class="mt-2 max-w-xl text-sm text-body">
+          Todo lo que necesitas para trabajar con {department.name}: políticas, procesos, formatos, equipo, sistemas y avisos.
+        </p>
+      </div>
+      <dl class="grid grid-cols-4 gap-2">
+        {counters.map((counter) => (
+          <div class="flex flex-col-reverse rounded-xl border border-edge bg-surface px-4 py-2 text-center">
+            <dt class={eyebrowClass}>{counter.label}</dt>
+            <dd class="text-xl font-extrabold text-ink">{counter.value}</dd>
+          </div>
+        ))}
+      </dl>
+    </header>
+
+    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div class="space-y-6">
+        <div class={blockClass}>
+          <div class="flex items-baseline justify-between">
+            <h2 class={eyebrowClass}>Políticas del departamento</h2>
+            <a href={`/politicas?${allPoliciesQuery}`} class="text-sm font-semibold text-body hover:text-ink">Ver todas →</a>
+          </div>
+          {policies.length === 0 ? (
+            <p class={emptyStateClass}>Aún no hay políticas</p>
+          ) : (
+            <ul class="mt-3 space-y-2">
+              {policies.map((policy) => (
+                <li class="rounded-lg border border-edge px-3 py-2.5">
+                  <a href={`/politicas/${policy.slug}`} class="text-sm font-bold text-ink hover:underline">{policy.title}</a>
+                  <div class="mt-1.5">
+                    <PolicyBadges
+                      type={policy.type}
+                      status={policy.status}
+                      classification={policy.classification}
+                      version={policy.version}
+                      effectiveDate={policy.effectiveDate}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div class={blockClass}>
+          <h2 class={eyebrowClass}>Procesos y flujos</h2>
+          {processes.length === 0 ? (
+            <p class={emptyStateClass}>Aún no hay procesos</p>
+          ) : (
+            <ol class="mt-3 space-y-3">
+              {processes.map((process, index) => (
+                <li class="rounded-lg border border-edge px-4 py-3">
+                  <h3 class="text-sm font-bold text-ink">{index + 1}. {process.name}</h3>
+                  <ul class="mt-2 flex flex-wrap items-center gap-1.5">
+                    {process.stepList.map((step, stepIndex) => (
+                      <>
+                        {stepIndex > 0 && <li class="text-muted" aria-hidden="true">→</li>}
+                        <li class="rounded-full border border-edge bg-base px-2.5 py-0.5 text-xs text-body">{step}</li>
+                      </>
+                    ))}
+                  </ul>
+                </li>
+              ))}
+            </ol>
+          )}
+        </div>
+
+        <div class={blockClass}>
+          <h2 class={eyebrowClass}>Formatos y plantillas</h2>
+          {formats.length === 0 ? (
+            <p class={emptyStateClass}>Aún no hay formatos</p>
+          ) : (
+            <ul class="mt-3 space-y-2">
+              {formats.map((format) => (
+                <li>
+                  <a
+                    href={formatHref(format)}
+                    target={format.url ? '_blank' : undefined}
+                    rel={format.url ? 'noopener' : undefined}
+                    download={format.url ? undefined : true}
+                    class={rowClass}
+                  >
+                    {format.name}
+                    <span class={eyebrowClass}>{format.url ? 'Enlace' : 'Descargar'}</span>
+                    {format.url && <span class="sr-only"> (se abre en una pestaña nueva)</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      <aside class="space-y-6 self-start">
+        <div class={blockClass}>
+          <h2 class={eyebrowClass}>Equipo</h2>
+          {team.length === 0 ? (
+            <p class={emptyStateClass}>Aún no hay personas en el directorio</p>
+          ) : (
+            <div class="mt-3 space-y-3">
+              {team.map((contact) => <ContactCard contact={contact} />)}
+            </div>
+          )}
+        </div>
+
+        <div class={blockClass}>
+          <h2 class={eyebrowClass}>Enlaces rápidos</h2>
+          {links.length === 0 ? (
+            <p class={emptyStateClass}>Aún no hay enlaces</p>
+          ) : (
+            <ul class="mt-3 space-y-2">
+              {links.map((link) => (
+                <li>
+                  <a href={link.url} target="_blank" rel="noopener" class={rowClass}>
+                    {link.label}
+                    <span class="sr-only"> (se abre en una pestaña nueva)</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div class={blockClass}>
+          <h2 class={eyebrowClass}>Avisos</h2>
+          {notices.length === 0 ? (
+            <p class={emptyStateClass}>Sin avisos</p>
+          ) : (
+            <ul class="mt-3 space-y-2">
+              {notices.map((notice) => (
+                <li
+                  class:list={[
+                    'rounded-lg border px-3 py-2.5 text-sm text-ink',
+                    notice.kind === 'warning' ? 'border-admin-gold bg-admin-gold/15' : 'border-edge bg-base',
+                  ]}
+                >
+                  <span class={`${eyebrowClass} block`}>{formatDate(notice.date)}</span>
+                  {notice.body}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </aside>
+    </div>
+  </section>
+</Layout>

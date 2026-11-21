@@ -1,0 +1,46 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { departments } from '../../../data/departments';
+import { getDb } from '../../../lib/db';
+import { NO_DEPARTMENT_CONTENT, countDepartmentContentByDepartment } from '../../../lib/departmentContent';
+
+const contentByDepartment = countDepartmentContentByDepartment(getDb());
+const rows = departments.map((department) => {
+  const content = contentByDepartment.get(department.name) ?? NO_DEPARTMENT_CONTENT;
+  return {
+    ...department,
+    counts: [
+      { label: 'Procesos', total: content.processes },
+      { label: 'Formatos', total: content.formats },
+      { label: 'Enlaces', total: content.links },
+      { label: 'Avisos', total: content.notices },
+    ],
+  };
+});
+---
+
+<AdminLayout title="Departamentos" active="departamentos">
+  <h1 class="text-2xl font-extrabold">Departamentos</h1>
+  <p class="mt-1 text-sm text-body">{rows.length} departamentos. Elige uno para administrar sus procesos, formatos, enlaces y avisos.</p>
+  <ul class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    {
+      rows.map((department) => (
+        <li>
+          <a
+            href={`/admin/departamentos/${department.slug}`}
+            class="block rounded-xl border border-edge bg-surface p-4 hover:border-edge-strong"
+          >
+            <span class="font-semibold text-ink">{department.name}</span>
+            <span class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-muted">
+              {department.counts.map((count) => (
+                <span>
+                  {count.label} {count.total}
+                </span>
+              ))}
+            </span>
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</AdminLayout>

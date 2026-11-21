@@ -1,0 +1,22 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import PolicyLibrary from '../../components/PolicyLibrary.vue';
+import { getDb } from '../../lib/db';
+import { listVisiblePolicies } from '../../lib/policies';
+import { filtersFromQuery } from '../../lib/policyFilter';
+
+const policies = listVisiblePolicies(getDb());
+const initialFilters = filtersFromQuery(Astro.url.searchParams);
+---
+
+<Layout title="Políticas — CAP Suite">
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Políticas" title="Centro de Políticas y Lineamientos" />
+    <p class="mt-3 max-w-2xl text-sm text-body">
+      Consulta las políticas, procedimientos e instructivos vigentes del grupo. Filtra por departamento, tipo o estado
+      para encontrar el documento que necesitas.
+    </p>
+    <PolicyLibrary client:load policies={policies} initialFilters={initialFilters} />
+  </section>
+</Layout>

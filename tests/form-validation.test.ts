@@ -12,7 +12,7 @@ const companySchema = z.object(companyFormFields);
 const validContact = {
   name: 'Sindy Castro',
   role: 'Gerente General',
-  department: 'Gerencia',
+  department: 'Gerencia Administrativa',
   company: 'Grupo CAP',
   phone: '9999-9999',
   email: 's.castro@cap.hn',

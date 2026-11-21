@@ -4,6 +4,7 @@ import { dirname } from 'node:path';
 import { readEnv } from './env';
 import { slugify } from './slug';
 import { duplicateKey } from './fieldRules';
+import { LEGACY_DEPARTMENT_NAMES } from '../data/departments';
 
 export type Db = Database.Database;
 
@@ -71,6 +72,95 @@ CREATE TABLE IF NOT EXISTS manuals (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS policies (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  title TEXT NOT NULL,
+  department TEXT NOT NULL,
+  type TEXT NOT NULL,
+  classification TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  summary TEXT,
+  objective TEXT,
+  scope TEXT,
+  indicators TEXT,
+  related_documents TEXT,
+  owner TEXT,
+  approver TEXT,
+  version TEXT,
+  effective_date TEXT,
+  next_review_date TEXT,
+  official_file_path TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS policy_guidelines (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  policy_id INTEGER NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS policy_attachments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  policy_id INTEGER NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,
+  label TEXT NOT NULL,
+  url TEXT,
+  file_path TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS policy_versions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  policy_id INTEGER NOT NULL REFERENCES policies(id) ON DELETE CASCADE,
+  version TEXT NOT NULL,
+  date TEXT NOT NULL,
+  author TEXT NOT NULL,
+  reason TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS department_processes (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  department TEXT NOT NULL,
+  name TEXT NOT NULL,
+  steps TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS department_formats (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  department TEXT NOT NULL,
+  name TEXT NOT NULL,
+  url TEXT,
+  file_path TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS department_links (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  department TEXT NOT NULL,
+  label TEXT NOT NULL,
+  url TEXT NOT NULL,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE TABLE IF NOT EXISTS department_notices (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  department TEXT NOT NULL,
+  date TEXT NOT NULL,
+  body TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `;
 
 function ensureColumn(db: Db, table: string, column: string, definition: string): void {
@@ -84,10 +174,12 @@ export function openDb(path = readEnv('DATABASE_PATH') ?? 'data/cap-suite.db'): 
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const db = new Database(path);
   db.pragma('journal_mode = WAL');
+  db.pragma('foreign_keys = ON');
   db.exec(SCHEMA);
   ensureColumn(db, 'companies', 'logo_path', 'TEXT');
   ensureColumn(db, 'contacts', 'photo_path', 'TEXT');
   migrateSingleManual(db);
+  migrateDepartmentNames(db);
   return db;
 }
 
@@ -104,6 +196,27 @@ function migrateSingleManual(db: Db): void {
       createManual(db, { title: 'Manual del panel', description: null, videoUrl, pdfPath });
     }
     db.exec('DROP TABLE settings');
+  })();
+}
+
+const DEPARTMENT_NAME_COLUMNS = [
+  ['contacts', 'department'],
+  ['policies', 'department'],
+  ['department_processes', 'department'],
+  ['department_formats', 'department'],
+  ['department_links', 'department'],
+  ['department_notices', 'department'],
+] as const;
+
+/** Pasa los nombres de departamento antiguos al catálogo actual en cada tabla que los guarda; repetirla no cambia nada. */
+export function migrateDepartmentNames(db: Db): void {
+  db.transaction(() => {
+    for (const [table, column] of DEPARTMENT_NAME_COLUMNS) {
+      const rename = db.prepare(`UPDATE ${table} SET ${column} = ? WHERE ${column} = ?`);
+      for (const [legacyName, currentName] of Object.entries(LEGACY_DEPARTMENT_NAMES)) {
+        rename.run(currentName, legacyName);
+      }
+    }
   })();
 }
 
@@ -148,7 +261,20 @@ function toAppRow(raw: RawApp): AppRow {
   return { ...raw, featured: raw.featured === 1 };
 }
 
-function nextSortOrder(db: Db, table: string): number {
+/** Slug a partir del texto; si ya lo usa otra fila de la tabla, le agrega -2, -3… */
+export function uniqueSlug(db: Db, table: 'companies' | 'policies', text: string, fallback: string): string {
+  const base = slugify(text) || fallback;
+  const slugTaken = db.prepare(`SELECT 1 FROM ${table} WHERE slug = ?`);
+  let slug = base;
+  let attempt = 2;
+  while (slugTaken.get(slug)) {
+    slug = `${base}-${attempt}`;
+    attempt += 1;
+  }
+  return slug;
+}
+
+export function nextSortOrder(db: Db, table: string): number {
   const row = db.prepare(`SELECT COALESCE(MAX(sort_order), -1) + 1 AS next FROM ${table}`).get() as { next: number };
   return row.next;
 }
@@ -275,6 +401,10 @@ export function listContacts(db: Db): ContactRow[] {
   return db.prepare(`${CONTACT_SELECT} ORDER BY sort_order, id`).all() as ContactRow[];
 }
 
+export function listContactsByDepartment(db: Db, department: string): ContactRow[] {
+  return db.prepare(`${CONTACT_SELECT} WHERE department = ? ORDER BY sort_order, id`).all(department) as ContactRow[];
+}
+
 export function getContact(db: Db, id: number): ContactRow | null {
   return (db.prepare(`${CONTACT_SELECT} WHERE id = ?`).get(id) as ContactRow | undefined) ?? null;
 }
@@ -336,13 +466,7 @@ export function getCompany(db: Db, id: number): CompanyRow | null {
 }
 
 export function createCompany(db: Db, input: CompanyInput): CompanyRow {
-  const base = slugify(input.name) || 'empresa';
-  let slug = base;
-  let attempt = 2;
-  while (db.prepare('SELECT 1 FROM companies WHERE slug = ?').get(slug)) {
-    slug = `${base}-${attempt}`;
-    attempt += 1;
-  }
+  const slug = uniqueSlug(db, 'companies', input.name, 'empresa');
   const result = db
     .prepare(`INSERT INTO companies (slug, name, segment, description, slogan, color, url, logo_path, sort_order)
       VALUES (@slug, @name, @segment, @description, @slogan, @color, @url, @logoPath, @sortOrder)`)
@@ -372,6 +496,7 @@ export function counts(db: Db) {
     contacts: count('contacts'),
     companies: count('companies'),
     manuals: count('manuals'),
+    policies: count('policies'),
   };
 }
 
@@ -424,20 +549,38 @@ export function deleteManual(db: Db, id: number): ManualRow | null {
   return row;
 }
 
-const SORTABLE_TABLES = ['apps', 'resources', 'contacts', 'companies', 'manuals'] as const;
-export type SortableTable = (typeof SORTABLE_TABLES)[number];
+/** Tablas con orden manual; `true` si el orden es independiente dentro de cada departamento. */
+const SORTABLE_TABLES = {
+  apps: false,
+  resources: false,
+  contacts: false,
+  companies: false,
+  manuals: false,
+  department_processes: true,
+  department_formats: true,
+  department_links: true,
+} as const;
+export type SortableTable = keyof typeof SORTABLE_TABLES;
+
+export function isSortableTable(table: string): table is SortableTable {
+  return Object.hasOwn(SORTABLE_TABLES, table);
+}
 
 export function moveRow(db: Db, table: SortableTable, id: number, direction: 'up' | 'down'): void {
-  if (!SORTABLE_TABLES.includes(table)) return;
-  const current = db.prepare(`SELECT id, sort_order AS sortOrder FROM ${table} WHERE id = ?`).get(id) as
-    | { id: number; sortOrder: number }
-    | undefined;
+  if (!isSortableTable(table)) return;
+  const isDepartmentScoped = SORTABLE_TABLES[table];
+  const departmentColumn = isDepartmentScoped ? 'department' : 'NULL';
+  const current = db
+    .prepare(`SELECT id, sort_order AS sortOrder, ${departmentColumn} AS department FROM ${table} WHERE id = ?`)
+    .get(id) as { id: number; sortOrder: number; department: string | null } | undefined;
   if (!current) return;
   const comparator = direction === 'up' ? '<' : '>';
   const ordering = direction === 'up' ? 'DESC' : 'ASC';
+  const departmentFilter = isDepartmentScoped ? 'AND department = ?' : '';
+  const parameters = isDepartmentScoped ? [current.sortOrder, current.department] : [current.sortOrder];
   const neighbor = db
-    .prepare(`SELECT id, sort_order AS sortOrder FROM ${table} WHERE sort_order ${comparator} ? ORDER BY sort_order ${ordering} LIMIT 1`)
-    .get(current.sortOrder) as { id: number; sortOrder: number } | undefined;
+    .prepare(`SELECT id, sort_order AS sortOrder FROM ${table} WHERE sort_order ${comparator} ? ${departmentFilter} ORDER BY sort_order ${ordering} LIMIT 1`)
+    .get(...parameters) as { id: number; sortOrder: number } | undefined;
   if (!neighbor) return;
   const swap = db.transaction(() => {
     db.prepare(`UPDATE ${table} SET sort_order = ? WHERE id = ?`).run(neighbor.sortOrder, current.id);
@@ -453,14 +596,15 @@ export const UNIQUE_COLUMN = {
   contacts: 'email',
   companies: 'name',
   manuals: 'title',
-} as const satisfies Record<SortableTable, string>;
+} as const;
+
+export type UniqueTable = keyof typeof UNIQUE_COLUMN;
 
 /**
  * ¿Ya existe otro registro con el mismo valor (sin distinguir mayúsculas ni espacios)?
  * Se compara en JS porque lower() de SQLite no pliega acentos ("Á" ≠ "á").
  */
-export function hasDuplicate(db: Db, table: SortableTable, value: string, excludeId?: number): boolean {
-  if (!SORTABLE_TABLES.includes(table)) return false;
+export function hasDuplicate(db: Db, table: UniqueTable, value: string, excludeId?: number): boolean {
   const column = UNIQUE_COLUMN[table];
   const target = duplicateKey(value);
   const rows = db.prepare(`SELECT id, ${column} AS value FROM ${table}`).all() as { id: number; value: string }[];

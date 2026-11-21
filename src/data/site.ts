@@ -3,6 +3,8 @@ export const siteConfig = {
     { label: 'Inicio', href: '/' },
     { label: 'Aplicaciones', href: '/apps' },
     { label: 'Recursos', href: '/recursos' },
+    { label: 'Políticas', href: '/politicas' },
+    { label: 'Departamentos', href: '/departamentos' },
     { label: 'Contactos', href: '/contactos' },
     { label: 'Empresas', href: '/empresas' },
   ],

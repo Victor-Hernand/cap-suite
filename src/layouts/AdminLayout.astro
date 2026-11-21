@@ -4,7 +4,7 @@ import { getDb, counts, listCompanies } from '../lib/db';
 
 interface Props {
   title: string;
-  active: 'dashboard' | 'apps' | 'recursos' | 'contactos' | 'empresas' | 'manual';
+  active: 'dashboard' | 'apps' | 'recursos' | 'politicas' | 'departamentos' | 'contactos' | 'empresas' | 'manual';
 }
 
 const { title, active } = Astro.props;
@@ -16,6 +16,8 @@ const navItems = [
   { id: 'dashboard', label: 'Panel', href: '/admin', count: null },
   { id: 'apps', label: 'Aplicaciones', href: '/admin/apps', count: totals.apps },
   { id: 'recursos', label: 'Recursos', href: '/admin/recursos', count: totals.resources },
+  { id: 'politicas', label: 'Políticas', href: '/admin/politicas', count: totals.policies },
+  { id: 'departamentos', label: 'Departamentos', href: '/admin/departamentos', count: null },
   { id: 'contactos', label: 'Contactos', href: '/admin/contactos', count: totals.contacts },
   { id: 'empresas', label: 'Empresas', href: '/admin/empresas', count: totals.companies },
   { id: 'manual', label: 'Manuales', href: '/admin/manual', count: totals.manuals },

@@ -1,10 +1,11 @@
 import { ref } from 'vue';
 import { isInputError } from 'astro:actions';
-import { UPLOAD_RULES, uploadLimitLabel } from '../../lib/fieldRules';
+import { UPLOAD_RULES, oversizedUploadTotalMessage, uploadLimitLabel } from '../../lib/fieldRules';
 import { uploadKindOf, type Field } from './types';
 
 type ActionFailure = { code?: string; status?: number; message: string };
-type ActionResult = { error?: ActionFailure };
+type ActionResult<Data> = { data?: Data; error?: ActionFailure };
+type SuccessHandler<Data> = (data: Data) => void;
 export type FieldErrors = Record<string, string[] | undefined>;
 
 /** "logo hasta 2 MB y archivo hasta 20 MB": los límites de los campos de archivo del formulario. */
@@ -34,9 +35,10 @@ function oversizedFileMessage(fields: Field[], formData: FormData): string | nul
   for (const field of fields) {
     const kind = uploadKindOf(field);
     if (!kind) continue;
-    const file = formData.get(field.name);
-    if (file instanceof File && file.size > UPLOAD_RULES[kind].maxBytes) {
-      return `«${file.name}» pesa más de ${uploadLimitLabel(kind)}, el máximo para ${field.label.toLowerCase()}. Comprímelo o usa un archivo más liviano.`;
+    for (const file of formData.getAll(field.name)) {
+      if (file instanceof File && file.size > UPLOAD_RULES[kind].maxBytes) {
+        return `«${file.name}» pesa más de ${uploadLimitLabel(kind)}, el máximo para ${field.label.toLowerCase()}. Comprímelo o usa un archivo más liviano.`;
+      }
     }
   }
   return null;
@@ -53,13 +55,21 @@ export function useActionForm() {
     fieldErrors.value = {};
   }
 
-  /** Ejecuta una acción y recarga si salió bien; si no, deja el motivo en formError. */
-  async function runAction(call: () => Promise<ActionResult>, fields: Field[] = []) {
+  /**
+   * Ejecuta una acción y, si salió bien, llama a onSuccess (o recarga); si no, deja el motivo en formError.
+   * Devuelve si salió bien.
+   */
+  async function runAction<Data>(
+    call: () => Promise<ActionResult<Data>>,
+    fields: Field[] = [],
+    onSuccess?: SuccessHandler<Data>,
+  ): Promise<boolean> {
     try {
-      const { error } = await call();
+      const { data, error } = await call();
       if (!error) {
-        window.location.reload();
-        return;
+        if (onSuccess) onSuccess(data as Data);
+        else window.location.reload();
+        return true;
       }
       if (isInputError(error)) {
         fieldErrors.value = error.fields;
@@ -70,20 +80,26 @@ export function useActionForm() {
     } catch {
       formError.value = 'No hay conexión con el servidor. Revisa tu red e intenta de nuevo.';
     }
+    return false;
   }
 
   /** Revisa el tamaño de los archivos antes de subirlos y envía el formulario. */
-  async function submit(fields: Field[], formData: FormData, call: () => Promise<ActionResult>) {
+  async function submit<Data>(
+    fields: Field[],
+    formData: FormData,
+    call: () => Promise<ActionResult<Data>>,
+    onSuccess?: SuccessHandler<Data>,
+  ) {
     if (submitting.value) return;
     resetErrors();
-    const fileError = oversizedFileMessage(fields, formData);
+    const fileError = oversizedFileMessage(fields, formData) ?? oversizedUploadTotalMessage(formData);
     if (fileError) {
       formError.value = fileError;
       return;
     }
     submitting.value = true;
-    await runAction(call, fields);
-    submitting.value = false;
+    const succeeded = await runAction(call, fields, onSuccess);
+    if (!succeeded) submitting.value = false;
   }
 
   return { submitting, formError, fieldErrors, resetErrors, runAction, submit };

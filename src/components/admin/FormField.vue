@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import FileDrop from './FileDrop.vue';
 import { uploadKindOf, type Field } from './types';
 import { fieldErrorClass, inputClass, labelClass, selectClass, textareaClass } from './formStyles';
-import { PHONE_DISALLOWED_CHARS, UPLOAD_RULES, uploadLimitLabel } from '../../lib/fieldRules';
+import { PHONE_DISALLOWED_CHARS, uploadPickerRules } from '../../lib/fieldRules';
 
 const props = withDefaults(
   defineProps<{
@@ -17,6 +17,8 @@ const props = withDefaults(
 // Estado local: con :value, cada re-render (p. ej. al mostrar un error) borraba lo escrito.
 // El modal se monta de nuevo al abrirse, así que el valor inicial basta.
 const model = ref(props.value);
+const emit = defineEmits<{ 'update:value': [value: string] }>();
+watch(model, (value) => emit('update:value', value));
 
 const inputId = computed(() => `field-${props.field.name}`);
 const hintId = computed(() => `hint-${props.field.name}`);
@@ -25,14 +27,13 @@ const inputType = computed(() => {
   if (props.field.kind === 'url') return 'url';
   if (props.field.kind === 'email') return 'email';
   if (props.field.kind === 'tel') return 'tel';
+  if (props.field.kind === 'date') return 'date';
   return 'text';
 });
 
 const uploadRules = computed(() => {
   const kind = uploadKindOf(props.field);
-  if (!kind) return null;
-  const rules = UPLOAD_RULES[kind];
-  return { accept: rules.extensions.join(','), hint: `${rules.description}, máx. ${uploadLimitLabel(kind)}` };
+  return kind ? uploadPickerRules(kind) : null;
 });
 
 const describedBy = computed(() => (props.field.hint ? hintId.value : undefined));

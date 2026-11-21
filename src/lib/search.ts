@@ -1,4 +1,7 @@
 import type { SearchItem } from '../data/types';
+import { departments } from '../data/departments';
+import { labelOf, policyTypes } from '../data/policies';
+import { listVisiblePolicies } from './policies';
 import { type Db, listApps, listResources, listContacts, listCompanies } from './db';
 
 export function buildSearchItems(db: Db): SearchItem[] {
@@ -30,6 +33,20 @@ export function buildSearchItems(db: Db): SearchItem[] {
       description: company.segment,
       url: '/empresas',
       section: 'Empresas',
+    })),
+    ...listVisiblePolicies(db).map((policy) => ({
+      id: `policy-${policy.id}`,
+      name: policy.title,
+      description: `${labelOf(policyTypes, policy.type)} · ${policy.department}`,
+      url: `/politicas/${policy.slug}`,
+      section: 'Políticas',
+    })),
+    ...departments.map((department) => ({
+      id: `department-${department.slug}`,
+      name: department.name,
+      description: 'Departamento',
+      url: `/departamentos/${department.slug}`,
+      section: 'Departamentos',
     })),
   ];
 }

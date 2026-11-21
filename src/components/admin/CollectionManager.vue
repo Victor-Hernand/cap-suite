@@ -1,28 +1,36 @@
 <script setup lang="ts">
 import { computed, ref, toRef } from 'vue';
 import { actions } from 'astro:actions';
+import DeleteRowButton from './DeleteRowButton.vue';
 import FormModal from './FormModal.vue';
+import SortableHeader from './SortableHeader.vue';
+import TablePager from './TablePager.vue';
 import { useTableView } from './useTableView';
 import { useActionForm } from './useActionForm';
-import { alertErrorClass, inputClass, pagerButtonClass, primaryButtonClass } from './formStyles';
-import type { Collection, Column, Field, Row } from './types';
+import { alertErrorClass, inputClass, primaryButtonClass } from './formStyles';
+import { UNSORTED_COLLECTIONS, type Collection, type Column, type Field, type Row } from './types';
 
-const props = defineProps<{
-  collection: Collection;
-  rows: Row[];
-  columns: Column[];
-  fields: Field[];
-  entityName: string;
-  entityNamePlural: string;
-  /** Género gramatical de la entidad: "Nuevo recurso" / "Nueva empresa". */
-  entityGender: 'm' | 'f';
-}>();
+const props = withDefaults(
+  defineProps<{
+    collection: Collection;
+    rows: Row[];
+    columns: Column[];
+    fields: Field[];
+    entityName: string;
+    entityNamePlural: string;
+    /** Género gramatical de la entidad: "Nuevo recurso" / "Nueva empresa". */
+    entityGender: 'm' | 'f';
+    /** Valores que no se editan en el formulario y se envían en crear y editar. */
+    fixedValues?: Record<string, string>;
+  }>(),
+  { fixedValues: () => ({}) },
+);
 
 const group = computed(() => actions[props.collection]);
+const isSortable = computed(() => !UNSORTED_COLLECTIONS.includes(props.collection));
 const {
   filterText,
   sortKey,
-  sortDirection,
   page,
   pageCount,
   pageRows,
@@ -31,6 +39,7 @@ const {
   totalFiltered,
   isManualOrder,
   toggleSort,
+  sortState,
 } = useTableView(toRef(props, 'rows'), toRef(props, 'columns'));
 const { submitting, formError, fieldErrors, resetErrors, runAction, submit } = useActionForm();
 
@@ -41,16 +50,6 @@ const pendingDeleteId = ref<number | null>(null);
 const newLabel = computed(() => `${props.entityGender === 'f' ? 'Nueva' : 'Nuevo'} ${props.entityName}`);
 const firstOneLabel = computed(() => (props.entityGender === 'f' ? 'la primera' : 'el primero'));
 const columnSpan = computed(() => props.columns.length + 1);
-
-const SORT_STATE = {
-  none: { icon: '↕', aria: 'none' },
-  asc: { icon: '↑', aria: 'ascending' },
-  desc: { icon: '↓', aria: 'descending' },
-} as const;
-
-function sortState(key: string) {
-  return SORT_STATE[sortKey.value === key ? sortDirection.value : 'none'];
-}
 
 function openForm(row: Row | null = null) {
   editingRow.value = row;
@@ -68,6 +67,7 @@ const initialValues = computed(() => {
 });
 
 function submitForm(formData: FormData) {
+  for (const [name, value] of Object.entries(props.fixedValues)) formData.set(name, value);
   if (editingRow.value) formData.set('id', String(editingRow.value.id));
   const action = editingRow.value ? group.value.update : group.value.create;
   submit(props.fields, formData, () => action(formData));
@@ -115,22 +115,14 @@ function toggleFeatured(row: Row) {
       <table v-else class="w-full text-left text-sm">
         <thead>
           <tr class="border-b border-edge font-mono text-[9px] uppercase tracking-widest text-muted">
-            <th
+            <SortableHeader
               v-for="column in props.columns"
               :key="column.key"
-              class="px-4 py-2 font-medium"
-              :aria-sort="sortState(column.key).aria"
-            >
-              <button
-                type="button"
-                class="inline-flex items-center gap-1 whitespace-nowrap uppercase tracking-widest hover:text-ink"
-                :class="sortKey === column.key ? 'text-ink' : ''"
-                :title="`Ordenar por ${column.label.toLowerCase()}`"
-                @click="toggleSort(column.key)"
-              >
-                {{ column.label }} <span aria-hidden="true">{{ sortState(column.key).icon }}</span>
-              </button>
-            </th>
+              :label="column.label"
+              :sort-state="sortState(column.key)"
+              :active="sortKey === column.key"
+              @sort="toggleSort(column.key)"
+            />
             <th class="px-4 py-2"><span class="sr-only">Acciones</span></th>
           </tr>
         </thead>
@@ -166,51 +158,27 @@ function toggleFeatured(row: Row) {
               >{{ row[column.key] ?? '—' }}</span>
             </td>
             <td class="px-4 py-3 text-right whitespace-nowrap">
-              <template v-if="isManualOrder">
+              <template v-if="isSortable && isManualOrder">
                 <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Subir" @click="moveRowBy(row.id, 'up')">↑</button>
                 <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Bajar" @click="moveRowBy(row.id, 'down')">↓</button>
               </template>
               <button type="button" class="ml-2 font-semibold text-ink hover:underline" @click="openForm(row)">Editar</button>
-              <button
-                v-if="pendingDeleteId !== row.id"
-                type="button"
-                class="ml-2 text-red-700"
-                aria-label="Eliminar"
-                @click="pendingDeleteId = row.id"
-              >✕</button>
-              <button
-                v-else
-                type="button"
-                class="ml-2 rounded bg-red-700 px-2 py-0.5 text-xs font-bold text-white"
-                @click="removeRow(row.id)"
-              >¿Eliminar?</button>
+              <DeleteRowButton
+                :pending="pendingDeleteId === row.id"
+                @request="pendingDeleteId = row.id"
+                @confirm="removeRow(row.id)"
+              />
             </td>
           </tr>
         </tbody>
-        <tfoot v-if="pageCount > 1">
-          <tr>
-            <td :colspan="columnSpan" class="border-t border-edge px-4 py-2">
-              <div class="flex flex-wrap items-center justify-between gap-2 text-xs text-body">
-                <span>Mostrando {{ rangeStart }}–{{ rangeEnd }} de {{ totalFiltered }}</span>
-                <div class="flex items-center gap-2">
-                  <button
-                    type="button"
-                    :class="pagerButtonClass"
-                    :disabled="page === 1"
-                    @click="page -= 1"
-                  >Anterior</button>
-                  <span>Página {{ page }} de {{ pageCount }}</span>
-                  <button
-                    type="button"
-                    :class="pagerButtonClass"
-                    :disabled="page === pageCount"
-                    @click="page += 1"
-                  >Siguiente</button>
-                </div>
-              </div>
-            </td>
-          </tr>
-        </tfoot>
+        <TablePager
+          v-model:page="page"
+          :page-count="pageCount"
+          :range-start="rangeStart"
+          :range-end="rangeEnd"
+          :total="totalFiltered"
+          :column-span="columnSpan"
+        />
       </table>
     </div>
 

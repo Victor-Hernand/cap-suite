@@ -1,9 +1,17 @@
-import { computed, ref, watch, type Ref } from 'vue';
+import { computed, ref, toValue, watch, type MaybeRefOrGetter, type Ref } from 'vue';
 import type { Column, Row } from './types';
 
 const PAGE_SIZE = 10;
 
 type SortDirection = 'asc' | 'desc';
+
+const SORT_STATE = {
+  none: { icon: '↕', aria: 'none' },
+  asc: { icon: '↑', aria: 'ascending' },
+  desc: { icon: '↓', aria: 'descending' },
+} as const;
+
+export type SortState = (typeof SORT_STATE)[keyof typeof SORT_STATE];
 
 const collator = new Intl.Collator('es', { numeric: true, sensitivity: 'base' });
 
@@ -16,7 +24,7 @@ function compareValues(left: unknown, right: unknown): number {
 }
 
 /** Filtro de texto, orden por columna y paginación en cliente para las tablas del admin. */
-export function useTableView(rows: Ref<Row[]>, columns: Ref<Column[]>) {
+export function useTableView(rows: Ref<Row[]>, columns: MaybeRefOrGetter<Column[]>) {
   const filterText = ref('');
   const sortKey = ref<string | null>(null);
   const sortDirection = ref<SortDirection>('asc');
@@ -26,7 +34,7 @@ export function useTableView(rows: Ref<Row[]>, columns: Ref<Column[]>) {
     const query = filterText.value.trim().toLowerCase();
     if (!query) return rows.value;
     return rows.value.filter((row) =>
-      columns.value.some((column) => String(row[column.key] ?? '').toLowerCase().includes(query)),
+      toValue(columns).some((column) => String(row[column.key] ?? '').toLowerCase().includes(query)),
     );
   });
 
@@ -62,10 +70,14 @@ export function useTableView(rows: Ref<Row[]>, columns: Ref<Column[]>) {
     }
   }
 
+  /** Icono y valor de aria-sort de la cabecera de una columna. */
+  function sortState(key: string): SortState {
+    return SORT_STATE[sortKey.value === key ? sortDirection.value : 'none'];
+  }
+
   return {
     filterText,
     sortKey,
-    sortDirection,
     page,
     pageCount,
     pageRows,
@@ -74,5 +86,6 @@ export function useTableView(rows: Ref<Row[]>, columns: Ref<Column[]>) {
     totalFiltered,
     isManualOrder,
     toggleSort,
+    sortState,
   };
 }

@@ -1,0 +1,154 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import CollectionManager from '../../../components/admin/CollectionManager.vue';
+import type { Collection, Column, Field, Row } from '../../../components/admin/types';
+import { findDepartmentBySlug, noticeKinds } from '../../../data/departments';
+import { labelOf } from '../../../data/policies';
+import { FIELD_MAX } from '../../../lib/fieldRules';
+import { getDb } from '../../../lib/db';
+import { formats, links, notices, processes, splitSteps } from '../../../lib/departmentContent';
+
+const department = findDepartmentBySlug(Astro.params.slug ?? '');
+if (!department) return Astro.redirect('/admin/departamentos');
+
+const db = getDb();
+
+interface Section {
+  title: string;
+  collection: Collection;
+  entityName: string;
+  entityNamePlural: string;
+  entityGender: 'm' | 'f';
+  rows: Row[];
+  columns: Column[];
+  fields: Field[];
+}
+
+const sections: Section[] = [
+  {
+    title: 'Procesos',
+    collection: 'departmentProcesses',
+    entityName: 'proceso',
+    entityNamePlural: 'procesos',
+    entityGender: 'm',
+    rows: processes.list(db, department.name).map((process) => ({
+      ...process,
+      stepsSummary: splitSteps(process.steps).join(' → '),
+    })),
+    columns: [
+      { key: 'name', label: 'Nombre' },
+      { key: 'stepsSummary', label: 'Pasos', kind: 'muted' },
+    ],
+    fields: [
+      { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+      {
+        name: 'steps',
+        label: 'PASOS',
+        kind: 'textarea',
+        required: true,
+        hint: 'Un paso por línea.',
+        maxLength: FIELD_MAX.longText,
+      },
+    ],
+  },
+  {
+    title: 'Formatos',
+    collection: 'departmentFormats',
+    entityName: 'formato',
+    entityNamePlural: 'formatos',
+    entityGender: 'm',
+    rows: formats.list(db, department.name).map((format) => ({
+      ...format,
+      source: format.url ?? `Archivo: ${format.filePath}`,
+    })),
+    columns: [
+      { key: 'name', label: 'Nombre' },
+      { key: 'source', label: 'Origen', kind: 'muted' },
+    ],
+    fields: [
+      { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+      {
+        name: 'url',
+        label: 'ENLACE',
+        kind: 'url',
+        placeholder: 'https://… (o sube un archivo abajo)',
+        maxLength: FIELD_MAX.url,
+      },
+      { name: 'file', label: 'ARCHIVO', kind: 'file-policy' },
+    ],
+  },
+  {
+    title: 'Enlaces',
+    collection: 'departmentLinks',
+    entityName: 'enlace',
+    entityNamePlural: 'enlaces',
+    entityGender: 'm',
+    rows: links.list(db, department.name).map((link) => ({ ...link })),
+    columns: [
+      { key: 'label', label: 'Nombre' },
+      { key: 'url', label: 'Dirección', kind: 'muted' },
+    ],
+    fields: [
+      { name: 'label', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+      { name: 'url', label: 'DIRECCIÓN', kind: 'url', required: true, placeholder: 'https://…', maxLength: FIELD_MAX.url },
+    ],
+  },
+  {
+    title: 'Avisos',
+    collection: 'departmentNotices',
+    entityName: 'aviso',
+    entityNamePlural: 'avisos',
+    entityGender: 'm',
+    rows: notices.list(db, department.name).map((notice) => ({
+      ...notice,
+      kindLabel: labelOf(noticeKinds, notice.kind),
+    })),
+    columns: [
+      { key: 'date', label: 'Fecha' },
+      { key: 'body', label: 'Aviso', kind: 'muted' },
+      { key: 'kindLabel', label: 'Tipo', kind: 'muted' },
+    ],
+    fields: [
+      { name: 'date', label: 'FECHA', kind: 'date', required: true },
+      { name: 'body', label: 'AVISO', kind: 'textarea', required: true, maxLength: FIELD_MAX.longText },
+      {
+        name: 'kind',
+        label: 'TIPO',
+        kind: 'select',
+        required: true,
+        options: noticeKinds.map(({ id, label }) => ({ value: id, label })),
+      },
+    ],
+  },
+];
+---
+
+<AdminLayout title={department.name} active="departamentos">
+  <a href="/admin/departamentos" class="text-sm font-semibold text-body hover:text-ink">← Departamentos</a>
+  <h1 class="mt-2 text-2xl font-extrabold">{department.name}</h1>
+  <p class="mt-1 text-sm text-body">
+    Contenido que se muestra en la
+    <a href={`/departamentos/${department.slug}`} class="font-semibold text-ink hover:underline">página pública del departamento</a>.
+  </p>
+  {
+    sections.map((section) => (
+      <section class="mt-8">
+        <h2 class="mb-3 text-lg font-extrabold">{section.title}</h2>
+        <CollectionManager
+          client:load
+          collection={section.collection}
+          entityName={section.entityName}
+          entityNamePlural={section.entityNamePlural}
+          entityGender={section.entityGender}
+          rows={section.rows}
+          columns={section.columns}
+          fields={section.fields}
+          fixedValues={{ department: department.name }}
+        />
+      </section>
+    ))
+  }
+  <p class="mt-10 text-sm text-body">
+    El equipo se administra en <a href="/admin/contactos" class="font-semibold text-ink hover:underline">Contactos</a>.
+  </p>
+</AdminLayout>

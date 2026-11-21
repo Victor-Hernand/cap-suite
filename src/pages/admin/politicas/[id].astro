@@ -1,0 +1,28 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
+import { badgeClassOf, labelOf, policyStatuses } from '../../../data/policies';
+import { getDb } from '../../../lib/db';
+import { getPolicy } from '../../../lib/policies';
+
+const policy = getPolicy(getDb(), Number(Astro.params.id));
+if (!policy) return Astro.redirect('/admin/politicas');
+
+const isDraft = policy.status === 'draft';
+---
+
+<AdminLayout title={policy.title} active="politicas">
+  <a href="/admin/politicas" class="text-xs font-semibold text-muted hover:text-ink">← Todas las políticas</a>
+  <div class="mt-2 flex flex-wrap items-center gap-3">
+    <h1 class="text-2xl font-extrabold">{policy.title}</h1>
+    <span class={badgeClassOf(policy.status)}>{labelOf(policyStatuses, policy.status)}</span>
+  </div>
+  <p class="mt-1 text-sm text-body">
+    {isDraft
+      ? 'Borrador: no aparece en el portal hasta publicar una versión.'
+      : <>Visible en el portal: <a href={`/politicas/${policy.slug}`} class="font-semibold text-ink hover:underline">ver ficha pública ↗</a></>}
+  </p>
+  <div class="mt-5">
+    <PolicyEditor client:load policy={policy} />
+  </div>
+</AdminLayout>

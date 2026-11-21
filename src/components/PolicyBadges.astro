@@ -1,0 +1,31 @@
+---
+import {
+  badgeClassOf,
+  labelOf,
+  policyClassifications,
+  policyStatuses,
+  policyTypes,
+  type PolicyClassification,
+  type PolicyStatus,
+  type PolicyType,
+} from '../data/policies';
+import { formatVersionLine } from '../lib/dates';
+
+interface Props {
+  type: PolicyType;
+  status: PolicyStatus;
+  classification: PolicyClassification;
+  version?: string | null;
+  effectiveDate?: string | null;
+}
+
+const { type, status, classification, version = null, effectiveDate = null } = Astro.props;
+const versionLine = formatVersionLine(version, effectiveDate);
+---
+
+<div class="flex flex-wrap items-center gap-1.5">
+  <span class={badgeClassOf(type)}>{labelOf(policyTypes, type)}</span>
+  <span class={badgeClassOf(status)}>{labelOf(policyStatuses, status)}</span>
+  <span class={badgeClassOf(classification)}>{labelOf(policyClassifications, classification)}</span>
+  {versionLine && <span class="font-mono text-[10px] tracking-[0.12em] text-muted">{versionLine}</span>}
+</div>
