@@ -1,0 +1,39 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SectionHeader from '../../components/SectionHeader.astro';
+import { getDb } from '../../lib/db';
+import { countVisiblePoliciesByDepartment } from '../../lib/policies';
+import { departments } from '../../data/departments';
+import { cardClass } from '../../lib/publicStyles';
+
+const policyCounts = countVisiblePoliciesByDepartment(getDb());
+
+function policyCountLabel(departmentName: string): string {
+  const total = policyCounts.get(departmentName) ?? 0;
+  if (total === 0) return 'Sin políticas aún';
+  return `${total} ${total === 1 ? 'política' : 'políticas'}`;
+}
+---
+
+<Layout title="Departamentos — CAP Suite">
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Departamentos" title="Departamentos del grupo" />
+    <p class="mt-3 max-w-2xl text-sm text-body">
+      Cada departamento reúne sus políticas, procesos, formatos, equipo, enlaces y avisos en un solo lugar.
+    </p>
+
+    <div class="mt-8 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {departments.map((department) => (
+        <a
+          href={`/departamentos/${department.slug}`}
+          class={`${cardClass} p-4 transition-colors hover:border-edge-strong`}
+        >
+          <p class="text-sm font-bold text-ink">{department.name}</p>
+          <p class="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
+            {policyCountLabel(department.name)}
+          </p>
+        </a>
+      ))}
+    </div>
+  </section>
+</Layout>

@@ -16,7 +16,7 @@ export interface FieldOption {
 export interface Field {
   name: string;
   label: string;
-  kind: 'text' | 'url' | 'email' | 'tel' | 'textarea' | 'select' | 'toggle' | FileFieldKind;
+  kind: 'text' | 'url' | 'email' | 'tel' | 'date' | 'textarea' | 'select' | 'toggle' | FileFieldKind;
   options?: FieldOption[];
   required?: boolean;
   placeholder?: string;
@@ -24,13 +24,26 @@ export interface Field {
   maxLength?: number;
 }
 
-export type Collection = 'apps' | 'resources' | 'contacts' | 'companies' | 'manuals';
+export type Collection =
+  | 'apps'
+  | 'resources'
+  | 'contacts'
+  | 'companies'
+  | 'manuals'
+  | 'departmentProcesses'
+  | 'departmentFormats'
+  | 'departmentLinks'
+  | 'departmentNotices';
+
+/** Colecciones sin orden manual (sin acción move). El proxy de `actions` del cliente no permite preguntárselo. */
+export const UNSORTED_COLLECTIONS: readonly Collection[] = ['departmentNotices'];
 
 /** Tipo de subida (reglas en fieldRules.UPLOAD_RULES) que corresponde a cada campo de archivo. */
 const FILE_FIELD_UPLOAD_KIND = {
   'file-logo': 'logos',
   'file-doc': 'docs',
   'file-manual': 'manual',
+  'file-policy': 'policies',
 } as const satisfies Record<string, UploadKind>;
 
 type FileFieldKind = keyof typeof FILE_FIELD_UPLOAD_KIND;

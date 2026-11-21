@@ -3,7 +3,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import CollectionManager from '../../components/admin/CollectionManager.vue';
 import type { Column, Field } from '../../components/admin/types';
 import { getDb, listContacts } from '../../lib/db';
-import { departments } from '../../data/departments';
+import { departmentOptions } from '../../data/departments';
 import { FIELD_MAX, PHONE_HINT } from '../../lib/fieldRules';
 
 const rows = listContacts(getDb()).map((contact) => ({
@@ -26,7 +26,7 @@ const fields: Field[] = [
     label: 'DEPARTAMENTO',
     kind: 'select',
     required: true,
-    options: departments.map((department) => ({ value: department, label: department })),
+    options: departmentOptions,
   },
   { name: 'company', label: 'EMPRESA', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
   {

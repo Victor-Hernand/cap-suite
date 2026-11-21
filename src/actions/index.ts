@@ -28,9 +28,9 @@ import {
   updateManual,
   deleteManual,
   UNIQUE_COLUMN,
-  type SortableTable,
+  type UniqueTable,
 } from '../lib/db';
-import { storeUpload, validateUpload, deleteUpload, type UploadKind } from '../lib/uploads';
+import { deleteUpload } from '../lib/uploads';
 import {
   appFormFields,
   companyFormFields,
@@ -38,10 +38,13 @@ import {
   manualFormFields,
   resourceFormFields,
 } from './formSchemas';
+import { departmentActions } from './departmentActions';
+import { policies } from './policyActions';
+import { hasFile, idInput, moveInput, replaceUpload, resolveResourceSource } from './actionHelpers';
 
 const delay = (ms: number) => new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
 
-const DUPLICATE_MESSAGES: Record<SortableTable, (value: string) => string> = {
+const DUPLICATE_MESSAGES: Record<UniqueTable, (value: string) => string> = {
   apps: (value) => `Ya existe una aplicación llamada «${value}». Usa otro nombre o edita la existente.`,
   resources: (value) => `Ya existe un recurso llamado «${value}». Usa otro nombre o edita el existente.`,
   contacts: (value) => `Ya existe un contacto con el correo ${value}. Edita el contacto existente.`,
@@ -50,7 +53,7 @@ const DUPLICATE_MESSAGES: Record<SortableTable, (value: string) => string> = {
 };
 
 /** Rechaza el alta o edición si otro registro ya usa el valor único de la colección. */
-function assertUnique<T extends SortableTable>(
+function assertUnique<T extends UniqueTable>(
   table: T,
   form: Record<(typeof UNIQUE_COLUMN)[T], string>,
   excludeId?: number,
@@ -59,22 +62,6 @@ function assertUnique<T extends SortableTable>(
   if (hasDuplicate(getDb(), table, value, excludeId)) {
     throw new ActionError({ code: 'CONFLICT', message: DUPLICATE_MESSAGES[table](value) });
   }
-}
-
-const idInput = z.object({ id: z.number().int().positive() });
-const moveInput = idInput.extend({ direction: z.enum(['up', 'down']) });
-
-function hasFile(file?: File): file is File {
-  return !!file && file.size > 0;
-}
-
-/** Valida y guarda el archivo nuevo; el anterior se borra solo después de guardar el nuevo. */
-async function replaceUpload(file: File, kind: UploadKind, previousPath?: string | null): Promise<string> {
-  const error = validateUpload(file, kind);
-  if (error) throw new ActionError({ code: 'BAD_REQUEST', message: error });
-  const storedPath = await storeUpload(file, kind);
-  if (previousPath) deleteUpload(previousPath);
-  return storedPath;
 }
 
 async function resolveLogoPath(input: {
@@ -110,21 +97,6 @@ function toAppInput(
     featured: form.featured ?? false,
     badge: form.badge?.trim() ? form.badge.trim() : null,
   };
-}
-
-async function resolveResourceSource(
-  form: { url?: string; file?: File },
-  previous?: { url: string | null; filePath: string | null },
-) {
-  if (hasFile(form.file)) {
-    return { url: null, filePath: await replaceUpload(form.file, 'docs', previous?.filePath) };
-  }
-  if (form.url?.trim()) {
-    if (previous?.filePath) deleteUpload(previous.filePath);
-    return { url: form.url!.trim(), filePath: null };
-  }
-  if (previous && (previous.url || previous.filePath)) return previous;
-  throw new ActionError({ code: 'BAD_REQUEST', message: 'El recurso necesita un enlace o un archivo: escribe la dirección web o sube el documento.' });
 }
 
 function toResourceInput(
@@ -439,4 +411,6 @@ export const server = {
       },
     }),
   },
+  policies,
+  ...departmentActions,
 };

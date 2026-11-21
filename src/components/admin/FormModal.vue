@@ -18,6 +18,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: [];
   submit: [formData: FormData];
+  fieldInput: [name: string, value: string];
 }>();
 
 const formRef = ref<HTMLFormElement | null>(null);
@@ -57,6 +58,7 @@ function onSubmit() {
             :field="field"
             :value="props.initialValues[field.name] ?? ''"
             :error="props.fieldErrors[field.name]?.[0]"
+            @update:value="emit('fieldInput', field.name, $event)"
           />
         </div>
       </div>

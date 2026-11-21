@@ -9,7 +9,7 @@ import {
   deleteUpload,
 } from '../src/lib/uploads';
 import { logoSrc } from '../src/lib/assets';
-import { UPLOAD_RULES } from '../src/lib/fieldRules';
+import { UPLOAD_RULES, UPLOAD_TOTAL_MAX_BYTES, oversizedUploadTotalMessage } from '../src/lib/fieldRules';
 
 let dir: string;
 
@@ -57,4 +57,27 @@ test('logoSrc distingue URL externa de archivo local', () => {
   expect(logoSrc('https://x.com/a.png')).toBe('https://x.com/a.png');
   expect(logoSrc('logos/a.png')).toBe('/files/logos/a.png');
   expect(logoSrc(null)).toBeUndefined();
+});
+
+test('policies acepta imágenes y Office, rechaza ejecutables', () => {
+  expect(validateUpload(new File(['x'], 'infografia.png'), 'policies')).toBeNull();
+  expect(validateUpload(new File(['x'], 'politica.docx'), 'policies')).toBeNull();
+  expect(validateUpload(new File(['x'], 'virus.exe'), 'policies')).not.toBeNull();
+});
+
+test('la suma de archivos nuevos de un guardado no puede pasar de 20 MB', () => {
+  const megabytes = (size: number, name: string) => new File([new Uint8Array(size * 1024 * 1024)], name);
+  const withinLimit = new FormData();
+  withinLimit.append('officialFile', megabytes(12, 'oficial.pdf'));
+  withinLimit.append('attachmentFiles', megabytes(8, 'anexo.pdf'));
+  withinLimit.set('title', 'Sin archivo');
+  expect(oversizedUploadTotalMessage(withinLimit)).toBeNull();
+
+  const overLimit = new FormData();
+  overLimit.append('officialFile', megabytes(12, 'oficial.pdf'));
+  overLimit.append('attachmentFiles', megabytes(10, 'anexo.pdf'));
+  expect(UPLOAD_TOTAL_MAX_BYTES).toBe(20 * 1024 * 1024);
+  expect(oversizedUploadTotalMessage(overLimit)).toBe(
+    'Los archivos nuevos suman 22 MB; el máximo por guardado es 20 MB. Guarda y agrega los demás después.',
+  );
 });

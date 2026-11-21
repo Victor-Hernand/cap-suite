@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import SectionHeader from '../components/SectionHeader.astro';
+
+const links = [
+  { href: '/', label: 'Inicio' },
+  { href: '/politicas', label: 'Políticas' },
+  { href: '/departamentos', label: 'Departamentos' },
+];
+---
+
+<Layout title="Página no encontrada — CAP Suite">
+  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
+    <SectionHeader as="h1" eyebrow="Error 404" title="No encontramos esta página" />
+    <p class="mt-3 max-w-2xl text-sm text-body">
+      Puede que la dirección haya cambiado o que el contenido ya no esté publicado.
+    </p>
+    <nav aria-label="Secciones de la suite" class="mt-6 flex flex-wrap gap-2">
+      {links.map((link) => (
+        <a
+          href={link.href}
+          class="rounded-lg border border-edge bg-surface px-4 py-2 text-sm font-semibold text-ink transition-colors hover:border-edge-strong"
+        >
+          {link.label}
+        </a>
+      ))}
+    </nav>
+  </section>
+</Layout>

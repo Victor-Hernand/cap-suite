@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/manrope';
+@import '@fontsource-variable/inter';
 @import '@fontsource/ibm-plex-mono/400.css';
 @import '@fontsource/ibm-plex-mono/500.css';
 
@@ -13,7 +13,7 @@
   --color-body: #4a5160;
   --color-muted: #7d838e;
   --color-admin-gold: #d4a843;
-  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 }
 

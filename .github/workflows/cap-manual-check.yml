@@ -1,0 +1,47 @@
+name: cap-manual check
+# cap-manual 3.5.0: lo actualiza install.sh, no lo edites
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/cap-manual
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Read change type from the PR body
+        id: change-type
+        env:
+          PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          change_type=$(node --input-type=module -e "
+            import { changeTypeFromPullRequestBody } from './scripts/cap-manual/lib.mjs';
+            process.stdout.write(changeTypeFromPullRequestBody(process.env.PULL_REQUEST_BODY ?? '') ?? '');
+          ")
+          if [ -z "$change_type" ]; then
+            echo '::error::El PR debe indicar `Tipo:` (fix, mejora, módulo o sistema)'
+            exit 1
+          fi
+          echo "value=$change_type" >> "$GITHUB_OUTPUT"
+
+      - name: Require the manual draft in CAP Gestión
+        if: steps.change-type.outputs.value == 'modulo' || steps.change-type.outputs.value == 'sistema'
+        env:
+          CAP_GESTION_URL: ${{ secrets.CAP_GESTION_URL }}
+          CAP_GESTION_TOKEN: ${{ secrets.CAP_GESTION_TOKEN }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+        run: |
+          if [ -z "$CAP_GESTION_TOKEN" ]; then
+            echo '::error::No hay secrets de CAP Gestión en este run: si el PR viene de un fork, GitHub no se los entrega; si no, configura CAP_GESTION_URL y CAP_GESTION_TOKEN en el repositorio.'
+            exit 1
+          fi
+          node scripts/cap-manual/publish.mjs --check --branch "$HEAD_BRANCH"

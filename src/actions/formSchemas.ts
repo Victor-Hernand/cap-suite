@@ -1,7 +1,8 @@
 import { z } from 'astro/zod';
 import { appCategories, resourceTypes } from '../data/categories';
-import { departments } from '../data/departments';
-import { FIELD_MAX, PHONE_HINT, isHttpUrl, normalizePhone } from '../lib/fieldRules';
+import { departmentNames, noticeKinds } from '../data/departments';
+import { attachmentKinds, policyClassifications, policyStatuses, policyTypes } from '../data/policies';
+import { FIELD_MAX, PHONE_HINT, VERSION_PATTERN, isHttpUrl, isIsoDate, normalizePhone } from '../lib/fieldRules';
 import { loomEmbedUrl } from '../lib/loom';
 
 // trim() va antes de min(1): un campo con solo espacios cuenta como vacío.
@@ -40,8 +41,14 @@ function optionalUrl(label: string) {
 }
 
 /** Valor que debe salir de una lista cerrada (select del formulario). */
-function listEnum(values: readonly [string, ...string[]], message: string) {
-  return z.enum(values as [string, ...string[]], { errorMap: () => ({ message }) });
+function listEnum<Value extends string>(values: readonly [Value, ...Value[]], message: string) {
+  return z.enum(values as [Value, ...Value[]], { errorMap: () => ({ message }) });
+}
+
+const idsOf = <Id extends string>(options: readonly { id: Id }[]) => options.map((option) => option.id) as [Id, ...Id[]];
+
+function departmentField() {
+  return listEnum(departmentNames, 'Elige un departamento de la lista.');
 }
 
 const CATEGORY_IDS = appCategories.map((category) => category.id) as [string, ...string[]];
@@ -70,7 +77,7 @@ export const resourceFormFields = {
 export const contactFormFields = {
   name: requiredText('El nombre', FIELD_MAX.name),
   role: requiredText('El cargo', FIELD_MAX.shortText),
-  department: listEnum(departments, 'Elige un departamento de la lista.'),
+  department: departmentField(),
   company: requiredText('La empresa', FIELD_MAX.shortText, 'f'),
   phone: requiredText('El teléfono', FIELD_MAX.phone).transform((value, context) => {
     const phone = normalizePhone(value);
@@ -107,4 +114,137 @@ export const manualFormFields = {
     )
     .optional(),
   pdf: z.instanceof(File).optional(),
+};
+
+const VERSION_MESSAGE = 'La versión debe tener el formato v2.1.';
+const DATE_MESSAGE = 'Escribe una fecha válida con el formato aaaa-mm-dd.';
+const ISO_DATE_LENGTH = 10;
+
+function requiredIsoDate(label: string) {
+  return requiredText(label, ISO_DATE_LENGTH, 'f').refine(isIsoDate, DATE_MESSAGE);
+}
+
+function requiredVersion() {
+  return requiredText('La versión', FIELD_MAX.badge, 'f').regex(VERSION_PATTERN, VERSION_MESSAGE);
+}
+
+const lowercaseFirst = (message: string) => message.charAt(0).toLowerCase() + message.slice(1);
+
+/**
+ * Lista que viaja como texto JSON en un solo campo del formulario. Un JSON roto o un
+ * elemento inválido se reporta como error de validación nombrando el elemento.
+ */
+function jsonList<Item extends z.ZodTypeAny>(itemSchema: Item, itemLabel: string) {
+  return z
+    .string()
+    .transform((raw, context): z.output<Item>[] => {
+      const items = z.array(itemSchema).safeParse(parseJsonOrNull(raw.trim() || '[]'));
+      if (items.success) return items.data;
+      for (const issue of items.error.issues) {
+        const itemIndex = issue.path[0];
+        const message = typeof itemIndex === 'number'
+          ? `${itemLabel} ${itemIndex + 1}: ${lowercaseFirst(issue.message)}`
+          : 'La lista enviada no es válida. Recarga la página e inténtalo de nuevo.';
+        context.addIssue({ code: z.ZodIssueCode.custom, message });
+      }
+      return z.NEVER;
+    })
+    .optional();
+}
+
+function parseJsonOrNull(raw: string): unknown {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+const guidelineItem = z.object({
+  title: requiredText('El título', FIELD_MAX.name),
+  body: requiredText('El texto', FIELD_MAX.guidelineBody),
+});
+
+const attachmentItem = z
+  .object({
+    kind: listEnum(idsOf(attachmentKinds), 'Elige un tipo de anexo de la lista.'),
+    label: requiredText('El nombre', FIELD_MAX.name),
+    url: z.string().trim().max(FIELD_MAX.url).nullish(),
+    filePath: z.string().trim().max(FIELD_MAX.url).nullish(),
+    fileIndex: z.number().int().min(0).nullish(),
+  })
+  .superRefine((attachment, context) => {
+    const needsUrl = attachment.kind === 'link' || attachment.kind === 'video';
+    if (needsUrl && !isHttpUrl(attachment.url ?? '')) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: URL_MESSAGE, path: ['url'] });
+    }
+    if (attachment.kind === 'file' && !attachment.filePath && attachment.fileIndex == null) {
+      context.addIssue({ code: z.ZodIssueCode.custom, message: 'Sube el archivo del anexo.', path: ['file'] });
+    }
+  });
+
+const versionItem = z.object({
+  version: requiredVersion(),
+  date: requiredIsoDate('La fecha'),
+  author: requiredText('El autor', FIELD_MAX.shortText),
+  reason: requiredText('El motivo', FIELD_MAX.description),
+});
+
+export type PolicyAttachmentForm = z.output<typeof attachmentItem>;
+
+export const policyFormFields = {
+  title: requiredText('El título', FIELD_MAX.policyTitle),
+  department: departmentField(),
+  type: listEnum(idsOf(policyTypes), 'Elige un tipo de documento de la lista.'),
+  classification: listEnum(idsOf(policyClassifications), 'Elige una clasificación de la lista.'),
+  status: listEnum(idsOf(policyStatuses), 'Elige un estado de la lista.'),
+  summary: optionalText('El resumen', FIELD_MAX.longText),
+  objective: optionalText('El objetivo', FIELD_MAX.longText),
+  scope: optionalText('El alcance', FIELD_MAX.longText),
+  indicators: optionalText('Los indicadores', FIELD_MAX.longText),
+  relatedDocuments: optionalText('Los documentos relacionados', FIELD_MAX.longText),
+  owner: optionalText('El responsable', FIELD_MAX.shortText),
+  approver: optionalText('El aprobador', FIELD_MAX.shortText),
+  nextReviewDate: boundedText('La próxima revisión', ISO_DATE_LENGTH)
+    .refine((value) => !value || isIsoDate(value), DATE_MESSAGE)
+    .optional(),
+  officialFile: z.instanceof(File).optional(),
+  attachmentFiles: z.array(z.instanceof(File)).optional(),
+  guidelines: jsonList(guidelineItem, 'Lineamiento'),
+  attachments: jsonList(attachmentItem, 'Anexo'),
+  versions: jsonList(versionItem, 'Versión'),
+};
+
+export const policyPublishFields = {
+  id: z.number().int().positive(),
+  version: requiredVersion(),
+  effectiveDate: requiredIsoDate('La fecha de vigencia'),
+  author: requiredText('El autor', FIELD_MAX.shortText),
+  reason: requiredText('El motivo', FIELD_MAX.description),
+};
+
+export const processFormFields = {
+  department: departmentField(),
+  name: requiredText('El nombre', FIELD_MAX.name),
+  steps: requiredText('Los pasos', FIELD_MAX.longText),
+};
+
+export const formatFormFields = {
+  department: departmentField(),
+  name: requiredText('El nombre', FIELD_MAX.name),
+  url: optionalUrl('El enlace'),
+  file: z.instanceof(File).optional(),
+};
+
+export const linkFormFields = {
+  department: departmentField(),
+  label: requiredText('El nombre', FIELD_MAX.name),
+  url: requiredUrl('La URL', 'f'),
+};
+
+export const noticeFormFields = {
+  department: departmentField(),
+  date: requiredIsoDate('La fecha'),
+  body: requiredText('El aviso', FIELD_MAX.longText),
+  kind: listEnum(idsOf(noticeKinds), 'Elige un tipo de aviso de la lista.'),
 };
