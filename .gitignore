@@ -5,3 +5,5 @@ dist/
 /uploads/
 .superpowers/
 .DS_Store
+docs/manuales/*/manual.md
+docs/manuales/*/capturas/

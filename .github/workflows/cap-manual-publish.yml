@@ -1,0 +1,62 @@
+name: cap-manual publish
+# cap-manual 3.5.0: lo actualiza install.sh, no lo edites
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  pull-request:
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.ref }}
+          sparse-checkout: scripts/cap-manual
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Publish or discard the branch drafts in CAP Gestión
+        env:
+          CAP_GESTION_URL: ${{ secrets.CAP_GESTION_URL }}
+          CAP_GESTION_TOKEN: ${{ secrets.CAP_GESTION_TOKEN }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          HEAD_BRANCH: ${{ github.head_ref }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: |
+          if [ "$MERGED" = "true" ]; then
+            node scripts/cap-manual/publish.mjs --merged --branch "$HEAD_BRANCH" --merge-sha "$MERGE_SHA"
+          else
+            node scripts/cap-manual/publish.mjs --closed --branch "$HEAD_BRANCH"
+          fi
+
+  push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Publish the drafts of the pushed commits in CAP Gestión
+        env:
+          CAP_GESTION_URL: ${{ secrets.CAP_GESTION_URL }}
+          CAP_GESTION_TOKEN: ${{ secrets.CAP_GESTION_TOKEN }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if git cat-file -e "$PUSH_BEFORE_SHA^{commit}" 2>/dev/null; then
+            commits=$(git rev-list --max-count=200 "$PUSH_BEFORE_SHA..$GITHUB_SHA" | paste -sd, -)
+          else
+            commits="$GITHUB_SHA"
+          fi
+          node scripts/cap-manual/publish.mjs --merged --commits "$commits"
