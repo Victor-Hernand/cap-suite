@@ -1,4 +1,4 @@
-import { departments, findDepartmentByName, findDepartmentBySlug } from '../data/departments';
+import { findDepartmentByName, findDepartmentBySlug, type Department } from '../data/departments';
 import { policyClassifications, policyTypes, visiblePolicyStatusIds, type PolicyStatus } from '../data/policies';
 import type { PolicySummary } from './policies';
 
@@ -44,7 +44,10 @@ export interface PolicyDepartmentGroup {
 }
 
 /** Agrupa en el orden del catálogo de departamentos; los que no están en él van al final. */
-export function groupPoliciesByDepartment(policies: PolicyCard[]): PolicyDepartmentGroup[] {
+export function groupPoliciesByDepartment(
+  policies: PolicyCard[],
+  departments: readonly Department[],
+): PolicyDepartmentGroup[] {
   const policiesByDepartment = new Map<string, PolicyCard[]>();
   for (const policy of policies) {
     const departmentPolicies = policiesByDepartment.get(policy.department) ?? [];
@@ -69,21 +72,21 @@ function validOrEmpty(value: string | null, validIds: readonly string[]): string
   return value !== null && validIds.includes(value) ? value : '';
 }
 
-export function filtersFromQuery(params: URLSearchParams): PolicyFilters {
+export function filtersFromQuery(params: URLSearchParams, departments: readonly Department[]): PolicyFilters {
   return {
     text: params.get('q')?.trim() ?? '',
-    department: findDepartmentBySlug(params.get('departamento') ?? '')?.name ?? '',
+    department: findDepartmentBySlug(departments, params.get('departamento') ?? '')?.name ?? '',
     type: validOrEmpty(params.get('tipo'), policyTypes.map((type) => type.id)),
     classification: validOrEmpty(params.get('clasificacion'), policyClassifications.map((item) => item.id)),
     status: validOrEmpty(params.get('estado'), visiblePolicyStatusIds),
   };
 }
 
-export function filtersToQuery(filters: PolicyFilters): string {
+export function filtersToQuery(filters: PolicyFilters, departments: readonly Department[]): string {
   const params = new URLSearchParams();
   const entries: [string, string][] = [
     ['q', filters.text.trim()],
-    ['departamento', findDepartmentByName(filters.department)?.slug ?? ''],
+    ['departamento', findDepartmentByName(departments, filters.department)?.slug ?? ''],
     ['tipo', filters.type],
     ['clasificacion', filters.classification],
     ['estado', filters.status],

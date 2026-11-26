@@ -3,9 +3,9 @@ export interface Department {
   name: string;
 }
 
-// Lista controlada de departamentos. El texto libre generaba secciones duplicadas
-// en Contactos ("Ventas" y "ventas"); agregar aquí los nuevos.
-export const departments: readonly Department[] = [
+// Catálogo inicial: se carga en la tabla departments cuando está vacía. Después los
+// departamentos se crean y renombran desde el admin.
+export const DEFAULT_DEPARTMENTS: readonly Department[] = [
   { slug: 'gerencia-administrativa', name: 'Gerencia Administrativa' },
   { slug: 'gerencia-operativa', name: 'Gerencia Operativa' },
   { slug: 'talento-humano', name: 'Talento Humano' },
@@ -25,10 +25,6 @@ export const departments: readonly Department[] = [
   { slug: 'auditoria-y-control-interno', name: 'Auditoría y Control Interno' },
 ];
 
-export const departmentNames = departments.map((department) => department.name) as [string, ...string[]];
-
-export const departmentOptions = departments.map(({ name }) => ({ value: name, label: name }));
-
 export const noticeKinds = [
   { id: 'warning', label: 'Aviso' },
   { id: 'info', label: 'Informativo' },
@@ -36,12 +32,16 @@ export const noticeKinds = [
 
 export type NoticeKind = (typeof noticeKinds)[number]['id'];
 
-export function findDepartmentBySlug(slug: string): Department | undefined {
+export function findDepartmentBySlug(departments: readonly Department[], slug: string): Department | undefined {
   return departments.find((department) => department.slug === slug);
 }
 
-export function findDepartmentByName(name: string): Department | undefined {
+export function findDepartmentByName(departments: readonly Department[], name: string): Department | undefined {
   return departments.find((department) => department.name === name);
+}
+
+export function departmentOptionsOf(departments: readonly Department[]) {
+  return departments.map(({ name }) => ({ value: name, label: name }));
 }
 
 /** Nombres de departamento anteriores al catálogo de 17 y el nombre actual al que pasan. */

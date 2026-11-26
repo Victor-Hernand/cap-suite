@@ -4,11 +4,14 @@ import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
 import { badgeClassOf, labelOf, policyStatuses } from '../../../data/policies';
 import { getDb } from '../../../lib/db';
 import { getPolicy } from '../../../lib/policies';
+import { listDepartments } from '../../../lib/departments';
 
-const policy = getPolicy(getDb(), Number(Astro.params.id));
+const db = getDb();
+const policy = getPolicy(db, Number(Astro.params.id));
 if (!policy) return Astro.redirect('/admin/politicas');
 
 const isDraft = policy.status === 'draft';
+const departments = listDepartments(db);
 ---
 
 <AdminLayout title={policy.title} active="politicas">
@@ -23,6 +26,6 @@ const isDraft = policy.status === 'draft';
       : <>Visible en el portal: <a href={`/politicas/${policy.slug}`} class="font-semibold text-ink hover:underline">ver ficha pública ↗</a></>}
   </p>
   <div class="mt-5">
-    <PolicyEditor client:load policy={policy} />
+    <PolicyEditor client:load policy={policy} departments={departments} />
   </div>
 </AdminLayout>

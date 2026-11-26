@@ -1,6 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
+import { getDb } from '../../../lib/db';
+import { listDepartments } from '../../../lib/departments';
+
+const departments = listDepartments(getDb());
 ---
 
 <AdminLayout title="Nueva política" active="politicas">
@@ -8,6 +12,6 @@ import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
   <h1 class="mt-2 text-2xl font-extrabold">Nueva política</h1>
   <p class="mt-1 text-sm text-body">Se guarda como borrador. Publícala cuando tenga el documento oficial.</p>
   <div class="mt-5">
-    <PolicyEditor client:load />
+    <PolicyEditor client:load departments={departments} />
   </div>
 </AdminLayout>

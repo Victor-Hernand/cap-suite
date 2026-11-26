@@ -1,6 +1,7 @@
 import { ActionError } from 'astro:actions';
 import { z } from 'astro:schema';
 import { deleteUpload, storeUpload, validateUpload, type UploadKind } from '../lib/uploads';
+import { getDb, hasDuplicate, UNIQUE_COLUMN, type UniqueTable } from '../lib/db';
 
 export const idInput = z.object({ id: z.number().int().positive() });
 
@@ -43,4 +44,25 @@ export async function resolveResourceSource(
   }
   if (previous && (previous.url || previous.filePath)) return previous;
   throw badRequest(`${entity} necesita un enlace o un archivo: escribe la dirección web o sube el documento.`);
+}
+
+const DUPLICATE_MESSAGES: Record<UniqueTable, (value: string) => string> = {
+  apps: (value) => `Ya existe una aplicación llamada «${value}». Usa otro nombre o edita la existente.`,
+  resources: (value) => `Ya existe un recurso llamado «${value}». Usa otro nombre o edita el existente.`,
+  contacts: (value) => `Ya existe un contacto con el correo ${value}. Edita el contacto existente.`,
+  companies: (value) => `Ya existe una empresa llamada «${value}». Usa otro nombre o edita la existente.`,
+  manuals: (value) => `Ya existe un manual llamado «${value}». Usa otro título o edita el existente.`,
+  departments: (value) => `Ya existe un departamento llamado «${value}». Usa otro nombre o edita el existente.`,
+};
+
+/** Rechaza el alta o edición si otro registro ya usa el valor único de la colección. */
+export function assertUnique<T extends UniqueTable>(
+  table: T,
+  form: Record<(typeof UNIQUE_COLUMN)[T], string>,
+  excludeId?: number,
+): void {
+  const value = form[UNIQUE_COLUMN[table]];
+  if (hasDuplicate(getDb(), table, value, excludeId)) {
+    throw new ActionError({ code: 'CONFLICT', message: DUPLICATE_MESSAGES[table](value) });
+  }
 }

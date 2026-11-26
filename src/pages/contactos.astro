@@ -4,14 +4,16 @@ import SectionHeader from '../components/SectionHeader.astro';
 import ContactCard from '../components/ContactCard.astro';
 import { getDb, listContacts } from '../lib/db';
 import { findDepartmentByName } from '../data/departments';
+import { listDepartments } from '../lib/departments';
 
 const db = getDb();
 const contacts = listContacts(db);
+const catalog = listDepartments(db);
 
 const departments = [...new Set(contacts.map((contact) => contact.department))];
 const groups = departments.map((department) => ({
   department,
-  slug: findDepartmentByName(department)?.slug ?? null,
+  slug: findDepartmentByName(catalog, department)?.slug ?? null,
   items: contacts.filter((contact) => contact.department === department),
 }));
 ---

@@ -150,6 +150,12 @@ function toggleFeatured(row: Row) {
                   :class="row[column.key] ? 'right-0.5' : 'left-0.5'"
                 ></span>
               </button>
+              <a
+                v-else-if="column.kind === 'link' && column.hrefKey"
+                :href="String(row[column.hrefKey])"
+                class="block min-w-[7rem] max-w-[16rem] truncate font-semibold text-ink underline decoration-edge-strong underline-offset-2 hover:decoration-ink"
+                :title="String(row[column.key] ?? '')"
+              >{{ row[column.key] ?? '—' }}</a>
               <span
                 v-else
                 class="block min-w-[7rem] max-w-[16rem] truncate"

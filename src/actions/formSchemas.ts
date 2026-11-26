@@ -1,9 +1,11 @@
 import { z } from 'astro/zod';
 import { appCategories, resourceTypes } from '../data/categories';
-import { departmentNames, noticeKinds } from '../data/departments';
+import { noticeKinds } from '../data/departments';
 import { attachmentKinds, policyClassifications, policyStatuses, policyTypes } from '../data/policies';
 import { FIELD_MAX, PHONE_HINT, VERSION_PATTERN, isHttpUrl, isIsoDate, normalizePhone } from '../lib/fieldRules';
 import { loomEmbedUrl } from '../lib/loom';
+import { getDb } from '../lib/db';
+import { getDepartmentByName } from '../lib/departments';
 
 // trim() va antes de min(1): un campo con solo espacios cuenta como vacío.
 type Gender = 'm' | 'f';
@@ -47,8 +49,13 @@ function listEnum<Value extends string>(values: readonly [Value, ...Value[]], me
 
 const idsOf = <Id extends string>(options: readonly { id: Id }[]) => options.map((option) => option.id) as [Id, ...Id[]];
 
+const DEPARTMENT_MESSAGE = 'Elige un departamento de la lista.';
+
+// El catálogo vive en la base de datos: se consulta al validar, no al cargar el módulo.
 function departmentField() {
-  return listEnum(departmentNames, 'Elige un departamento de la lista.');
+  return z
+    .string({ required_error: DEPARTMENT_MESSAGE, invalid_type_error: DEPARTMENT_MESSAGE })
+    .refine((name) => getDepartmentByName(getDb(), name) !== null, DEPARTMENT_MESSAGE);
 }
 
 const CATEGORY_IDS = appCategories.map((category) => category.id) as [string, ...string[]];
@@ -102,6 +109,10 @@ export const companyFormFields = {
   url: optionalUrl('El sitio web'),
   logo: z.instanceof(File).optional(),
   logoUrl: optionalUrl('La URL del logo'),
+};
+
+export const departmentFormFields = {
+  name: requiredText('El nombre', FIELD_MAX.name),
 };
 
 export const manualFormFields = {

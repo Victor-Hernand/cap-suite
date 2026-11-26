@@ -8,6 +8,7 @@ import {
   type PolicyCard,
 } from '../src/lib/policyFilter';
 import { formatDate, formatVersionLine, todayIsoDate } from '../src/lib/dates';
+import { DEFAULT_DEPARTMENTS } from '../src/data/departments';
 
 function card(overrides: Partial<PolicyCard>): PolicyCard {
   return {
@@ -53,38 +54,38 @@ describe('filterPolicies', () => {
 
 describe('groupPoliciesByDepartment', () => {
   test('agrupa en el orden del catálogo y conserva el orden de las políticas', () => {
-    const groups = groupPoliciesByDepartment(sample);
+    const groups = groupPoliciesByDepartment(sample, DEFAULT_DEPARTMENTS);
     expect(groups.map((group) => group.department)).toEqual(['Legal', 'Compras e Importaciones']);
     expect(groups[0].slug).toBe('legal');
     expect(groups[1].policies.map((policy) => policy.slug)).toEqual(['a', 'b']);
   });
 
   test('un departamento fuera del catálogo va al final y sin enlace', () => {
-    const groups = groupPoliciesByDepartment([card({ slug: 'x', department: 'Bodega' }), ...sample]);
+    const groups = groupPoliciesByDepartment([card({ slug: 'x', department: 'Bodega' }), ...sample], DEFAULT_DEPARTMENTS);
     expect(groups.at(-1)).toEqual({ department: 'Bodega', slug: undefined, policies: [expect.objectContaining({ slug: 'x' })] });
   });
 
   test('sin políticas no hay grupos', () => {
-    expect(groupPoliciesByDepartment([])).toEqual([]);
+    expect(groupPoliciesByDepartment([], DEFAULT_DEPARTMENTS)).toEqual([]);
   });
 });
 
 describe('query string', () => {
   test('valores desconocidos se ignoran', () => {
-    const filters = filtersFromQuery(new URLSearchParams('departamento=no-existe&tipo=xyz&estado=draft'));
+    const filters = filtersFromQuery(new URLSearchParams('departamento=no-existe&tipo=xyz&estado=draft'), DEFAULT_DEPARTMENTS);
     expect(filters).toEqual(EMPTY_FILTERS);
   });
 
   test('valores válidos se traducen a filtros y vuelven igual', () => {
-    const filters = filtersFromQuery(new URLSearchParams('departamento=legal&tipo=policy'));
+    const filters = filtersFromQuery(new URLSearchParams('departamento=legal&tipo=policy'), DEFAULT_DEPARTMENTS);
     expect(filters.department).toBe('Legal');
-    expect(filtersToQuery(filters)).toBe('departamento=legal&tipo=policy');
+    expect(filtersToQuery(filters, DEFAULT_DEPARTMENTS)).toBe('departamento=legal&tipo=policy');
   });
 
   test('emite los parámetros en orden fijo y omite los vacíos', () => {
-    const query = filtersToQuery({ text: 'riesgo', department: 'Legal', type: '', classification: 'public', status: 'active' });
+    const query = filtersToQuery({ text: 'riesgo', department: 'Legal', type: '', classification: 'public', status: 'active' }, DEFAULT_DEPARTMENTS);
     expect(query).toBe('q=riesgo&departamento=legal&clasificacion=public&estado=active');
-    expect(filtersToQuery(EMPTY_FILTERS)).toBe('');
+    expect(filtersToQuery(EMPTY_FILTERS, DEFAULT_DEPARTMENTS)).toBe('');
   });
 });
 

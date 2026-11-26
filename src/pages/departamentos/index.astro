@@ -3,11 +3,13 @@ import Layout from '../../layouts/Layout.astro';
 import SectionHeader from '../../components/SectionHeader.astro';
 import { getDb } from '../../lib/db';
 import { countVisiblePoliciesByDepartment } from '../../lib/policies';
-import { departments } from '../../data/departments';
+import { listDepartments } from '../../lib/departments';
 import { policyCountLabel } from '../../data/policies';
 import { cardClass } from '../../lib/publicStyles';
 
-const policyCounts = countVisiblePoliciesByDepartment(getDb());
+const db = getDb();
+const departments = listDepartments(db);
+const policyCounts = countVisiblePoliciesByDepartment(db);
 
 function departmentPolicyCountLabel(departmentName: string): string {
   const total = policyCounts.get(departmentName) ?? 0;

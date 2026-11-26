@@ -1,14 +1,15 @@
-import { defineAction } from 'astro:actions';
+import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro:schema';
 import { getDb, moveRow, type Db, type SortableTable } from '../lib/db';
 import { formats, links, notices, processes, toFormatInput, type ContentStore } from '../lib/departmentContent';
 import { deleteUpload } from '../lib/uploads';
-import { formatFormFields, linkFormFields, noticeFormFields, processFormFields } from './formSchemas';
-import { idInput, moveInput, notFound, resolveResourceSource } from './actionHelpers';
+import { createDepartment, deleteDepartment, renameDepartment } from '../lib/departments';
+import { departmentFormFields, formatFormFields, linkFormFields, noticeFormFields, processFormFields } from './formSchemas';
+import { assertUnique, idInput, moveInput, notFound, resolveResourceSource } from './actionHelpers';
 
 const withId = <Fields extends z.ZodRawShape>(fields: Fields) => z.object({ ...fields, id: idInput.shape.id });
 
-function moveWithinDepartment(table: SortableTable) {
+function moveAction(table: SortableTable) {
   return defineAction({
     input: moveInput,
     handler: async ({ id, direction }) => {
@@ -51,7 +52,7 @@ function crudActions<Input extends object>(formFields: z.ZodRawShape, notFoundMe
 
 const departmentProcesses = {
   ...crudActions(processFormFields, 'El proceso no existe.', processes),
-  move: moveWithinDepartment('department_processes'),
+  move: moveAction('department_processes'),
 };
 
 const departmentFormats = {
@@ -81,17 +82,56 @@ const departmentFormats = {
       return { ok: true };
     },
   }),
-  move: moveWithinDepartment('department_formats'),
+  move: moveAction('department_formats'),
 };
 
 const departmentLinks = {
   ...crudActions(linkFormFields, 'El enlace no existe.', links),
-  move: moveWithinDepartment('department_links'),
+  move: moveAction('department_links'),
 };
 
 const departmentNotices = crudActions(noticeFormFields, 'El aviso no existe.', notices);
 
+const DEPARTMENT_NOT_FOUND = 'El departamento no existe.';
+
+const departments = {
+  create: defineAction({
+    accept: 'form',
+    input: z.object(departmentFormFields),
+    handler: async (form) => {
+      assertUnique('departments', form);
+      return createDepartment(getDb(), form.name);
+    },
+  }),
+  update: defineAction({
+    accept: 'form',
+    input: withId(departmentFormFields),
+    handler: async (form) => {
+      assertUnique('departments', form, form.id);
+      const renamed = renameDepartment(getDb(), form.id, form.name);
+      if (!renamed) throw notFound(DEPARTMENT_NOT_FOUND);
+      return renamed;
+    },
+  }),
+  remove: defineAction({
+    input: idInput,
+    handler: async ({ id }) => {
+      const result = deleteDepartment(getDb(), id);
+      if (result.status === 'not-found') throw notFound(DEPARTMENT_NOT_FOUND);
+      if (result.status === 'in-use') {
+        throw new ActionError({
+          code: 'CONFLICT',
+          message: `No se puede eliminar «${result.name}»: ${result.usage} ${result.usage === 1 ? 'registro lo usa' : 'registros lo usan'} (contactos, políticas o contenido). Cámbialos de departamento o bórralos primero.`,
+        });
+      }
+      return { ok: true };
+    },
+  }),
+  move: moveAction('departments'),
+};
+
 export const departmentActions = {
+  departments,
   departmentProcesses,
   departmentFormats,
   departmentLinks,

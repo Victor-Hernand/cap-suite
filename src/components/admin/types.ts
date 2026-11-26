@@ -5,7 +5,9 @@ export type Row = Record<string, unknown> & { id: number };
 export interface Column {
   key: string;
   label: string;
-  kind?: 'text' | 'muted' | 'led' | 'toggle';
+  kind?: 'text' | 'muted' | 'led' | 'toggle' | 'link';
+  /** Con `kind: 'link'`, la clave de la fila que trae la dirección del enlace. */
+  hrefKey?: string;
 }
 
 export interface FieldOption {
@@ -30,6 +32,7 @@ export type Collection =
   | 'contacts'
   | 'companies'
   | 'manuals'
+  | 'departments'
   | 'departmentProcesses'
   | 'departmentFormats'
   | 'departmentLinks'

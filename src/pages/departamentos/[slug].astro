@@ -6,14 +6,14 @@ import { getDb, listContactsByDepartment } from '../../lib/db';
 import { listVisiblePolicies } from '../../lib/policies';
 import { formats as formatStore, links as linkStore, notices as noticeStore, processes as processStore, splitSteps } from '../../lib/departmentContent';
 import { EMPTY_FILTERS, filtersToQuery } from '../../lib/policyFilter';
-import { findDepartmentBySlug } from '../../data/departments';
+import { getDepartmentBySlug } from '../../lib/departments';
 import { formatDate } from '../../lib/dates';
 import { cardClass, emptyStateClass, eyebrowClass } from '../../lib/publicStyles';
 
-const department = findDepartmentBySlug(Astro.params.slug ?? '');
+const db = getDb();
+const department = getDepartmentBySlug(db, Astro.params.slug ?? '');
 if (!department) return new Response(null, { status: 404 });
 
-const db = getDb();
 const policies = listVisiblePolicies(db, department.name);
 const processes = processStore.list(db, department.name).map((process) => ({ ...process, stepList: splitSteps(process.steps) }));
 const formats = formatStore.list(db, department.name);
@@ -21,7 +21,7 @@ const links = linkStore.list(db, department.name);
 const notices = noticeStore.list(db, department.name);
 const team = listContactsByDepartment(db, department.name);
 
-const allPoliciesQuery = filtersToQuery({ ...EMPTY_FILTERS, department: department.name });
+const allPoliciesQuery = filtersToQuery({ ...EMPTY_FILTERS, department: department.name }, [department]);
 const counters = [
   { label: 'Políticas', value: policies.length },
   { label: 'Procesos', value: processes.length },
