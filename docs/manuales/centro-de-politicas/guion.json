@@ -38,8 +38,12 @@
     { "goto": "/admin/departamentos" },
     { "wait": 500 },
     { "screenshot": "10-admin-departamentos", "caption": "Departamentos en administración" },
+    { "click": "text=+ Nuevo departamento" },
+    { "fill": { "selector": "input[name=name]", "value": "Seguridad Física" } },
+    { "wait": 300 },
+    { "screenshot": "11-nuevo-departamento", "caption": "Ventana para crear o renombrar un departamento", "fullPage": false },
     { "goto": "/admin/departamentos/compras-e-importaciones" },
     { "wait": 800 },
-    { "screenshot": "11-contenido-departamento", "caption": "Contenido de un departamento en administración" }
+    { "screenshot": "12-contenido-departamento", "caption": "Contenido de un departamento en administración" }
   ]
 }
