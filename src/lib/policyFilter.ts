@@ -1,4 +1,4 @@
-import { findDepartmentByName, findDepartmentBySlug } from '../data/departments';
+import { departments, findDepartmentByName, findDepartmentBySlug } from '../data/departments';
 import { policyClassifications, policyTypes, visiblePolicyStatusIds, type PolicyStatus } from '../data/policies';
 import type { PolicySummary } from './policies';
 
@@ -34,6 +34,35 @@ export function filterPolicies(policies: PolicyCard[], filters: PolicyFilters): 
     if (filters.classification && policy.classification !== filters.classification) return false;
     return !needle || normalizeText(policy.title).includes(needle);
   });
+}
+
+export interface PolicyDepartmentGroup {
+  department: string;
+  /** Ausente cuando el departamento ya no está en el catálogo y no tiene página propia. */
+  slug: string | undefined;
+  policies: PolicyCard[];
+}
+
+/** Agrupa en el orden del catálogo de departamentos; los que no están en él van al final. */
+export function groupPoliciesByDepartment(policies: PolicyCard[]): PolicyDepartmentGroup[] {
+  const policiesByDepartment = new Map<string, PolicyCard[]>();
+  for (const policy of policies) {
+    const departmentPolicies = policiesByDepartment.get(policy.department) ?? [];
+    departmentPolicies.push(policy);
+    policiesByDepartment.set(policy.department, departmentPolicies);
+  }
+
+  const groups: PolicyDepartmentGroup[] = [];
+  for (const { name, slug } of departments) {
+    const departmentPolicies = policiesByDepartment.get(name);
+    if (!departmentPolicies) continue;
+    groups.push({ department: name, slug, policies: departmentPolicies });
+    policiesByDepartment.delete(name);
+  }
+  for (const [department, departmentPolicies] of policiesByDepartment) {
+    groups.push({ department, slug: undefined, policies: departmentPolicies });
+  }
+  return groups;
 }
 
 function validOrEmpty(value: string | null, validIds: readonly string[]): string {

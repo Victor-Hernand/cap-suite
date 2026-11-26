@@ -4,14 +4,14 @@ import SectionHeader from '../../components/SectionHeader.astro';
 import { getDb } from '../../lib/db';
 import { countVisiblePoliciesByDepartment } from '../../lib/policies';
 import { departments } from '../../data/departments';
+import { policyCountLabel } from '../../data/policies';
 import { cardClass } from '../../lib/publicStyles';
 
 const policyCounts = countVisiblePoliciesByDepartment(getDb());
 
-function policyCountLabel(departmentName: string): string {
+function departmentPolicyCountLabel(departmentName: string): string {
   const total = policyCounts.get(departmentName) ?? 0;
-  if (total === 0) return 'Sin políticas aún';
-  return `${total} ${total === 1 ? 'política' : 'políticas'}`;
+  return total === 0 ? 'Sin políticas aún' : policyCountLabel(total);
 }
 ---
 
@@ -30,7 +30,7 @@ function policyCountLabel(departmentName: string): string {
         >
           <p class="text-sm font-bold text-ink">{department.name}</p>
           <p class="mt-1 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">
-            {policyCountLabel(department.name)}
+            {departmentPolicyCountLabel(department.name)}
           </p>
         </a>
       ))}

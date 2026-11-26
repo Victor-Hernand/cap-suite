@@ -1,5 +1,12 @@
 import { describe, expect, test, vi } from 'vitest';
-import { EMPTY_FILTERS, filterPolicies, filtersFromQuery, filtersToQuery, type PolicyCard } from '../src/lib/policyFilter';
+import {
+  EMPTY_FILTERS,
+  filterPolicies,
+  filtersFromQuery,
+  filtersToQuery,
+  groupPoliciesByDepartment,
+  type PolicyCard,
+} from '../src/lib/policyFilter';
 import { formatDate, formatVersionLine, todayIsoDate } from '../src/lib/dates';
 
 function card(overrides: Partial<PolicyCard>): PolicyCard {
@@ -41,6 +48,24 @@ describe('filterPolicies', () => {
   test('filtra por clasificación', () => {
     const result = filterPolicies(sample, { ...EMPTY_FILTERS, classification: 'public' });
     expect(result.map((policy) => policy.slug)).toEqual(['c']);
+  });
+});
+
+describe('groupPoliciesByDepartment', () => {
+  test('agrupa en el orden del catálogo y conserva el orden de las políticas', () => {
+    const groups = groupPoliciesByDepartment(sample);
+    expect(groups.map((group) => group.department)).toEqual(['Legal', 'Compras e Importaciones']);
+    expect(groups[0].slug).toBe('legal');
+    expect(groups[1].policies.map((policy) => policy.slug)).toEqual(['a', 'b']);
+  });
+
+  test('un departamento fuera del catálogo va al final y sin enlace', () => {
+    const groups = groupPoliciesByDepartment([card({ slug: 'x', department: 'Bodega' }), ...sample]);
+    expect(groups.at(-1)).toEqual({ department: 'Bodega', slug: undefined, policies: [expect.objectContaining({ slug: 'x' })] });
+  });
+
+  test('sin políticas no hay grupos', () => {
+    expect(groupPoliciesByDepartment([])).toEqual([]);
   });
 });
 

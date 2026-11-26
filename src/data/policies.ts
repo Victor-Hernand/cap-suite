@@ -57,3 +57,7 @@ const badgeClasses: Record<string, string> = {
 export function badgeClassOf(id: string): string {
   return badgeClasses[id] ?? neutralBadgeClass;
 }
+
+export function policyCountLabel(total: number): string {
+  return `${total} ${total === 1 ? 'política' : 'políticas'}`;
+}
