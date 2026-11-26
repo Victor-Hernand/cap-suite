@@ -4,18 +4,20 @@ import { departments } from '../data/departments';
 import {
   badgeClassOf,
   labelOf,
+  policyCountLabel,
   policyClassifications,
   policyStatuses,
   policyTypes,
   visiblePolicyStatuses,
 } from '../data/policies';
 import { formatVersionLine } from '../lib/dates';
-import { cardClass } from '../lib/publicStyles';
+import { cardClass, eyebrowClass } from '../lib/publicStyles';
 import { inputClass, labelClass, primaryButtonClass, selectClass } from './admin/formStyles';
 import {
   EMPTY_FILTERS,
   filterPolicies,
   filtersToQuery,
+  groupPoliciesByDepartment,
   type PolicyCard,
   type PolicyFilters,
 } from '../lib/policyFilter';
@@ -27,10 +29,7 @@ const props = withDefaults(defineProps<{ policies?: PolicyCard[]; initialFilters
 
 const filters = ref<PolicyFilters>({ ...props.initialFilters });
 const visiblePolicies = computed(() => filterPolicies(props.policies, filters.value));
-const resultCountLabel = computed(() => {
-  const total = visiblePolicies.value.length;
-  return `${total} ${total === 1 ? 'política' : 'políticas'}`;
-});
+const departmentGroups = computed(() => groupPoliciesByDepartment(visiblePolicies.value));
 
 function applyFilters(next: PolicyFilters) {
   filters.value = next;
@@ -101,7 +100,7 @@ function updateFilter(key: keyof PolicyFilters, event: Event) {
         </label>
       </form>
 
-      <p class="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted" aria-live="polite">{{ resultCountLabel }}</p>
+      <p class="mt-4 font-mono text-[10px] uppercase tracking-[0.18em] text-muted" aria-live="polite">{{ policyCountLabel(visiblePolicies.length) }}</p>
 
       <div
         v-if="visiblePolicies.length === 0"
@@ -118,26 +117,42 @@ function updateFilter(key: keyof PolicyFilters, event: Event) {
         </button>
       </div>
 
-      <div v-else class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <a
-          v-for="policy in visiblePolicies"
-          :key="policy.slug"
-          :href="`/politicas/${policy.slug}`"
-          :class="[cardClass, 'group flex flex-col p-4 transition-all hover:-translate-y-0.5 hover:shadow-md']"
-        >
-          <span class="font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{{ policy.department }}</span>
-          <span class="mt-2 text-sm font-bold text-ink">{{ policy.title }}</span>
-          <span class="mt-3 flex flex-wrap gap-1.5">
-            <span :class="badgeClassOf(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
-            <span :class="badgeClassOf(policy.status)">{{ labelOf(policyStatuses, policy.status) }}</span>
-            <span :class="badgeClassOf(policy.classification)">
-              {{ labelOf(policyClassifications, policy.classification) }}
+      <div v-else class="mt-8 space-y-10">
+        <section v-for="group in departmentGroups" :key="group.department" :aria-label="group.department">
+          <div class="flex items-baseline justify-between gap-4 border-b border-edge pb-2">
+            <h2 :class="eyebrowClass">
+              <a
+                v-if="group.slug"
+                :href="`/departamentos/${group.slug}`"
+                class="underline decoration-edge-strong underline-offset-2 hover:text-ink hover:decoration-ink"
+              >{{ group.department }}</a>
+              <template v-else>{{ group.department }}</template>
+            </h2>
+            <span class="shrink-0 font-mono text-[10px] tracking-[0.18em] text-muted">
+              {{ policyCountLabel(group.policies.length) }}
             </span>
-          </span>
-          <span v-if="policy.version" class="mt-3 font-mono text-[10px] tracking-[0.12em] text-muted">
-            {{ formatVersionLine(policy.version, policy.effectiveDate) }}
-          </span>
-        </a>
+          </div>
+          <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <a
+              v-for="policy in group.policies"
+              :key="policy.slug"
+              :href="`/politicas/${policy.slug}`"
+              :class="[cardClass, 'group flex flex-col p-4 transition-all hover:-translate-y-0.5 hover:shadow-md']"
+            >
+              <span class="text-sm font-bold text-ink">{{ policy.title }}</span>
+              <span class="mt-3 flex flex-wrap gap-1.5">
+                <span :class="badgeClassOf(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
+                <span :class="badgeClassOf(policy.status)">{{ labelOf(policyStatuses, policy.status) }}</span>
+                <span :class="badgeClassOf(policy.classification)">
+                  {{ labelOf(policyClassifications, policy.classification) }}
+                </span>
+              </span>
+              <span v-if="policy.version" class="mt-3 font-mono text-[10px] tracking-[0.12em] text-muted">
+                {{ formatVersionLine(policy.version, policy.effectiveDate) }}
+              </span>
+            </a>
+          </div>
+        </section>
       </div>
     </template>
   </div>
