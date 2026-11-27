@@ -26,11 +26,11 @@ function plural(total: number, singular: string, pluralForm: string): string {
 }
 
 const portalAccesses = [
-  { id: 'recursos', name: 'Recursos', description: 'Manuales, plantillas, carpetas y enlaces.', icon: 'folder-outline', href: '/recursos', pending: plural(totals.resources, 'recurso', 'recursos') },
-  { id: 'politicas', name: 'Políticas', description: 'Políticas, procedimientos e instructivos vigentes.', icon: 'file-document-outline', href: '/politicas', pending: policyCountLabel(visiblePoliciesCount) },
-  { id: 'departamentos', name: 'Departamentos', description: 'Procesos, formatos, equipo y avisos por área.', icon: 'office-building-outline', href: '/departamentos', pending: plural(totals.departments, 'departamento', 'departamentos') },
-  { id: 'contactos', name: 'Contactos', description: 'Directorio con teléfonos y correos.', icon: 'account-box-outline', href: '/contactos', pending: plural(totals.contacts, 'persona', 'personas') },
-  { id: 'empresas', name: 'Empresas', description: 'Las empresas que forman el grupo.', icon: 'domain', href: '/empresas', pending: plural(totals.companies, 'empresa', 'empresas') },
+  { id: 'recursos', name: 'Recursos', description: 'Manuales, plantillas, carpetas y enlaces.', icon: 'folder-outline', href: '/recursos', total: plural(totals.resources, 'recurso', 'recursos') },
+  { id: 'politicas', name: 'Políticas', description: 'Políticas, procedimientos e instructivos vigentes.', icon: 'file-document-outline', href: '/politicas', total: policyCountLabel(visiblePoliciesCount) },
+  { id: 'departamentos', name: 'Departamentos', description: 'Procesos, formatos, equipo y avisos por área.', icon: 'office-building-outline', href: '/departamentos', total: plural(totals.departments, 'departamento', 'departamentos') },
+  { id: 'contactos', name: 'Contactos', description: 'Directorio con teléfonos y correos.', icon: 'account-box-outline', href: '/contactos', total: plural(totals.contacts, 'persona', 'personas') },
+  { id: 'empresas', name: 'Empresas', description: 'Las empresas que forman el grupo.', icon: 'domain', href: '/empresas', total: plural(totals.companies, 'empresa', 'empresas') },
 ];
 
 const tegucigalpaHour = Number(
@@ -125,7 +125,7 @@ function categoryLabelOf(categoryId: string): string {
               <p class="cap-module-card__desc" title={access.description}>{access.description}</p>
             </div>
             <div class="cap-module-card__foot">
-              <span class="cap-module-card__count">{access.pending}</span>
+              <span class="tabular-nums">{access.total}</span>
               <i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i>
             </div>
           </a>

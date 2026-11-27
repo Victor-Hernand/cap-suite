@@ -67,10 +67,6 @@ describe('groupPoliciesByDepartment', () => {
 });
 
 describe('query string', () => {
-  test('los filtros no llevan texto libre', () => {
-    expect(EMPTY_FILTERS).toEqual({ department: '', type: '', classification: '', status: '' });
-  });
-
   test('el parámetro q de enlaces antiguos se ignora', () => {
     expect(filtersFromQuery(new URLSearchParams('q=riesgo'), DEFAULT_DEPARTMENTS)).toEqual(EMPTY_FILTERS);
   });

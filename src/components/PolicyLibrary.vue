@@ -38,7 +38,7 @@ const visiblePolicies = computed(() => filterPolicies(props.policies, filters.va
 const departmentGroups = computed(() => groupPoliciesByDepartment(visiblePolicies.value, props.departments));
 
 const statusItems = computed(() =>
-  [{ id: '', label: 'Todas' }, ...visiblePolicyStatuses].map((status) => ({
+  [{ id: '', label: 'Actuales' }, ...visiblePolicyStatuses].map((status) => ({
     label: status.label,
     value: status.id,
     count: filterPolicies(props.policies, { ...filters.value, status: status.id }).length,
@@ -116,44 +116,45 @@ function updateSelectFilter(key: SelectFilterKey, event: Event) {
       </div>
     </div>
 
-    <section
-      v-for="group in departmentGroups"
-      v-else
-      :key="group.department"
-      :aria-label="group.department"
-      :class="cardClass"
-    >
-      <div class="flex items-baseline justify-between gap-4">
-        <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">
-          <a
-            v-if="group.slug"
-            :href="`/departamentos/${group.slug}`"
-            class="underline decoration-gray-400 underline-offset-2 hover:decoration-current"
-          >{{ group.department }}</a>
-          <template v-else>{{ group.department }}</template>
-        </h2>
-        <span class="shrink-0 text-xs text-cap-text-soft tabular-nums">{{ policyCountLabel(group.policies.length) }}</span>
-      </div>
-      <ul class="mt-3 divide-y divide-cap-divider">
-        <li v-for="policy in group.policies" :key="policy.slug">
-          <a
-            :href="`/politicas/${policy.slug}`"
-            class="-mx-3 flex flex-col gap-2 rounded-cap-control px-3 py-3 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2 sm:flex-row sm:items-center sm:justify-between"
-          >
-            <span class="min-w-0">
-              <span class="block text-sm font-medium text-cap-brand dark:text-cap-brand-soft">{{ policy.title }}</span>
-              <span class="mt-1.5 flex flex-wrap gap-1.5">
-                <span :class="policyBadgeClass(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
-                <span :class="policyBadgeClass(policy.status)"><span class="h-1.5 w-1.5 rounded-full bg-current" />{{ labelOf(policyStatuses, policy.status) }}</span>
-                <span :class="policyBadgeClass(policy.classification)">{{ labelOf(policyClassifications, policy.classification) }}</span>
+    <template v-else>
+      <section
+        v-for="group in departmentGroups"
+        :key="group.department"
+        :aria-label="group.department"
+        :class="cardClass"
+      >
+        <div class="flex items-baseline justify-between gap-4">
+          <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">
+            <a
+              v-if="group.slug"
+              :href="`/departamentos/${group.slug}`"
+              class="underline decoration-gray-400 underline-offset-2 hover:decoration-current"
+            >{{ group.department }}</a>
+            <template v-else>{{ group.department }}</template>
+          </h2>
+          <span class="shrink-0 text-xs text-cap-text-soft tabular-nums">{{ policyCountLabel(group.policies.length) }}</span>
+        </div>
+        <ul class="mt-3 divide-y divide-cap-divider">
+          <li v-for="policy in group.policies" :key="policy.slug">
+            <a
+              :href="`/politicas/${policy.slug}`"
+              class="-mx-3 flex flex-col gap-2 rounded-cap-control px-3 py-3 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <span class="min-w-0">
+                <span class="block text-sm font-medium text-cap-brand dark:text-cap-brand-soft">{{ policy.title }}</span>
+                <span class="mt-1.5 flex flex-wrap gap-1.5">
+                  <span :class="policyBadgeClass(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
+                  <span :class="policyBadgeClass(policy.status)"><span class="h-1.5 w-1.5 rounded-full bg-current" />{{ labelOf(policyStatuses, policy.status) }}</span>
+                  <span :class="policyBadgeClass(policy.classification)">{{ labelOf(policyClassifications, policy.classification) }}</span>
+                </span>
               </span>
-            </span>
-            <span v-if="policy.version" class="shrink-0 text-xs text-cap-text-soft tabular-nums">
-              {{ formatVersionLine(policy.version, policy.effectiveDate) }}
-            </span>
-          </a>
-        </li>
-      </ul>
-    </section>
+              <span v-if="policy.version" class="shrink-0 text-xs text-cap-text-soft tabular-nums">
+                {{ formatVersionLine(policy.version, policy.effectiveDate) }}
+              </span>
+            </a>
+          </li>
+        </ul>
+      </section>
+    </template>
   </template>
 </template>

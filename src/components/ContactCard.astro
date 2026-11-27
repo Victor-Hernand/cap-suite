@@ -8,9 +8,10 @@ interface Props {
   contact: ContactRow;
   /** Dentro de otra tarjeta va como tarjeta anidada secundaria del recetario. */
   nested?: boolean;
+  departmentHref?: string | null;
 }
 
-const { contact, nested = false } = Astro.props;
+const { contact, nested = false, departmentHref = null } = Astro.props;
 const containerClass = nested
   ? 'rounded-cap-control bg-cap-card-2 p-3'
   : 'min-h-16 rounded-cap-card border border-cap-divider bg-cap-card p-4';
@@ -20,7 +21,12 @@ const containerClass = nested
   <ContactAvatar name={contact.name} photoPath={contact.photoPath} />
   <div class="min-w-0 flex-1">
     <p class="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">{contact.name}</p>
-    <p class="truncate text-xs text-cap-text-soft">{contact.role} · {contact.department} · {contact.company}</p>
+    <p class="truncate text-xs text-cap-text-soft">{contact.role} · {contact.company}</p>
+    <p class="truncate text-xs text-cap-text-soft">
+      {departmentHref
+        ? <a href={departmentHref} class="underline decoration-gray-400 underline-offset-2 hover:decoration-current">{contact.department}</a>
+        : contact.department}
+    </p>
     <p class="truncate text-xs text-cap-text-soft tabular-nums">{contactPhoneLabel(contact)} · {contact.email}</p>
   </div>
   <div class="flex shrink-0 items-center gap-2">

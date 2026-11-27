@@ -75,7 +75,9 @@ function headCornerClass(index: number): string {
       </div>
 
       <div class="flex flex-col gap-3 lg:hidden">
-        {contacts.map((contact) => <ContactCard contact={contact} />)}
+        {contacts.map((contact) => (
+          <ContactCard contact={contact} departmentHref={contact.departmentSlug ? `/departamentos/${contact.departmentSlug}` : null} />
+        ))}
       </div>
     </>
   )}
