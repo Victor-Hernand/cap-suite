@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import PolicyBadges from '../../components/PolicyBadges.astro';
 import { getDb } from '../../lib/db';
 import { getVisiblePolicyBySlug } from '../../lib/policies';
-import { findDepartmentByName } from '../../data/departments';
+import { getDepartmentByName } from '../../lib/departments';
 import { attachmentKinds, labelOf, neutralBadgeClass, policyClassifications } from '../../data/policies';
 import { formatDate } from '../../lib/dates';
 import { cardClass, eyebrowClass } from '../../lib/publicStyles';
@@ -11,10 +11,11 @@ import { cardClass, eyebrowClass } from '../../lib/publicStyles';
 const SUPERVISOR = 'Mejora Continua y Automatización';
 const EMBEDDABLE_IMAGE = /\.(png|jpe?g|webp)$/i;
 
-const policy = getVisiblePolicyBySlug(getDb(), Astro.params.slug ?? '');
+const db = getDb();
+const policy = getVisiblePolicyBySlug(db, Astro.params.slug ?? '');
 if (!policy) return new Response(null, { status: 404 });
 
-const department = findDepartmentByName(policy.department);
+const department = getDepartmentByName(db, policy.department);
 const officialHref = policy.officialFilePath ? `/files/${policy.officialFilePath}` : null;
 const officialIsImage = policy.officialFilePath ? EMBEDDABLE_IMAGE.test(policy.officialFilePath) : false;
 

@@ -2,16 +2,16 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import CollectionManager from '../../../components/admin/CollectionManager.vue';
 import type { Collection, Column, Field, Row } from '../../../components/admin/types';
-import { findDepartmentBySlug, noticeKinds } from '../../../data/departments';
+import { noticeKinds } from '../../../data/departments';
 import { labelOf } from '../../../data/policies';
 import { FIELD_MAX } from '../../../lib/fieldRules';
 import { getDb } from '../../../lib/db';
 import { formats, links, notices, processes, splitSteps } from '../../../lib/departmentContent';
-
-const department = findDepartmentBySlug(Astro.params.slug ?? '');
-if (!department) return Astro.redirect('/admin/departamentos');
+import { getDepartmentBySlug } from '../../../lib/departments';
 
 const db = getDb();
+const department = getDepartmentBySlug(db, Astro.params.slug ?? '');
+if (!department) return Astro.redirect('/admin/departamentos');
 
 interface Section {
   title: string;

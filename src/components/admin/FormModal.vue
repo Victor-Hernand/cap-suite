@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import FormField from './FormField.vue';
 import { alertErrorClass, primaryButtonClass } from './formStyles';
 import type { Field } from './types';
@@ -23,6 +23,11 @@ const emit = defineEmits<{
 
 const formRef = ref<HTMLFormElement | null>(null);
 const hasRequiredFields = props.fields.some((field) => field.required);
+
+// Sin foco inicial, lo que se escribía al abrir el modal no llegaba a ningún campo.
+onMounted(() => {
+  formRef.value?.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), select, textarea')?.focus();
+});
 
 function close() {
   if (!props.submitting) emit('close');

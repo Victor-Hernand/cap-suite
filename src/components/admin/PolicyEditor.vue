@@ -12,14 +12,17 @@ import { alertErrorClass, fieldErrorClass, labelClass, primaryButtonClass, selec
 import { buildPolicyFormData, createEditorState, snapshotOf, type ScalarFieldName } from './policyEditorState';
 import { useActionForm } from './useActionForm';
 import type { Field, FieldOption } from './types';
-import { departmentOptions } from '../../data/departments';
+import { departmentOptionsOf, type Department } from '../../data/departments';
 import { policyClassifications, policyStatuses, policyTypes, type ListOption } from '../../data/policies';
 import { FIELD_MAX, uploadPickerRules } from '../../lib/fieldRules';
 import type { PolicyDetail } from '../../lib/policies';
 
 type EditorField = Field & { name: ScalarFieldName };
 
-const props = withDefaults(defineProps<{ policy?: PolicyDetail | null }>(), { policy: null });
+const props = withDefaults(defineProps<{ policy?: PolicyDetail | null; departments?: Department[] }>(), {
+  policy: null,
+  departments: () => [],
+});
 
 const state = reactive(createEditorState(props.policy));
 const savedSnapshot = snapshotOf(state);
@@ -42,7 +45,7 @@ const generalFields: EditorField[] = [
     label: 'DEPARTAMENTO',
     kind: 'select',
     required: true,
-    options: departmentOptions,
+    options: departmentOptionsOf(props.departments),
   },
   { name: 'type', label: 'TIPO DE DOCUMENTO', kind: 'select', required: true, options: optionsOf(policyTypes) },
   { name: 'classification', label: 'CLASIFICACIÓN', kind: 'select', required: true, options: optionsOf(policyClassifications) },

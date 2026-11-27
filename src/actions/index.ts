@@ -22,13 +22,10 @@ import {
   updateCompany,
   deleteCompany,
   moveRow,
-  hasDuplicate,
   getManual,
   createManual,
   updateManual,
   deleteManual,
-  UNIQUE_COLUMN,
-  type UniqueTable,
 } from '../lib/db';
 import { deleteUpload } from '../lib/uploads';
 import {
@@ -40,29 +37,9 @@ import {
 } from './formSchemas';
 import { departmentActions } from './departmentActions';
 import { policies } from './policyActions';
-import { hasFile, idInput, moveInput, replaceUpload, resolveResourceSource } from './actionHelpers';
+import { assertUnique, hasFile, idInput, moveInput, replaceUpload, resolveResourceSource } from './actionHelpers';
 
 const delay = (ms: number) => new Promise((resolveDelay) => setTimeout(resolveDelay, ms));
-
-const DUPLICATE_MESSAGES: Record<UniqueTable, (value: string) => string> = {
-  apps: (value) => `Ya existe una aplicación llamada «${value}». Usa otro nombre o edita la existente.`,
-  resources: (value) => `Ya existe un recurso llamado «${value}». Usa otro nombre o edita el existente.`,
-  contacts: (value) => `Ya existe un contacto con el correo ${value}. Edita el contacto existente.`,
-  companies: (value) => `Ya existe una empresa llamada «${value}». Usa otro nombre o edita la existente.`,
-  manuals: (value) => `Ya existe un manual llamado «${value}». Usa otro título o edita el existente.`,
-};
-
-/** Rechaza el alta o edición si otro registro ya usa el valor único de la colección. */
-function assertUnique<T extends UniqueTable>(
-  table: T,
-  form: Record<(typeof UNIQUE_COLUMN)[T], string>,
-  excludeId?: number,
-): void {
-  const value = form[UNIQUE_COLUMN[table]];
-  if (hasDuplicate(getDb(), table, value, excludeId)) {
-    throw new ActionError({ code: 'CONFLICT', message: DUPLICATE_MESSAGES[table](value) });
-  }
-}
 
 async function resolveLogoPath(input: {
   logo?: File;

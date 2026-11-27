@@ -4,7 +4,7 @@ import { dirname } from 'node:path';
 import { readEnv } from './env';
 import { slugify } from './slug';
 import { duplicateKey } from './fieldRules';
-import { LEGACY_DEPARTMENT_NAMES } from '../data/departments';
+import { DEFAULT_DEPARTMENTS, LEGACY_DEPARTMENT_NAMES } from '../data/departments';
 
 export type Db = Database.Database;
 
@@ -124,6 +124,14 @@ CREATE TABLE IF NOT EXISTS policy_versions (
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+CREATE TABLE IF NOT EXISTS departments (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  slug TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL UNIQUE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 CREATE TABLE IF NOT EXISTS department_processes (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   department TEXT NOT NULL,
@@ -180,7 +188,18 @@ export function openDb(path = readEnv('DATABASE_PATH') ?? 'data/cap-suite.db'): 
   ensureColumn(db, 'contacts', 'photo_path', 'TEXT');
   migrateSingleManual(db);
   migrateDepartmentNames(db);
+  seedDefaultDepartments(db);
   return db;
+}
+
+/** Carga el catálogo inicial solo si la tabla está vacía: después la administra el admin. */
+function seedDefaultDepartments(db: Db): void {
+  const { total } = db.prepare('SELECT COUNT(*) AS total FROM departments').get() as { total: number };
+  if (total > 0) return;
+  const insert = db.prepare('INSERT INTO departments (slug, name, sort_order) VALUES (?, ?, ?)');
+  db.transaction(() => {
+    DEFAULT_DEPARTMENTS.forEach((department, index) => insert.run(department.slug, department.name, index));
+  })();
 }
 
 /** La primera versión guardaba un único manual en la tabla settings: pasa a ser una fila de manuals. */
@@ -199,7 +218,7 @@ function migrateSingleManual(db: Db): void {
   })();
 }
 
-const DEPARTMENT_NAME_COLUMNS = [
+export const DEPARTMENT_NAME_COLUMNS = [
   ['contacts', 'department'],
   ['policies', 'department'],
   ['department_processes', 'department'],
@@ -211,13 +230,17 @@ const DEPARTMENT_NAME_COLUMNS = [
 /** Pasa los nombres de departamento antiguos al catálogo actual en cada tabla que los guarda; repetirla no cambia nada. */
 export function migrateDepartmentNames(db: Db): void {
   db.transaction(() => {
-    for (const [table, column] of DEPARTMENT_NAME_COLUMNS) {
-      const rename = db.prepare(`UPDATE ${table} SET ${column} = ? WHERE ${column} = ?`);
-      for (const [legacyName, currentName] of Object.entries(LEGACY_DEPARTMENT_NAMES)) {
-        rename.run(currentName, legacyName);
-      }
+    for (const [legacyName, currentName] of Object.entries(LEGACY_DEPARTMENT_NAMES)) {
+      renameDepartmentReferences(db, legacyName, currentName);
     }
   })();
+}
+
+/** Cambia el nombre de departamento en cada tabla que lo guarda; el llamador decide la transacción. */
+export function renameDepartmentReferences(db: Db, fromName: string, toName: string): void {
+  for (const [table, column] of DEPARTMENT_NAME_COLUMNS) {
+    db.prepare(`UPDATE ${table} SET ${column} = ? WHERE ${column} = ?`).run(toName, fromName);
+  }
 }
 
 let singleton: Db | null = null;
@@ -262,7 +285,7 @@ function toAppRow(raw: RawApp): AppRow {
 }
 
 /** Slug a partir del texto; si ya lo usa otra fila de la tabla, le agrega -2, -3… */
-export function uniqueSlug(db: Db, table: 'companies' | 'policies', text: string, fallback: string): string {
+export function uniqueSlug(db: Db, table: 'companies' | 'policies' | 'departments', text: string, fallback: string): string {
   const base = slugify(text) || fallback;
   const slugTaken = db.prepare(`SELECT 1 FROM ${table} WHERE slug = ?`);
   let slug = base;
@@ -497,6 +520,7 @@ export function counts(db: Db) {
     companies: count('companies'),
     manuals: count('manuals'),
     policies: count('policies'),
+    departments: count('departments'),
   };
 }
 
@@ -556,6 +580,7 @@ const SORTABLE_TABLES = {
   contacts: false,
   companies: false,
   manuals: false,
+  departments: false,
   department_processes: true,
   department_formats: true,
   department_links: true,
@@ -596,6 +621,7 @@ export const UNIQUE_COLUMN = {
   contacts: 'email',
   companies: 'name',
   manuals: 'title',
+  departments: 'name',
 } as const;
 
 export type UniqueTable = keyof typeof UNIQUE_COLUMN;

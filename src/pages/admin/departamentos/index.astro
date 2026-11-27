@@ -1,46 +1,58 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { departments } from '../../../data/departments';
+import CollectionManager from '../../../components/admin/CollectionManager.vue';
+import type { Column, Field } from '../../../components/admin/types';
+import { FIELD_MAX } from '../../../lib/fieldRules';
 import { getDb } from '../../../lib/db';
+import { listDepartments } from '../../../lib/departments';
 import { NO_DEPARTMENT_CONTENT, countDepartmentContentByDepartment } from '../../../lib/departmentContent';
 
-const contentByDepartment = countDepartmentContentByDepartment(getDb());
-const rows = departments.map((department) => {
+const db = getDb();
+const contentByDepartment = countDepartmentContentByDepartment(db);
+const rows = listDepartments(db).map((department) => {
   const content = contentByDepartment.get(department.name) ?? NO_DEPARTMENT_CONTENT;
   return {
     ...department,
-    counts: [
-      { label: 'Procesos', total: content.processes },
-      { label: 'Formatos', total: content.formats },
-      { label: 'Enlaces', total: content.links },
-      { label: 'Avisos', total: content.notices },
-    ],
+    href: `/admin/departamentos/${department.slug}`,
+    publicPath: `/departamentos/${department.slug}`,
+    contentSummary: `${content.processes} procesos · ${content.formats} formatos · ${content.links} enlaces · ${content.notices} avisos`,
   };
 });
+
+const columns: Column[] = [
+  { key: 'name', label: 'Nombre', kind: 'link', hrefKey: 'href' },
+  { key: 'contentSummary', label: 'Contenido', kind: 'muted' },
+  { key: 'publicPath', label: 'Dirección pública', kind: 'muted' },
+];
+
+const fields: Field[] = [
+  {
+    name: 'name',
+    label: 'NOMBRE',
+    kind: 'text',
+    required: true,
+    maxLength: FIELD_MAX.name,
+    hint: 'Al renombrar, contactos, políticas y contenido pasan al nombre nuevo. La dirección pública no cambia.',
+  },
+];
 ---
 
 <AdminLayout title="Departamentos" active="departamentos">
   <h1 class="text-2xl font-extrabold">Departamentos</h1>
-  <p class="mt-1 text-sm text-body">{rows.length} departamentos. Elige uno para administrar sus procesos, formatos, enlaces y avisos.</p>
-  <ul class="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-    {
-      rows.map((department) => (
-        <li>
-          <a
-            href={`/admin/departamentos/${department.slug}`}
-            class="block rounded-xl border border-edge bg-surface p-4 hover:border-edge-strong"
-          >
-            <span class="font-semibold text-ink">{department.name}</span>
-            <span class="mt-2 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[10px] uppercase tracking-widest text-muted">
-              {department.counts.map((count) => (
-                <span>
-                  {count.label} {count.total}
-                </span>
-              ))}
-            </span>
-          </a>
-        </li>
-      ))
-    }
-  </ul>
+  <p class="mt-1 text-sm text-body">
+    {rows.length} departamentos. Elige uno para administrar sus procesos, formatos, enlaces y avisos. Solo se puede
+    eliminar un departamento sin contactos, políticas ni contenido.
+  </p>
+  <div class="mt-5">
+    <CollectionManager
+      client:load
+      collection="departments"
+      entityName="departamento"
+      entityGender="m"
+      entityNamePlural="departamentos"
+      rows={rows}
+      columns={columns}
+      fields={fields}
+    />
+  </div>
 </AdminLayout>

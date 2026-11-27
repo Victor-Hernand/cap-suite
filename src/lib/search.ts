@@ -1,7 +1,7 @@
 import type { SearchItem } from '../data/types';
-import { departments } from '../data/departments';
 import { labelOf, policyTypes } from '../data/policies';
 import { listVisiblePolicies } from './policies';
+import { listDepartments } from './departments';
 import { type Db, listApps, listResources, listContacts, listCompanies } from './db';
 
 export function buildSearchItems(db: Db): SearchItem[] {
@@ -41,7 +41,7 @@ export function buildSearchItems(db: Db): SearchItem[] {
       url: `/politicas/${policy.slug}`,
       section: 'Políticas',
     })),
-    ...departments.map((department) => ({
+    ...listDepartments(db).map((department) => ({
       id: `department-${department.slug}`,
       name: department.name,
       description: 'Departamento',

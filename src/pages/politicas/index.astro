@@ -5,9 +5,12 @@ import PolicyLibrary from '../../components/PolicyLibrary.vue';
 import { getDb } from '../../lib/db';
 import { listVisiblePolicies } from '../../lib/policies';
 import { filtersFromQuery } from '../../lib/policyFilter';
+import { listDepartments } from '../../lib/departments';
 
-const policies = listVisiblePolicies(getDb());
-const initialFilters = filtersFromQuery(Astro.url.searchParams);
+const db = getDb();
+const policies = listVisiblePolicies(db);
+const departments = listDepartments(db);
+const initialFilters = filtersFromQuery(Astro.url.searchParams, departments);
 ---
 
 <Layout title="Políticas — CAP Suite">
@@ -17,6 +20,6 @@ const initialFilters = filtersFromQuery(Astro.url.searchParams);
       Consulta las políticas, procedimientos e instructivos vigentes del grupo. Filtra por departamento, tipo o estado
       para encontrar el documento que necesitas.
     </p>
-    <PolicyLibrary client:load policies={policies} initialFilters={initialFilters} />
+    <PolicyLibrary client:load policies={policies} departments={departments} initialFilters={initialFilters} />
   </section>
 </Layout>

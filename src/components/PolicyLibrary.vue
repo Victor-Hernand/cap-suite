@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { departments } from '../data/departments';
+import type { Department } from '../data/departments';
 import {
   badgeClassOf,
   labelOf,
@@ -22,18 +22,22 @@ import {
   type PolicyFilters,
 } from '../lib/policyFilter';
 
-const props = withDefaults(defineProps<{ policies?: PolicyCard[]; initialFilters?: PolicyFilters }>(), {
-  policies: () => [],
-  initialFilters: () => ({ ...EMPTY_FILTERS }),
-});
+const props = withDefaults(
+  defineProps<{ policies?: PolicyCard[]; departments?: Department[]; initialFilters?: PolicyFilters }>(),
+  {
+    policies: () => [],
+    departments: () => [],
+    initialFilters: () => ({ ...EMPTY_FILTERS }),
+  },
+);
 
 const filters = ref<PolicyFilters>({ ...props.initialFilters });
 const visiblePolicies = computed(() => filterPolicies(props.policies, filters.value));
-const departmentGroups = computed(() => groupPoliciesByDepartment(visiblePolicies.value));
+const departmentGroups = computed(() => groupPoliciesByDepartment(visiblePolicies.value, props.departments));
 
 function applyFilters(next: PolicyFilters) {
   filters.value = next;
-  const query = filtersToQuery(next);
+  const query = filtersToQuery(next, props.departments);
   history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
 }
 
@@ -72,7 +76,7 @@ function updateFilter(key: keyof PolicyFilters, event: Event) {
           <span :class="labelClass">Departamento</span>
           <select :value="filters.department" :class="selectClass" @change="updateFilter('department', $event)">
             <option value="">Todos</option>
-            <option v-for="department in departments" :key="department.slug" :value="department.name">
+            <option v-for="department in props.departments" :key="department.slug" :value="department.name">
               {{ department.name }}
             </option>
           </select>
