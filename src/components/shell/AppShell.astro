@@ -53,6 +53,7 @@ const headerProps = { title, crumbs, systemName };
 <script>
   import { initShell } from '../../design/shell.js';
   import { showToast } from '../../design/shell/js/toasts.js';
+  import { takePendingToast } from '../../lib/pendingToast';
 
   window.capToast = showToast;
 
@@ -75,5 +76,12 @@ const headerProps = { title, crumbs, systemName };
     document.addEventListener('astro:page-load', startShell);
   } else {
     startShell();
+  }
+
+  try {
+    const pendingToast = takePendingToast(sessionStorage);
+    if (pendingToast) showToast(pendingToast);
+  } catch {
+    // Sin sessionStorage no hay toast pendiente que mostrar.
   }
 </script>
