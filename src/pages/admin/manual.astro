@@ -4,6 +4,7 @@ import CollectionManager from '../../components/admin/CollectionManager.vue';
 import type { Column, Field } from '../../components/admin/types';
 import { FIELD_MAX } from '../../lib/fieldRules';
 import { getDb, listManuals } from '../../lib/db';
+import { statusBadgeClass } from '../../design/statuses.js';
 
 const manuals = listManuals(getDb()).map((manual) => ({
   ...manual,
@@ -18,11 +19,11 @@ const columns: Column[] = [
 ];
 
 const fields: Field[] = [
-  { name: 'title', label: 'TÍTULO', kind: 'text', required: true, maxLength: FIELD_MAX.name },
-  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', maxLength: FIELD_MAX.description },
+  { name: 'title', label: 'Título', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'description', label: 'Descripción', kind: 'textarea', maxLength: FIELD_MAX.description },
   {
     name: 'videoUrl',
-    label: 'VIDEO DE LOOM',
+    label: 'Video de Loom',
     kind: 'url',
     placeholder: 'https://www.loom.com/share/…',
     hint: 'En Loom usa «Share» → «Copy link» y pégalo aquí. Déjalo vacío para quitar el video.',
@@ -30,44 +31,50 @@ const fields: Field[] = [
   },
   {
     name: 'pdf',
-    label: 'MANUAL EN PDF',
+    label: 'Manual en PDF',
     kind: 'file-manual',
     hint: 'Al editar, si no subes uno nuevo se conserva el PDF actual.',
   },
 ];
 
-const badgeClass = 'rounded bg-canvas px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-widest text-muted';
 ---
 
 <AdminLayout title="Manuales">
-  <h1 class="text-2xl font-extrabold">Manuales de uso</h1>
-  <p class="mt-1 text-sm text-body">Videos y documentos para aprender a usar el panel de administración.</p>
+  <p class="text-sm text-cap-text-soft">Videos y documentos para aprender a usar el panel de administración.</p>
 
   {manuals.length > 0 && (
-    <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <div class="cap-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {manuals.map((manual) => (
-        <a href={`/admin/manual/${manual.id}`} class="flex flex-col rounded-xl border border-edge bg-surface p-5 transition-shadow hover:shadow-md">
-          <span class="font-bold text-ink">{manual.title}</span>
-          {manual.description && <span class="mt-1 line-clamp-2 text-sm text-body">{manual.description}</span>}
-          <span class="mt-3 flex gap-2">
-            {manual.contentLabels.map((label) => <span class={badgeClass}>{label}</span>)}
+        <a
+          href={`/admin/manual/${manual.id}`}
+          class="flex flex-col rounded-cap-card border border-cap-divider bg-cap-card p-5 transition-transform duration-cap-fast ease-cap hover:-translate-y-0.5"
+        >
+          <span class="flex items-start gap-3">
+            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-cap-control bg-cap-red-200 text-cap-red-800 dark:bg-cap-red-600/20 dark:text-cap-brand-soft" aria-hidden="true">
+              <i class="mdi mdi-book-open-outline text-xl leading-none"></i>
+            </span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-sm font-semibold text-gray-900 dark:text-gray-100">{manual.title}</span>
+              {manual.description && <span class="mt-1 line-clamp-2 block text-xs text-cap-text-soft">{manual.description}</span>}
+            </span>
+          </span>
+          <span class="mt-4 flex gap-2">
+            {manual.contentLabels.map((label) => <span class={statusBadgeClass('neutral')}>{label}</span>)}
           </span>
         </a>
       ))}
     </div>
   )}
 
-  <h2 class="mt-10 font-mono text-[10px] uppercase tracking-widest text-muted">Administrar manuales</h2>
-  <div class="mt-3">
-    <CollectionManager
-      client:load
-      collection="manuals"
-      entityName="manual"
-      entityGender="m"
-      entityNamePlural="manuales"
-      rows={rows}
-      columns={columns}
-      fields={fields}
-    />
-  </div>
+  <CollectionManager
+    client:load
+    collection="manuals"
+    entityName="manual"
+    entityGender="m"
+    entityNamePlural="manuales"
+    title="Administrar manuales"
+    rows={rows}
+    columns={columns}
+    fields={fields}
+  />
 </AdminLayout>

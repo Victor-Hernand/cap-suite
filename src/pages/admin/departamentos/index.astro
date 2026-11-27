@@ -28,7 +28,7 @@ const columns: Column[] = [
 const fields: Field[] = [
   {
     name: 'name',
-    label: 'NOMBRE',
+    label: 'Nombre',
     kind: 'text',
     required: true,
     maxLength: FIELD_MAX.name,
@@ -38,21 +38,15 @@ const fields: Field[] = [
 ---
 
 <AdminLayout title="Departamentos">
-  <h1 class="text-2xl font-extrabold">Departamentos</h1>
-  <p class="mt-1 text-sm text-body">
-    {rows.length} departamentos. Elige uno para administrar sus procesos, formatos, enlaces y avisos. Solo se puede
-    eliminar un departamento sin contactos, políticas ni contenido.
-  </p>
-  <div class="mt-5">
-    <CollectionManager
-      client:load
-      collection="departments"
-      entityName="departamento"
-      entityGender="m"
-      entityNamePlural="departamentos"
-      rows={rows}
-      columns={columns}
-      fields={fields}
-    />
-  </div>
+  <CollectionManager
+    client:load
+    collection="departments"
+    entityName="departamento"
+    entityGender="m"
+    entityNamePlural="departamentos"
+    summary={`${rows.length} departamentos. Elige uno para administrar sus procesos, formatos, enlaces y avisos. Solo se puede eliminar un departamento sin contactos, políticas ni contenido.`}
+    rows={rows}
+    columns={columns}
+    fields={fields}
+  />
 </AdminLayout>

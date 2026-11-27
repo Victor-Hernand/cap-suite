@@ -7,42 +7,46 @@ import { getDb, listCompanies } from '../../lib/db';
 
 const rows = listCompanies(getDb()).map((company) => ({
   ...company,
-  ledColor: company.color,
+  swatchColor: company.color,
   companyLabel: company.segment,
   logoUrl: company.logoPath?.startsWith('http') ? company.logoPath : '',
 }));
 
 const columns: Column[] = [
   { key: 'name', label: 'Nombre' },
-  { key: 'companyLabel', label: 'Segmento', kind: 'led' },
+  { key: 'companyLabel', label: 'Segmento', kind: 'swatch' },
   { key: 'slogan', label: 'Slogan', kind: 'muted' },
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
-  { name: 'segment', label: 'SEGMENTO', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
-  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
-  { name: 'slogan', label: 'SLOGAN', kind: 'text', required: true, maxLength: FIELD_MAX.slogan },
-  { name: 'color', label: 'COLOR (HEX)', kind: 'text', required: true, placeholder: '#C62828', maxLength: FIELD_MAX.color },
-  { name: 'url', label: 'SITIO WEB', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
-  { name: 'logo', label: 'LOGO', kind: 'file-logo' },
-  { name: 'logoUrl', label: 'O URL DE LOGO EXTERNO', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
+  { name: 'name', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'segment', label: 'Segmento', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
+  { name: 'description', label: 'Descripción', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
+  { name: 'slogan', label: 'Slogan', kind: 'text', required: true, maxLength: FIELD_MAX.slogan },
+  {
+    name: 'color',
+    label: 'Color',
+    kind: 'text',
+    required: true,
+    hint: 'Código hexadecimal de 6 dígitos precedido de numeral, como lo da la guía de marca de la empresa.',
+    maxLength: FIELD_MAX.color,
+  },
+  { name: 'url', label: 'Sitio web', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
+  { name: 'logo', label: 'Logo', kind: 'file-logo' },
+  { name: 'logoUrl', label: 'O URL de logo externo', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
 ];
 ---
 
 <AdminLayout title="Empresas">
-  <h1 class="text-2xl font-extrabold">Empresas</h1>
-  <p class="mt-1 text-sm text-body">{rows.length} empresas del grupo</p>
-  <div class="mt-5">
-    <CollectionManager
-      client:load
-      collection="companies"
-      entityName="empresa"
-      entityGender="f"
-      entityNamePlural="empresas"
-      rows={rows}
-      columns={columns}
-      fields={fields}
-    />
-  </div>
+  <CollectionManager
+    client:load
+    collection="companies"
+    entityName="empresa"
+    entityGender="f"
+    entityNamePlural="empresas"
+    summary={`${rows.length} empresas del grupo`}
+    rows={rows}
+    columns={columns}
+    fields={fields}
+  />
 </AdminLayout>

@@ -1,5 +1,6 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import BackLink from '../../../components/admin/BackLink.astro';
 import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
 import { getDb } from '../../../lib/db';
 import { listDepartments } from '../../../lib/departments';
@@ -7,11 +8,10 @@ import { listDepartments } from '../../../lib/departments';
 const departments = listDepartments(getDb());
 ---
 
-<AdminLayout title="Nueva política">
-  <a href="/admin/politicas" class="text-xs font-semibold text-muted hover:text-ink">← Todas las políticas</a>
-  <h1 class="mt-2 text-2xl font-extrabold">Nueva política</h1>
-  <p class="mt-1 text-sm text-body">Se guarda como borrador. Publícala cuando tenga el documento oficial.</p>
-  <div class="mt-5">
-    <PolicyEditor client:load departments={departments} />
+<AdminLayout title="Nueva política" crumbs={['Políticas']}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <BackLink href="/admin/politicas" label="Todas las políticas" />
+    <p class="text-sm text-cap-text-soft">Se guarda como borrador. Publícala cuando tenga el documento oficial.</p>
   </div>
+  <PolicyEditor client:load departments={departments} />
 </AdminLayout>

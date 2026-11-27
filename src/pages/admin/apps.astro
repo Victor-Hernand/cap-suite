@@ -5,60 +5,59 @@ import type { Column, Field } from '../../components/admin/types';
 import { FIELD_MAX } from '../../lib/fieldRules';
 import { getDb, listApps, listCompanies, companyColorFor } from '../../lib/db';
 import { appCategories } from '../../data/categories';
+import { company } from '../../design/company.js';
 
 const db = getDb();
 const companies = listCompanies(db);
 const rows = listApps(db).map((app) => ({
   ...app,
-  ledColor: companyColorFor(db, app.companyLabel) ?? '#15181D',
+  categoryLabel: appCategories.find((category) => category.id === app.category)?.label ?? app.category,
+  swatchColor: companyColorFor(db, app.companyLabel),
   logoUrl: app.logoPath?.startsWith('http') ? app.logoPath : '',
 }));
 
 const columns: Column[] = [
   { key: 'name', label: 'Nombre' },
-  { key: 'category', label: 'Categoría', kind: 'muted' },
-  { key: 'companyLabel', label: 'Empresa', kind: 'led' },
+  { key: 'categoryLabel', label: 'Categoría', kind: 'muted' },
+  { key: 'companyLabel', label: 'Empresa', kind: 'swatch' },
   { key: 'featured', label: 'Destacada', kind: 'toggle' },
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'name', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
   { name: 'url', label: 'URL', kind: 'url', required: true, placeholder: 'https://…', maxLength: FIELD_MAX.url },
-  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
+  { name: 'description', label: 'Descripción', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
   {
     name: 'category',
-    label: 'CATEGORÍA',
+    label: 'Categoría',
     kind: 'select',
     required: true,
     options: appCategories.map((category) => ({ value: category.id, label: category.label })),
   },
   {
     name: 'companyLabel',
-    label: 'EMPRESA',
+    label: 'Empresa',
     kind: 'select',
     placeholder: 'Sin empresa',
-    options: ['Grupo CAP', ...companies.map((company) => company.name)].map((name) => ({ value: name, label: name })),
+    options: [company.name, ...companies.map((groupCompany) => groupCompany.name)].map((name) => ({ value: name, label: name })),
   },
-  { name: 'logo', label: 'LOGO', kind: 'file-logo' },
-  { name: 'logoUrl', label: 'O URL DE LOGO EXTERNO', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
+  { name: 'logo', label: 'Logo', kind: 'file-logo' },
+  { name: 'logoUrl', label: 'O URL de logo externo', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
   { name: 'featured', label: 'Destacada en inicio', kind: 'toggle' },
-  { name: 'badge', label: 'BADGE', kind: 'text', placeholder: 'nuevo (opcional)', maxLength: FIELD_MAX.badge },
+  { name: 'badge', label: 'Etiqueta', kind: 'text', placeholder: 'nuevo (opcional)', maxLength: FIELD_MAX.badge },
 ];
 ---
 
 <AdminLayout title="Aplicaciones">
-  <h1 class="text-2xl font-extrabold">Aplicaciones</h1>
-  <p class="mt-1 text-sm text-body">{rows.length} sistemas · {rows.filter((row) => row.featured).length} destacados</p>
-  <div class="mt-5">
-    <CollectionManager
-      client:load
-      collection="apps"
-      entityName="aplicación"
-      entityGender="f"
-      entityNamePlural="aplicaciones"
-      rows={rows}
-      columns={columns}
-      fields={fields}
-    />
-  </div>
+  <CollectionManager
+    client:load
+    collection="apps"
+    entityName="aplicación"
+    entityGender="f"
+    entityNamePlural="aplicaciones"
+    summary={`${rows.length} sistemas · ${rows.filter((row) => row.featured).length} destacados`}
+    rows={rows}
+    columns={columns}
+    fields={fields}
+  />
 </AdminLayout>

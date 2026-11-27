@@ -1,8 +1,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import FileDrop from './FileDrop.vue';
+import RequiredMark from './RequiredMark.vue';
 import { uploadKindOf, type Field } from './types';
-import { fieldErrorClass, inputClass, labelClass, selectClass, textareaClass } from './formStyles';
+import {
+  fieldErrorClass,
+  fieldHelpClass,
+  fieldInputClass,
+  fieldLabelClass,
+  fieldDateClass,
+  fieldSelectClass,
+  fieldTextareaClass,
+  withFieldError,
+} from '../../lib/capClasses';
 import { PHONE_DISALLOWED_CHARS, uploadPickerRules } from '../../lib/fieldRules';
 
 const props = withDefaults(
@@ -22,6 +32,7 @@ watch(model, (value) => emit('update:value', value));
 
 const inputId = computed(() => `field-${props.field.name}`);
 const hintId = computed(() => `hint-${props.field.name}`);
+const errorId = computed(() => `error-${props.field.name}`);
 
 const inputType = computed(() => {
   if (props.field.kind === 'url') return 'url';
@@ -36,7 +47,16 @@ const uploadRules = computed(() => {
   return kind ? uploadPickerRules(kind) : null;
 });
 
-const describedBy = computed(() => (props.field.hint ? hintId.value : undefined));
+const describedBy = computed(
+  () => [props.field.hint && hintId.value, props.error && errorId.value].filter(Boolean).join(' ') || undefined,
+);
+
+const controlClass = computed(() => {
+  if (props.field.kind === 'textarea') return fieldTextareaClass;
+  if (props.field.kind === 'select') return fieldSelectClass;
+  return props.field.kind === 'date' ? fieldDateClass : fieldInputClass;
+});
+const controlClassWithState = computed(() => withFieldError(controlClass.value, Boolean(props.error)));
 
 // En teléfono solo se aceptan dígitos, "+", guion y espacio mientras se escribe.
 function sanitizeTelInput(event: Event) {
@@ -48,8 +68,8 @@ function sanitizeTelInput(event: Event) {
 
 <template>
   <div>
-    <label v-if="field.kind === 'toggle'" class="flex items-center gap-2 text-sm font-semibold text-ink">
-      <input type="checkbox" :name="field.name" :checked="value === 'true' || value === '1'" />
+    <label v-if="field.kind === 'toggle'" class="cap-check text-sm font-medium text-gray-900 dark:text-gray-100">
+      <input type="checkbox" class="cap-check__box" :name="field.name" :checked="value === 'true' || value === '1'" />
       {{ field.label }}
     </label>
 
@@ -60,22 +80,25 @@ function sanitizeTelInput(event: Event) {
       :hint="uploadRules.hint"
       :accept="uploadRules.accept"
       :note="field.hint"
+      :error="error"
     />
 
     <template v-else>
-      <label :class="labelClass" :for="inputId">
-        {{ field.label }}<span v-if="field.required" class="text-red-700" aria-hidden="true"> *</span>
+      <label :class="fieldLabelClass" :for="inputId">
+        {{ field.label }} <RequiredMark v-if="field.required" />
       </label>
       <textarea
         v-if="field.kind === 'textarea'"
         :id="inputId"
         :name="field.name"
         :required="field.required"
+        :aria-required="field.required || undefined"
+        :aria-invalid="error ? 'true' : undefined"
         :maxlength="field.maxLength"
         :placeholder="field.placeholder"
         :aria-describedby="describedBy"
         rows="3"
-        :class="textareaClass"
+        :class="controlClassWithState"
         v-model="model"
       ></textarea>
       <select
@@ -83,8 +106,10 @@ function sanitizeTelInput(event: Event) {
         :id="inputId"
         :name="field.name"
         :required="field.required"
+        :aria-required="field.required || undefined"
+        :aria-invalid="error ? 'true' : undefined"
         :aria-describedby="describedBy"
-        :class="selectClass"
+        :class="controlClassWithState"
         v-model="model"
       >
         <option v-if="!field.required" value="">{{ field.placeholder ?? 'Ninguna' }}</option>
@@ -98,15 +123,17 @@ function sanitizeTelInput(event: Event) {
         :type="inputType"
         :inputmode="field.kind === 'tel' ? 'tel' : undefined"
         :required="field.required"
+        :aria-required="field.required || undefined"
+        :aria-invalid="error ? 'true' : undefined"
         :maxlength="field.maxLength"
         :placeholder="field.placeholder"
         :aria-describedby="describedBy"
-        :class="inputClass"
+        :class="controlClassWithState"
         v-model="model"
         @input="sanitizeTelInput"
       />
-      <p v-if="field.hint" :id="hintId" class="mt-1 text-xs text-muted">{{ field.hint }}</p>
-      <p v-if="error" :class="fieldErrorClass">{{ error }}</p>
+      <p v-if="field.hint" :id="hintId" :class="fieldHelpClass">{{ field.hint }}</p>
+      <p v-if="error" :id="errorId" :class="fieldErrorClass">{{ error }}</p>
     </template>
   </div>
 </template>

@@ -22,45 +22,42 @@ const columns: Column[] = [
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
-  { name: 'role', label: 'CARGO', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
+  { name: 'name', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'role', label: 'Cargo', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
   {
     name: 'department',
-    label: 'DEPARTAMENTO',
+    label: 'Departamento',
     kind: 'select',
     required: true,
     options: departmentOptions,
   },
-  { name: 'company', label: 'EMPRESA', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
+  { name: 'company', label: 'Empresa', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
   {
     name: 'phone',
-    label: 'TELÉFONO',
+    label: 'Teléfono',
     kind: 'tel',
     required: true,
     placeholder: '+504 9999-9999',
     hint: PHONE_HINT,
     maxLength: FIELD_MAX.phone,
   },
-  { name: 'email', label: 'CORREO', kind: 'email', required: true, maxLength: FIELD_MAX.email },
-  { name: 'extension', label: 'EXTENSIÓN', kind: 'text', placeholder: 'opcional, solo números', maxLength: FIELD_MAX.extension },
-  { name: 'photo', label: 'FOTO', kind: 'file-logo' },
-  { name: 'photoUrl', label: 'O URL DE FOTO EXTERNA', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
+  { name: 'email', label: 'Correo', kind: 'email', required: true, maxLength: FIELD_MAX.email },
+  { name: 'extension', label: 'Extensión', kind: 'text', placeholder: 'opcional, solo números', maxLength: FIELD_MAX.extension },
+  { name: 'photo', label: 'Foto', kind: 'file-logo' },
+  { name: 'photoUrl', label: 'O URL de foto externa', kind: 'url', placeholder: 'https://… (opcional)', maxLength: FIELD_MAX.url },
 ];
 ---
 
 <AdminLayout title="Contactos">
-  <h1 class="text-2xl font-extrabold">Contactos</h1>
-  <p class="mt-1 text-sm text-body">{rows.length} contactos del directorio</p>
-  <div class="mt-5">
-    <CollectionManager
-      client:load
-      collection="contacts"
-      entityName="contacto"
-      entityGender="m"
-      entityNamePlural="contactos"
-      rows={rows}
-      columns={columns}
-      fields={fields}
-    />
-  </div>
+  <CollectionManager
+    client:load
+    collection="contacts"
+    entityName="contacto"
+    entityGender="m"
+    entityNamePlural="contactos"
+    summary={`${rows.length} contactos del directorio`}
+    rows={rows}
+    columns={columns}
+    fields={fields}
+  />
 </AdminLayout>

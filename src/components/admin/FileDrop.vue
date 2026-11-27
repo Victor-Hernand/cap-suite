@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { labelClass } from './formStyles';
+import { fieldErrorClass, fieldHelpClass, fieldLabelClass } from '../../lib/capClasses';
 
-const props = defineProps<{
-  name: string;
-  label: string;
-  hint: string;
-  accept: string;
-  /** Aclaración bajo el selector, p. ej. qué pasa si no se sube nada. */
-  note?: string;
-}>();
+const props = withDefaults(
+  defineProps<{
+    name: string;
+    label: string;
+    hint: string;
+    accept: string;
+    /** Aclaración bajo el selector, p. ej. qué pasa si no se sube nada. */
+    note?: string;
+    error?: string;
+  }>(),
+  { note: '', error: '' },
+);
 
 const emit = defineEmits<{ change: [file: File | null] }>();
 
@@ -41,26 +45,36 @@ function onDrop(event: DragEvent) {
 
 <template>
   <div>
-    <p :class="labelClass">{{ props.label }}</p>
+    <p :class="fieldLabelClass">{{ props.label }}</p>
     <div
-      class="cursor-pointer rounded-lg border border-dashed p-4 text-center text-xs transition-colors"
-      :class="dragging ? 'border-ink bg-white' : 'border-edge-strong bg-canvas text-muted'"
+      class="flex cursor-pointer items-center gap-3 rounded-cap-control border border-dashed px-4 py-3 text-sm transition-colors duration-cap-fast ease-cap focus:outline-none focus-visible:ring-2 focus-visible:ring-cap-chrome focus-visible:ring-offset-2 focus-visible:ring-offset-cap-card dark:focus-visible:ring-gray-100"
+      :class="[
+        dragging ? 'border-cap-chrome bg-cap-card dark:border-gray-100' : 'bg-cap-card-2',
+        !dragging && (props.error ? 'border-cap-status-error dark:border-cap-status-dark-error' : 'border-cap-input-line'),
+      ]"
       role="button"
       tabindex="0"
+      :aria-label="`${props.label}: ${fileName || `elegir archivo (${props.hint})`}`"
       @click="openPicker"
-      @keydown.enter="openPicker"
+      @keydown.enter.prevent="openPicker"
+      @keydown.space.prevent="openPicker"
       @dragover.prevent="dragging = true"
       @dragleave="dragging = false"
       @drop.prevent="onDrop"
     >
-      <template v-if="fileName">
-        <span class="font-semibold text-ink">{{ fileName }}</span>
-      </template>
-      <template v-else>
-        Arrastra un archivo o <span class="font-bold text-ink">explora</span> · {{ props.hint }}
-      </template>
+      <i
+        class="mdi text-xl leading-none text-cap-text-soft"
+        :class="fileName ? 'mdi-file-check-outline' : 'mdi-tray-arrow-up'"
+        aria-hidden="true"
+      />
+      <span v-if="fileName" class="min-w-0 truncate font-medium text-gray-900 dark:text-gray-100">{{ fileName }}</span>
+      <span v-else class="min-w-0 text-cap-text-soft">
+        Arrastra un archivo o <span class="font-semibold text-gray-900 underline underline-offset-2 dark:text-gray-100">explora</span>
+        · {{ props.hint }}
+      </span>
     </div>
-    <p v-if="props.note" class="mt-1 text-xs text-muted">{{ props.note }}</p>
+    <p v-if="props.note" :class="fieldHelpClass">{{ props.note }}</p>
+    <p v-if="props.error" :class="fieldErrorClass">{{ props.error }}</p>
     <input ref="inputRef" type="file" :name="props.name" :accept="props.accept" class="hidden" @change="onPicked" />
   </div>
 </template>

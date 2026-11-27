@@ -15,6 +15,8 @@ export const fieldInputClass =
 
 export const fieldSelectClass = `${fieldInputClass} dark:[color-scheme:dark]`;
 
+export const fieldDateClass = `${fieldInputClass} dark:[color-scheme:dark]`;
+
 export const fieldTextareaClass = fieldInputClass.replace('h-10', 'py-2');
 
 export const fieldErrorClass = 'mt-1 text-xs text-cap-status-error dark:text-cap-status-dark-error';
@@ -26,3 +28,20 @@ export const emptyStateClass =
 
 export const iconButtonClass =
   'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-cap-text-soft transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-cap-chrome focus-visible:ring-offset-2 focus-visible:ring-offset-cap-card dark:hover:text-gray-100 dark:focus-visible:ring-gray-100';
+
+// Receta «Campo de formulario» con error: el borde y el foco pasan al color de error.
+export function withFieldError(controlClass: string, hasError: boolean): string {
+  if (!hasError) return controlClass;
+  return controlClass
+    .replace('border-cap-input-line', 'border-cap-status-error dark:border-cap-status-dark-error')
+    .replace('focus:border-cap-chrome', 'focus:border-cap-status-error')
+    .replace('focus:ring-cap-chrome', 'focus:ring-cap-status-error')
+    .replace('dark:focus:border-gray-100', 'dark:focus:border-cap-status-dark-error')
+    .replace('dark:focus:ring-gray-100', 'dark:focus:ring-cap-status-dark-error');
+}
+
+export const sectionTitleClass = 'font-display text-lg font-semibold text-gray-900 dark:text-gray-100';
+
+export const tableLinkClass = 'font-medium text-cap-brand hover:underline dark:text-cap-brand-soft';
+
+export const inlineLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:decoration-current';

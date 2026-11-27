@@ -1,38 +1,69 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import { getDb, counts, listRecentResources } from '../../lib/db';
+import { cardClass, emptyStateClass, sectionTitleClass } from '../../lib/capClasses';
+import { resourceTypes } from '../../data/categories';
+import { statusBadgeClass } from '../../design/statuses.js';
 
 const db = getDb();
 const totals = counts(db);
 const recent = listRecentResources(db, 5);
 
-const cards = [
-  { label: 'Aplicaciones', value: totals.apps, href: '/admin/apps' },
-  { label: 'Recursos', value: totals.resources, href: '/admin/recursos' },
-  { label: 'Contactos', value: totals.contacts, href: '/admin/contactos' },
-  { label: 'Empresas', value: totals.companies, href: '/admin/empresas' },
+const figures = [
+  { label: 'Aplicaciones', value: totals.apps, href: '/admin/apps', featured: true },
+  { label: 'Recursos', value: totals.resources, href: '/admin/recursos', featured: false },
+  { label: 'Contactos', value: totals.contacts, href: '/admin/contactos', featured: false },
+  { label: 'Empresas', value: totals.companies, href: '/admin/empresas', featured: false },
 ];
+
+const resourceTypeLabel = (type: string) => resourceTypes.find((resourceType) => resourceType.id === type)?.badge ?? type;
+
+const figureCardClass = (featured: boolean) =>
+  featured
+    ? 'block rounded-cap-card bg-cap-gradient-featured p-5 text-white transition-transform duration-cap-fast ease-cap hover:-translate-y-0.5'
+    : 'block rounded-cap-card border border-cap-divider bg-cap-card p-5 transition-transform duration-cap-fast ease-cap hover:-translate-y-0.5';
 ---
 
 <AdminLayout title="Panel">
-  <h1 class="text-2xl font-extrabold">Panel de administración</h1>
-  <p class="mt-1 text-sm text-body">Gestiona el contenido de CAP Suite. Los cambios se publican al instante.</p>
-  <div class="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-    {cards.map((card) => (
-      <a href={card.href} class="rounded-xl border border-edge bg-surface p-5 transition-shadow hover:shadow-md">
-        <p class="text-3xl font-extrabold">{card.value}</p>
-        <p class="mt-1 font-mono text-[10px] uppercase tracking-widest text-muted">{card.label}</p>
+  <p class="text-sm text-cap-text-soft">Gestiona el contenido del portal. Los cambios se publican al instante.</p>
+
+  <div class="cap-stagger grid grid-cols-2 gap-4 lg:grid-cols-4">
+    {figures.map((figure) => (
+      <a href={figure.href} class={figureCardClass(figure.featured)}>
+        <div class="flex items-start justify-between">
+          <p class={`text-xs font-medium ${figure.featured ? 'text-cap-red-200' : 'text-cap-text-soft'}`}>{figure.label}</p>
+          <span
+            class={`flex h-8 w-8 items-center justify-center rounded-full ${figure.featured ? 'bg-white text-cap-red-800' : 'bg-cap-card-2 text-cap-text-soft'}`}
+            aria-hidden="true"
+          ><i class="mdi mdi-arrow-top-right text-base leading-none"></i></span>
+        </div>
+        <p
+          class={`mt-3 font-display text-3xl font-semibold tabular-nums ${figure.featured ? '' : 'text-gray-900 dark:text-gray-100'}`}
+          data-cap-count={figure.value}
+          data-cap-format="integer"
+        >{figure.value}</p>
       </a>
     ))}
   </div>
-  <h2 class="mt-8 font-mono text-[10px] uppercase tracking-widest text-muted">Recursos actualizados recientemente</h2>
-  <div class="mt-3 rounded-xl border border-edge bg-surface">
-    {recent.length === 0 && <p class="px-5 py-6 text-sm text-body">Aún no hay recursos. Crea el primero en la sección Recursos.</p>}
-    {recent.map((resource) => (
-      <div class="flex items-center justify-between border-b border-edge px-5 py-3 text-sm last:border-b-0">
-        <span class="font-semibold">{resource.name}</span>
-        <span class="font-mono text-[10px] uppercase tracking-widest text-muted">{resource.type}</span>
+
+  <section class={cardClass}>
+    <h2 class={sectionTitleClass}>Recursos actualizados recientemente</h2>
+    {recent.length === 0 ? (
+      <div class={`${emptyStateClass} mt-4`}>
+        <i class="mdi mdi-file-document-outline text-cap-icon text-gray-400" aria-hidden="true"></i>
+        <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Aún no hay recursos</p>
+        <p class="mt-1 text-sm text-cap-text-soft">Se crean en la sección Recursos.</p>
+        <div class="mt-4"><a href="/admin/recursos" class="cap-button cap-button--primary">Ir a Recursos</a></div>
       </div>
-    ))}
-  </div>
+    ) : (
+      <ul class="mt-4 flex flex-col">
+        {recent.map((resource) => (
+          <li class="flex items-center justify-between gap-3 border-t border-cap-divider py-3 text-sm first:border-t-0">
+            <span class="truncate font-medium text-gray-900 dark:text-gray-100" title={resource.name}>{resource.name}</span>
+            <span class={`shrink-0 ${statusBadgeClass('neutral')}`}>{resourceTypeLabel(resource.type)}</span>
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
 </AdminLayout>
