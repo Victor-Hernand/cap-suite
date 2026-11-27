@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { usePopover } from '../../design/vue/composables/usePopover.js';
 import { iconButtonClass } from '../../lib/capClasses';
 import type { RowAction } from './types';
@@ -19,7 +20,11 @@ const itemClass =
 const neutralItemClass = `${itemClass} text-gray-800 dark:text-gray-100`;
 const dangerItemClass = `${itemClass} text-cap-status-error-ink`;
 
+const triggerRef = ref<HTMLButtonElement | null>(null);
+
+// Se devuelve el foco al ⋮ antes de cerrar: el diálogo que abre la acción lo recuerda como destino al cerrarse.
 function choose(action: RowAction) {
+  triggerRef.value?.focus();
   close();
   emit('select', action.key);
 }
@@ -28,10 +33,10 @@ function choose(action: RowAction) {
 <template>
   <div class="relative">
     <button
+      ref="triggerRef"
       type="button"
       :aria-label="`Acciones de ${props.recordLabel}`"
       title="Acciones"
-      aria-haspopup="menu"
       :aria-expanded="isOpen"
       :aria-controls="props.menuId"
       :class="iconButtonClass"
@@ -48,13 +53,11 @@ function choose(action: RowAction) {
       <div
         v-if="isOpen"
         :id="props.menuId"
-        role="menu"
         class="absolute right-0 top-full z-cap-dropdown mt-1 w-48 origin-top rounded-cap-control border border-cap-divider bg-cap-card py-1 shadow-md dark:bg-cap-card-2"
       >
         <template v-for="action in props.actions" :key="action.key">
           <a
             v-if="action.href"
-            role="menuitem"
             :href="action.href"
             :class="action.danger ? dangerItemClass : neutralItemClass"
           >
@@ -62,7 +65,6 @@ function choose(action: RowAction) {
           </a>
           <button
             v-else
-            role="menuitem"
             type="button"
             :class="action.danger ? dangerItemClass : neutralItemClass"
             @click="choose(action)"

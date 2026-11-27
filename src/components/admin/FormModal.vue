@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useId, watch } from 'vue';
+import { nextTick, onMounted, ref, useId, watch } from 'vue';
 import CapAlert from '../../design/vue/CapAlert.vue';
 import CapButton from '../../design/vue/CapButton.vue';
 import { useEscapeKey } from '../../design/vue/composables/useEscapeKey.js';
@@ -29,7 +29,7 @@ const titleId = useId();
 const formRef = ref<HTMLFormElement | null>(null);
 const firstFieldRef = ref<HTMLElement | null>(null);
 // El modal existe mientras está abierto (el padre lo monta con v-if): trampa de foco y Esc siempre activos.
-const isMounted = computed(() => true);
+const alwaysActive = ref(true);
 const hasRequiredFields = props.fields.some((field) => field.required);
 
 // Registrado antes que la trampa de foco: así el foco inicial cae en el primer campo y no en el cierre.
@@ -37,8 +37,8 @@ onMounted(() => {
   firstFieldRef.value =
     formRef.value?.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), select, textarea') ?? null;
 });
-useFocusTrap(formRef, isMounted, firstFieldRef);
-useEscapeKey(isMounted, close);
+useFocusTrap(formRef, alwaysActive, firstFieldRef);
+useEscapeKey(alwaysActive, close);
 
 watch(
   () => props.fieldErrors,

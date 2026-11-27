@@ -41,6 +41,16 @@ describe('filterSearchItems', () => {
     expect(filterSearchItems(items, 'contactos').map((item) => item.id)).toEqual(['c']);
   });
 
+  test('ignora acentos en la consulta y en el texto', () => {
+    const items: SearchItem[] = [
+      { id: 'a', name: 'Política de información', description: 'Manejo de datos', url: '/a', section: 'Políticas' },
+      { id: 'b', name: 'Otro', description: 'Nada', url: '/b', section: 'Recursos' },
+    ];
+    expect(filterSearchItems(items, 'informacion').map((item) => item.id)).toEqual(['a']);
+    expect(filterSearchItems(items, 'INFORMACIÓN').map((item) => item.id)).toEqual(['a']);
+    expect(filterSearchItems(items, 'politica').map((item) => item.id)).toEqual(['a']);
+  });
+
   test('sin coincidencias devuelve una lista vacía', () => {
     expect(filterSearchItems(sampleItems, 'zzz')).toEqual([]);
   });

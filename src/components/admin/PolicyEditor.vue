@@ -118,7 +118,10 @@ const sectionHeadingClass = `${sectionTitleClass} mb-4`;
   <!-- novalidate: los mensajes de validación los da el servidor, en español. -->
   <form class="flex max-w-7xl flex-col gap-8" novalidate @submit.prevent="save">
     <div v-if="formError" ref="alertRef">
-      <CapAlert status="error" :title="failedActionTitle" :detail="[formError, ...listErrors].join(' ')" />
+      <CapAlert status="error" :title="failedActionTitle" :detail="formError" />
+      <ul v-if="listErrors.length" class="mt-2 list-disc pl-10 text-sm text-cap-status-error-ink">
+        <li v-for="message in listErrors" :key="message">{{ message }}</li>
+      </ul>
     </div>
 
     <section :class="cardClass">

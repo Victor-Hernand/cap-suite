@@ -59,9 +59,19 @@ const headerProps = { title, crumbs, systemName };
 
   let teardownShell = () => {};
 
+  function showPendingToast() {
+    try {
+      const pendingToast = takePendingToast(sessionStorage);
+      if (pendingToast) showToast(pendingToast);
+    } catch {
+      // Sin sessionStorage no hay toast pendiente que mostrar.
+    }
+  }
+
   function startShell() {
     teardownShell();
     teardownShell = initShell();
+    showPendingToast();
   }
 
   function stopShell() {
@@ -76,12 +86,5 @@ const headerProps = { title, crumbs, systemName };
     document.addEventListener('astro:page-load', startShell);
   } else {
     startShell();
-  }
-
-  try {
-    const pendingToast = takePendingToast(sessionStorage);
-    if (pendingToast) showToast(pendingToast);
-  } catch {
-    // Sin sessionStorage no hay toast pendiente que mostrar.
   }
 </script>
