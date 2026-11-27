@@ -1,5 +1,5 @@
 name: cap-manual check
-# cap-manual 3.5.0: lo actualiza install.sh, no lo edites
+# cap-manual 3.8.0: lo actualiza install.sh, no lo edites
 
 on:
   pull_request:

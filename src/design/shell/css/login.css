@@ -1,0 +1,276 @@
+/* Pantalla de acceso: sin marco de navegación; foto y tarjeta de vidrio como dos paneles. */
+
+.cap-login {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  min-height: 100dvh;
+  padding: 12px;
+}
+
+.cap-login::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(33% 45% at 62% 18%, var(--cap-blob-login-red), transparent 70%),
+    radial-gradient(38% 52% at 95% 92%, var(--cap-blob-login-wine), transparent 70%),
+    radial-gradient(27% 40% at 82% 50%, var(--cap-blob-login-taupe), transparent 70%);
+}
+
+/* Cada sistema entrega su foto en --cap-login-photo; sin ella, marco sólido con manchones. */
+.cap-login__photo {
+  position: relative;
+  flex: 1.1;
+  min-width: 0;
+  border-radius: var(--cap-radius-sheet);
+  overflow: hidden;
+  background-color: var(--cap-chrome);
+  background-image: var(
+    --cap-login-photo,
+    radial-gradient(60% 50% at 85% 20%, var(--cap-blob-panel-red), transparent 70%),
+    radial-gradient(70% 60% at 10% 95%, var(--cap-blob-panel-wine), transparent 70%),
+    radial-gradient(50% 40% at 40% 55%, var(--cap-blob-panel-taupe), transparent 70%)
+  );
+  background-position: center;
+  background-size: cover;
+}
+
+.cap-login__photo::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--cap-photo-veil-top) 30%, var(--cap-photo-veil-bottom) 100%);
+}
+
+.cap-login__brand-tag {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px 6px 6px;
+  border-radius: 999px;
+  font: 600 14px var(--cap-font-display);
+}
+
+.cap-login__brand-tag .cap-shell-logo {
+  width: 36px;
+  height: 36px;
+}
+
+.cap-login__quote {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  left: 20px;
+  padding: 20px 22px;
+  border-radius: 22px;
+}
+
+.cap-login__quote-text {
+  font: 600 22px/1.3 var(--cap-font-display);
+}
+
+.cap-login__quote-owner {
+  display: block;
+  margin-top: 10px;
+  color: var(--cap-frame-ink-soft);
+  font-size: 13px;
+}
+
+.cap-login__card {
+  animation: cap-rise-in var(--cap-duration-slow) var(--cap-ease-enter) backwards;
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 24px;
+  border-radius: var(--cap-radius-sheet);
+}
+
+.cap-login__theme {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--cap-glass-light-border);
+  border-radius: 50%;
+  background: var(--cap-glass-light-bg);
+  color: var(--cap-text);
+  font-size: 19px;
+  cursor: pointer;
+}
+
+.cap-login__theme:focus-visible {
+  outline: 2px solid var(--cap-text);
+  outline-offset: 2px;
+}
+
+.cap-login__form {
+  width: 380px;
+  max-width: 100%;
+}
+
+.cap-login__form[hidden] {
+  display: none;
+}
+
+.cap-login__title {
+  font: 600 26px var(--cap-font-display);
+  letter-spacing: -0.01em;
+}
+
+.cap-login__subtitle {
+  margin: 6px 0 22px;
+  color: var(--cap-text-soft);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.cap-login__form .cap-alert {
+  margin-bottom: 16px;
+}
+
+.cap-login__form .cap-field {
+  margin-bottom: 14px;
+}
+
+.cap-login__form .cap-button {
+  height: 46px;
+}
+
+.cap-login__submit {
+  width: 100%;
+}
+
+.cap-login__options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 2px 0 18px;
+  color: var(--cap-text-soft);
+  font-size: 13px;
+}
+
+.cap-login__link {
+  color: var(--cap-brand);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cap-login__link:hover {
+  text-decoration: underline;
+}
+
+.cap-login__divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 18px 0;
+  color: var(--cap-text-soft);
+  font-size: 12px;
+}
+
+.cap-login__divider::before,
+.cap-login__divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--cap-control-line);
+}
+
+.cap-login__providers {
+  display: flex;
+  gap: 10px;
+}
+
+.cap-login__providers .cap-button {
+  flex: 1;
+  min-width: 0;
+}
+
+.cap-login__help {
+  margin-top: 20px;
+  color: var(--cap-text-soft);
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 1023.98px) {
+  /* flow-root: si no, el margen de la tarjeta colapsa con el lienzo y arrastra la foto hacia abajo. */
+  .cap-login {
+    display: flow-root;
+    padding: 0;
+  }
+
+  .cap-login__photo {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 300px;
+    border-radius: 0;
+  }
+
+  .cap-login__quote {
+    display: none;
+  }
+
+  .cap-login__brand-tag {
+    top: calc(14px + env(safe-area-inset-top));
+    left: 14px;
+  }
+
+  .cap-login__card {
+    display: block;
+    min-height: calc(100dvh - 160px);
+    margin: 150px 10px 10px;
+    padding: 22px 18px;
+    border-radius: 30px;
+  }
+
+  .cap-login__theme {
+    top: calc(14px + env(safe-area-inset-top));
+    right: 14px;
+    border-color: var(--cap-glass-border);
+    background: var(--cap-glass-bg);
+    color: var(--cap-frame-ink);
+    -webkit-backdrop-filter: blur(var(--cap-glass-blur));
+    backdrop-filter: blur(var(--cap-glass-blur));
+  }
+
+  .cap-login__form {
+    width: auto;
+  }
+
+  .cap-field__reveal {
+    width: 40px;
+    height: 40px;
+  }
+
+  .cap-login__title {
+    font-size: 21px;
+  }
+
+  /* Este texto cae sobre la foto difuminada, donde el secundario no llega a 4.5:1. */
+  .cap-login__subtitle {
+    margin-bottom: 16px;
+    color: var(--cap-text);
+  }
+
+  .cap-login__divider {
+    margin: 14px 0;
+  }
+}

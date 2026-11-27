@@ -1,0 +1,405 @@
+/* Portada y conmutador de módulos del ERP: tarjetas de módulo, «Continuar» y popover del header. */
+
+/* Saludo en una línea: eyebrow, nombre y pista comparten la base; envuelve solo si no cabe. */
+.cap-module-home {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+
+.cap-module-home__eyebrow {
+  font-size: 13px;
+  color: var(--cap-text-soft);
+}
+
+.cap-module-home__name {
+  margin: 0;
+  font: 600 22px var(--cap-font-display);
+  color: var(--cap-text);
+}
+
+.cap-module-home__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--cap-text-soft);
+}
+
+.cap-module-recent {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.cap-module-recent__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--cap-text-soft);
+}
+
+.cap-module-recent__link {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px 0 10px;
+  border: 1px solid var(--cap-divider);
+  border-radius: 999px;
+  background: var(--cap-card);
+  color: var(--cap-text);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color var(--cap-duration-fast) var(--cap-ease-exit),
+    transform var(--cap-duration-fast) var(--cap-ease-exit);
+}
+
+.cap-module-recent__link:hover {
+  border-color: var(--cap-brand);
+  transform: translateY(-1px);
+}
+
+.cap-module-recent__link:focus-visible {
+  outline: 2px solid var(--cap-brand);
+  outline-offset: 2px;
+}
+
+.cap-module-recent__link > i {
+  font-size: 18px;
+  color: var(--cap-brand);
+}
+
+.cap-module-recent__link small {
+  font-size: 12px;
+  color: var(--cap-text-soft);
+}
+
+.cap-module-group {
+  margin-top: 18px;
+}
+
+.cap-module-group__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.cap-module-group__title {
+  margin: 0;
+  font: 600 15px var(--cap-font-display);
+  color: var(--cap-text);
+}
+
+.cap-module-group__count {
+  font-size: 12px;
+  color: var(--cap-text-soft);
+}
+
+/* Tantas columnas como quepan: en un monitor ancho cada grupo es una sola fila. */
+.cap-module-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+  gap: 10px;
+}
+
+/* Tarjeta baja y horizontal: baldosa | texto | estrella, y el pie a lo ancho. */
+.cap-module-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "tile text pin"
+    "foot foot foot";
+  gap: 10px 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--cap-divider);
+  border-radius: 16px;
+  background: var(--cap-card);
+  color: var(--cap-text);
+  text-decoration: none;
+  transition:
+    transform var(--cap-duration-fast) var(--cap-ease-exit),
+    border-color var(--cap-duration-fast) var(--cap-ease-exit),
+    box-shadow var(--cap-duration-fast) var(--cap-ease-exit);
+}
+
+.cap-module-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--cap-shadow-card-hover);
+  border-color: var(--cap-control-line);
+}
+
+.cap-module-card:focus-visible {
+  outline: 2px solid var(--cap-brand);
+  outline-offset: 2px;
+}
+
+/* Envoltorio del marcado: con `contents` la baldosa y la estrella caen en la rejilla de la tarjeta.
+   Estrella y pie van a su área; baldosa y bloque de texto (sin clase) caen en orden en las celdas libres. */
+.cap-module-card__top {
+  display: contents;
+}
+
+.cap-module-tile {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--cap-red-tint);
+  color: var(--cap-brand);
+  font-size: 22px;
+}
+
+.cap-module-card--featured .cap-module-tile {
+  background: var(--cap-gradient-primary);
+  box-shadow: var(--cap-shadow-logo);
+  color: var(--cap-on-accent);
+}
+
+.cap-module-card__name {
+  margin: 0;
+  font: 600 14px var(--cap-font-display);
+  line-height: 1.3;
+  color: var(--cap-text);
+}
+
+.cap-module-card__desc {
+  margin: 2px 0 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--cap-text-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cap-module-card__pin {
+  grid-area: pin;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0 -6px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cap-text-soft);
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--cap-duration-fast) var(--cap-ease-exit);
+}
+
+.cap-module-card:hover .cap-module-card__pin,
+.cap-module-card:focus-within .cap-module-card__pin,
+.cap-module-card__pin:focus-visible {
+  opacity: 1;
+}
+
+/* Un toque no hace hover: la estrella invisible igual recibiría el toque y fijaría en vez de abrir. */
+@media (hover: none) {
+  .cap-module-card__pin {
+    opacity: 1;
+  }
+}
+
+.cap-module-card__pin[aria-pressed="true"] {
+  opacity: 1;
+  color: var(--cap-brand);
+}
+
+.cap-module-card__pin:focus-visible {
+  outline: 2px solid var(--cap-brand);
+  outline-offset: 2px;
+}
+
+.cap-module-card__foot {
+  grid-area: foot;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--cap-text-soft);
+}
+
+.cap-module-card__count {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: var(--cap-red-tint);
+  color: var(--cap-brand);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cap-module-card__count[data-status="error"] {
+  background: var(--cap-status-error-tint);
+  color: var(--cap-status-error-ink);
+}
+
+.cap-module-card__count[data-status="warning"] {
+  background: var(--cap-status-warning-tint);
+  color: var(--cap-status-warning-ink);
+}
+
+.cap-module-card__arrow {
+  margin-left: auto;
+  font-size: 18px;
+  transition:
+    transform var(--cap-duration-fast) var(--cap-ease-exit),
+    color var(--cap-duration-fast) var(--cap-ease-exit);
+}
+
+.cap-module-card:hover .cap-module-card__arrow {
+  transform: translateX(3px);
+  color: var(--cap-brand);
+}
+
+.cap-module-card--locked {
+  border-style: dashed;
+  background: transparent;
+}
+
+.cap-module-card--locked:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--cap-divider);
+}
+
+.cap-module-card--locked .cap-module-tile {
+  background: var(--cap-card-2);
+  color: var(--cap-text-soft);
+}
+
+.cap-module-card--locked .cap-module-card__name {
+  color: var(--cap-text-soft);
+}
+
+.cap-module-card__request {
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--cap-brand);
+  font: 500 12px var(--cap-font-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.cap-module-card__request:hover {
+  text-decoration: underline;
+}
+
+.cap-module-card__request:focus-visible {
+  outline: 2px solid var(--cap-brand);
+  outline-offset: 2px;
+}
+
+/* Hermano del header, como las notificaciones: dentro de otro vidrio el backdrop-filter no ve el contenido. */
+.cap-module-switcher {
+  position: fixed;
+  top: 86px;
+  right: 118px;
+  z-index: var(--cap-z-dropdown);
+  width: 372px;
+  max-height: calc(100dvh - 98px);
+  padding: 14px;
+  border-radius: var(--cap-radius-shell);
+  overflow-y: auto;
+  color: var(--cap-frame-ink);
+  animation: cap-rise-in var(--cap-duration-base) var(--cap-ease-enter) both;
+  transition:
+    opacity var(--cap-duration-fast) var(--cap-ease-exit),
+    transform var(--cap-duration-fast) var(--cap-ease-exit),
+    display var(--cap-duration-fast) allow-discrete;
+}
+
+.cap-module-switcher[hidden] {
+  display: none;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.cap-module-switcher__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font: 600 13px var(--cap-font-display);
+}
+
+.cap-module-switcher__all {
+  color: var(--cap-frame-ink-soft);
+  font: 500 12px var(--cap-font-text);
+  text-decoration: none;
+}
+
+.cap-module-switcher__all:hover {
+  text-decoration: underline;
+}
+
+.cap-module-switcher__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.cap-module-switcher__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 6px;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  color: var(--cap-frame-ink);
+  font-size: 12px;
+  text-align: center;
+  text-decoration: none;
+  transition: background var(--cap-duration-fast) var(--cap-ease-exit);
+}
+
+.cap-module-switcher__item:hover {
+  background: var(--cap-glass-hover);
+}
+
+.cap-module-switcher__item:focus-visible {
+  outline: 2px solid var(--cap-brand);
+  outline-offset: 2px;
+}
+
+.cap-module-switcher__item[aria-current="true"] {
+  background: var(--cap-glass-active);
+  border-color: var(--cap-glass-active-border);
+  box-shadow: var(--cap-shadow-active);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cap-module-card:hover,
+  .cap-module-recent__link:hover {
+    transform: none;
+  }
+
+  .cap-module-card:hover .cap-module-card__arrow {
+    transform: none;
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .cap-module-switcher {
+    display: none;
+  }
+}

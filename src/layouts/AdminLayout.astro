@@ -27,6 +27,15 @@ const navItems = [
 <html lang="es">
   <head>
     <meta charset="utf-8" />
+    <!-- Grupo CAP design system: tema sin parpadeo y fuentes -->
+    <script is:inline>
+        let storedTheme;
+        try { storedTheme = localStorage.theme; } catch { storedTheme = undefined; }
+        const theme = storedTheme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.classList.toggle('dark', theme === 'dark');
+    </script>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700|poppins:500,600,700&display=swap" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex" />
     <title>{title} — Admin CAP Suite</title>
@@ -64,5 +73,6 @@ const navItems = [
         <slot />
       </main>
     </div>
+      <script>import '../design/shell-auto.js';</script>
   </body>
 </html>

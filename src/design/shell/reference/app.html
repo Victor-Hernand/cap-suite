@@ -1,0 +1,500 @@
+<!doctype html>
+<!-- Textos de ejemplo; en producción salen de tokens.json › company -->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Marco CAP · referencia</title>
+  <script>
+    let storedTheme;
+    try { storedTheme = localStorage.theme; } catch { storedTheme = undefined; }
+    const theme = location.hash === '#dark'
+      ? 'dark'
+      : storedTheme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../../shell.css">
+  <script type="module" src="../../shell-auto.js"></script>
+  <style>
+    /* Recetas de contenido: en cada sistema se arman con Tailwind siguiendo DESIGN_GUIDE.md. */
+    .recipe-greeting { display: none; }
+    .recipe-titlebar { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 6px 6px 2px; }
+    .recipe-titlebar h2 { margin: 0; font: 600 22px var(--cap-font-display); }
+    .recipe-titlebar p { margin: 2px 0 0; color: var(--cap-text-soft); font-size: 13px; }
+    .recipe-titlebar .cap-button { height: 40px; padding: 0 16px; font-size: 13px; }
+    .recipe-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .recipe-row { display: flex; gap: 12px; }
+    .recipe-card { flex: 1; min-width: 0; padding: 18px; border: 1px solid var(--cap-divider); border-radius: 22px; background: var(--cap-card); }
+    .recipe-card--wide { flex: 1.6; }
+    .recipe-card--narrow { flex: 0.8; }
+    .recipe-card--featured { border-color: transparent; background: var(--cap-gradient-featured); color: var(--cap-on-accent); }
+    .recipe-card--alert { border-color: var(--cap-status-error-tint-border); background: var(--cap-status-error-tint); }
+    .recipe-kpi-top { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 500; }
+    .recipe-kpi-arrow { display: grid; place-items: center; width: 30px; height: 30px; border: 1px solid var(--cap-divider); border-radius: 50%; font-size: 16px; }
+    .recipe-card--featured .recipe-kpi-arrow { border-color: var(--cap-on-accent); background: var(--cap-on-accent); color: var(--cap-wine); }
+    .recipe-kpi-number { margin-top: 6px; font: 600 28px var(--cap-font-display); font-variant-numeric: tabular-nums; }
+    .recipe-kpi-note { display: flex; align-items: center; gap: 6px; color: var(--cap-text-soft); font-size: 12px; }
+    .recipe-card--featured .recipe-kpi-note { color: var(--cap-on-accent); }
+    .recipe-delta { padding: 0 6px; border-radius: 6px; background: var(--cap-status-ok-tint); color: var(--cap-status-ok-ink); }
+    /* Los tokens de vidrio son vino en claro; el chip va blanco translúcido en los dos temas, como `bg-white/15`. */
+    .recipe-card--featured .recipe-delta { background: color-mix(in srgb, var(--cap-on-accent) 15%, transparent); color: var(--cap-on-accent); }
+    .recipe-card-title { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; font: 600 15px var(--cap-font-display); }
+    .recipe-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+    .recipe-card-head .recipe-card-title { margin: 0; }
+    .recipe-card-title small { color: var(--cap-text-soft); font: 500 12px var(--cap-font-text); }
+    .recipe-bars { display: flex; align-items: flex-end; gap: 14px; height: 160px; }
+    .recipe-bars span { flex: 1; max-width: 64px; margin-inline: auto; border-radius: 999px; }
+    .recipe-days { display: flex; gap: 14px; margin-top: 8px; }
+    .recipe-days span { flex: 1; color: var(--cap-text-soft); font-size: 12px; text-align: center; }
+    .recipe-ring { display: grid; place-items: center; width: 150px; height: 150px; margin: 6px auto; border-radius: 50%; }
+    .recipe-ring div { display: grid; place-items: center; align-content: center; width: 108px; height: 108px; border-radius: 50%; background: var(--cap-card); font: 600 26px var(--cap-font-display); }
+    .recipe-ring small { color: var(--cap-text-soft); font: 500 12px var(--cap-font-text); }
+    .recipe-legend { display: flex; justify-content: center; gap: 14px; margin-top: 8px; color: var(--cap-text-soft); font-size: 12px; }
+    .recipe-legend i { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border-radius: 50%; }
+    .recipe-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .recipe-table th { padding: 8px 10px; background: var(--cap-table-head); color: var(--cap-table-head-ink); font-weight: 600; text-align: left; }
+    .recipe-table td { padding: 10px; border-bottom: 1px solid var(--cap-divider); }
+    .recipe-table tr:last-child td { border: 0; }
+    .recipe-table small { display: block; color: var(--cap-text-soft); font-size: 12px; }
+    .recipe-table__check { width: 36px; }
+    .recipe-list-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--cap-divider); font-size: 13px; }
+    .recipe-list-row:last-child { border: 0; }
+    .recipe-list-row small { display: block; color: var(--cap-text-soft); font-size: 12px; }
+    .recipe-badge { padding: 1px 8px; border-radius: 999px; font-size: 12px; }
+    .recipe-badge--ok { background: var(--cap-status-ok-tint); color: var(--cap-status-ok-ink); }
+    .recipe-badge--warning { background: var(--cap-status-warning-tint); color: var(--cap-status-warning-ink); }
+    .recipe-badge--error { background: var(--cap-status-error-tint); color: var(--cap-status-error-ink); }
+    .recipe-stack { display: flex; flex-direction: column; gap: 10px; }
+
+    @media (max-width: 1023.98px) {
+      .recipe-greeting { display: block; padding: 0 4px 2px; }
+      .recipe-greeting small { color: var(--cap-text-soft); font-size: 13px; }
+      .recipe-greeting h2 { margin: 0; font: 600 22px var(--cap-font-display); }
+      .recipe-titlebar { display: none; }
+      .recipe-row { flex-direction: column; gap: 10px; }
+      .recipe-row--kpis { display: grid; grid-template-columns: 1fr 1fr; }
+      .recipe-row--kpis .recipe-card--featured { grid-column: 1 / -1; }
+      .recipe-row--kpis .recipe-card:nth-child(3) { order: 1; grid-column: 1 / -1; }
+      .recipe-card { padding: 14px; border-radius: var(--cap-radius-card); }
+      .recipe-kpi-number { font-size: 20px; }
+      .recipe-card--featured .recipe-kpi-number { font-size: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="cap-shell">
+    <aside class="cap-shell-sidebar cap-glass" data-cap-sidebar data-collapsed="false">
+      <button class="cap-shell-sidebar__collapse" type="button" data-cap-collapse aria-expanded="true" aria-label="Contraer menú"><i class="mdi mdi-chevron-left" aria-hidden="true"></i></button>
+
+      <div class="cap-shell-sidebar__brand">
+        <span class="cap-shell-logo" aria-hidden="true">E</span>
+        <div class="cap-shell-sidebar__brand-text">
+          <strong class="cap-shell-sidebar__brand-name">Facturación</strong>
+          <small class="cap-shell-sidebar__brand-owner">Nombre de la empresa</small>
+        </div>
+      </div>
+
+      <nav class="cap-shell-sidebar__nav" aria-label="Menú principal">
+        <p class="cap-shell-sidebar__group-label">Principal</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-current="page" aria-label="Tablero">
+          <i class="cap-shell-sidebar__icon mdi mdi-view-dashboard" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Tablero</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Tablero</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Facturas, 12 pendientes">
+          <i class="cap-shell-sidebar__icon mdi mdi-file-document-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Facturas</span>
+          <span class="cap-shell-sidebar__count">12</span>
+          <span class="cap-shell-sidebar__dot" aria-hidden="true"></span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Facturas</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Cobranza, 3 urgentes">
+          <i class="cap-shell-sidebar__icon mdi mdi-cash-multiple" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Cobranza</span>
+          <span class="cap-shell-sidebar__count cap-shell-sidebar__count--urgent">3</span>
+          <span class="cap-shell-sidebar__dot" aria-hidden="true"></span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Cobranza</span>
+        </a>
+        <details class="cap-shell-sidebar__branch" open>
+          <summary class="cap-shell-sidebar__item" aria-label="Empresas">
+            <i class="cap-shell-sidebar__icon mdi mdi-domain" aria-hidden="true"></i>
+            <span class="cap-shell-sidebar__label">Empresas</span>
+            <i class="cap-shell-sidebar__chevron mdi mdi-chevron-down" aria-hidden="true"></i>
+            <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Empresas</span>
+          </summary>
+          <div class="cap-shell-sidebar__children">
+            <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-wine)"></span>CAP Acero</a>
+            <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red)"></span>CAP Minería</a>
+            <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red-400)"></span>Cintac</a>
+          </div>
+        </details>
+        <p class="cap-shell-sidebar__group-label">General</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Reportes">
+          <i class="cap-shell-sidebar__icon mdi mdi-chart-box-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Reportes</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Reportes</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Configuración">
+          <i class="cap-shell-sidebar__icon mdi mdi-cog-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Configuración</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Configuración</span>
+        </a>
+      </nav>
+
+      <div class="cap-shell-sidebar__spacer"></div>
+
+      <button class="cap-shell-sidebar__item cap-shell-sidebar__theme" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro">
+        <i class="cap-shell-sidebar__icon mdi mdi-weather-night" aria-hidden="true"></i>
+        <span class="cap-shell-sidebar__label">Modo oscuro</span>
+        <span class="cap-shell-sidebar__switch" aria-hidden="true"></span>
+        <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Modo oscuro</span>
+      </button>
+
+      <div class="cap-shell-sidebar__user">
+        <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+        <div class="cap-shell-sidebar__user-text">
+          <strong class="cap-shell-sidebar__user-name">Ana Muñoz</strong>
+          <small class="cap-shell-sidebar__user-mail">amunoz@ejemplo.com</small>
+        </div>
+        <form method="POST" action="/logout">
+          <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+        </form>
+      </div>
+    </aside>
+
+    <div class="cap-shell__main">
+      <header class="cap-shell-header cap-glass cap-shell-header--with-nav">
+        <div>
+          <nav class="cap-shell-header__crumbs" aria-label="Migas de pan">Facturación › Tablero</nav>
+          <h1 class="cap-shell-header__title">Tablero</h1>
+        </div>
+        <nav class="cap-shell-header__nav" aria-label="Secciones" data-cap-pill-nav>
+          <span class="cap-shell-header__nav-pill" aria-hidden="true" data-cap-pill></span>
+          <a class="cap-shell-header__nav-item" href="#" aria-current="page">Resumen</a>
+          <a class="cap-shell-header__nav-item" href="#">Cartera</a>
+          <a class="cap-shell-header__nav-item" href="#">Clientes</a>
+          <a class="cap-shell-header__nav-item" href="#">Reportes</a>
+        </nav>
+        <label class="cap-shell-header__search">
+          <i class="mdi mdi-magnify" aria-hidden="true"></i>
+          <input class="cap-shell-header__search-input" id="cap-global-search" type="search" placeholder="Buscar factura, cliente o RUT" aria-label="Buscar factura, cliente o RUT" data-cap-search>
+          <kbd class="cap-shell-header__kbd">⌘K</kbd>
+        </label>
+        <div class="cap-shell-header__actions">
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Mensajes"><i class="mdi mdi-email-outline" aria-hidden="true"></i></button>
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Cambiar de módulo" aria-expanded="false" aria-controls="cap-modules" data-cap-popover-trigger>
+            <i class="mdi mdi-apps" aria-hidden="true"></i>
+          </button>
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Notificaciones, 3 sin leer" aria-expanded="false" aria-controls="cap-notifications" data-cap-popover-trigger>
+            <i class="mdi mdi-bell-outline" aria-hidden="true"></i>
+            <span class="cap-shell-header__badge-dot" aria-hidden="true"></span>
+          </button>
+          <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+        </div>
+      </header>
+
+      <nav class="cap-shell-header__nav cap-shell-header__nav--mobile cap-glass" aria-label="Secciones" data-cap-pill-nav>
+        <span class="cap-shell-header__nav-pill" aria-hidden="true" data-cap-pill></span>
+        <a class="cap-shell-header__nav-item" href="#" aria-current="page">Resumen</a>
+        <a class="cap-shell-header__nav-item" href="#">Cartera</a>
+        <a class="cap-shell-header__nav-item" href="#">Clientes</a>
+        <a class="cap-shell-header__nav-item" href="#">Reportes</a>
+      </nav>
+
+      <main class="cap-shell__content">
+        <div class="recipe-greeting"><small>Buenos días,</small><h2>Ana</h2></div>
+
+        <div class="recipe-titlebar">
+          <div>
+            <h2>Resumen de octubre</h2>
+            <p>Facturación emitida y cobranza del mes.</p>
+          </div>
+          <div class="recipe-actions">
+            <button class="cap-button cap-button--secondary" type="button">Exportar</button>
+            <button class="cap-button cap-button--primary" type="button"><i class="mdi mdi-plus" aria-hidden="true"></i>Nueva factura</button>
+          </div>
+        </div>
+
+        <section class="recipe-row recipe-row--kpis" aria-label="Cifras del mes">
+          <article class="recipe-card recipe-card--featured">
+            <div class="recipe-kpi-top">Facturado<span class="recipe-kpi-arrow"><i class="mdi mdi-arrow-top-right" aria-hidden="true"></i></span></div>
+            <div class="recipe-kpi-number" data-cap-count="248300000" data-cap-format="currency-compact">L 248.3 M</div>
+            <div class="recipe-kpi-note"><span class="recipe-delta">+8 %</span>vs. septiembre</div>
+          </article>
+          <article class="recipe-card">
+            <div class="recipe-kpi-top">Cobrado<span class="recipe-kpi-arrow"><i class="mdi mdi-arrow-top-right" aria-hidden="true"></i></span></div>
+            <div class="recipe-kpi-number" data-cap-count="196100000" data-cap-format="currency-compact">L 196.1 M</div>
+            <div class="recipe-kpi-note"><span class="recipe-delta">+5 %</span>vs. septiembre</div>
+          </article>
+          <article class="recipe-card">
+            <div class="recipe-kpi-top">Por cobrar<span class="recipe-kpi-arrow"><i class="mdi mdi-arrow-top-right" aria-hidden="true"></i></span></div>
+            <div class="recipe-kpi-number" data-cap-count="52200000" data-cap-format="currency-compact">L 52.2 M</div>
+            <div class="recipe-kpi-note">34 facturas</div>
+          </article>
+          <article class="recipe-card recipe-card--alert">
+            <div class="recipe-kpi-top">Vencidas<span class="recipe-kpi-arrow"><i class="mdi mdi-arrow-top-right" aria-hidden="true"></i></span></div>
+            <div class="recipe-kpi-number" data-cap-count="7" data-cap-format="integer">7</div>
+            <div class="recipe-kpi-note">Requieren gestión</div>
+          </article>
+        </section>
+
+        <section class="recipe-row" aria-label="Gráficas">
+          <article class="recipe-card recipe-card--wide">
+            <div class="recipe-card-head">
+              <h3 class="recipe-card-title">Emisión semanal</h3>
+              <div class="cap-segmented" role="group" aria-label="Rango" data-cap-pill-nav>
+                <span class="cap-segmented__pill" aria-hidden="true" data-cap-pill></span>
+                <button class="cap-segmented__item" type="button" value="6m" aria-pressed="true">6M</button>
+                <button class="cap-segmented__item" type="button" value="12m" aria-pressed="false">12M</button>
+              </div>
+            </div>
+            <div class="recipe-bars">
+              <span class="cap-grow" style="--cap-stagger-index: 0; height: 50%; background: var(--cap-red-200)"></span>
+              <span class="cap-grow" style="--cap-stagger-index: 1; height: 75%; background: var(--cap-red-400)"></span>
+              <span class="cap-grow" style="--cap-stagger-index: 2; height: 60%; background: var(--cap-red-200)"></span>
+              <span class="cap-grow" style="--cap-stagger-index: 3; height: 95%; background: var(--cap-wine)"></span>
+              <span class="cap-grow" style="--cap-stagger-index: 4; height: 70%; background: var(--cap-red)"></span>
+              <span class="cap-grow" style="--cap-stagger-index: 5; height: 42%; background: var(--cap-red-200)"></span>
+              <span class="cap-grow" style="--cap-stagger-index: 6; height: 28%; background: var(--cap-red-200)"></span>
+            </div>
+            <div class="recipe-days"><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span><span>D</span></div>
+          </article>
+          <article class="recipe-card">
+            <h3 class="recipe-card-title">Estado de cobranza</h3>
+            <div class="recipe-ring cap-ring" style="--cap-ring-1: 41%; --cap-ring-2: 70%"><div>41 %<small>cobrado</small></div></div>
+            <div class="recipe-legend">
+              <span><i style="background: var(--cap-wine)"></i>Cobrado</span>
+              <span><i style="background: var(--cap-red)"></i>En curso</span>
+              <span><i style="background: var(--cap-red-200)"></i>Pendiente</span>
+            </div>
+          </article>
+        </section>
+
+        <section class="recipe-row" aria-label="Listados">
+          <article class="recipe-card">
+            <h3 class="recipe-card-title">Últimas facturas<small>Ver todas</small></h3>
+            <table class="recipe-table">
+              <thead>
+                <tr><th class="recipe-table__check" aria-label="Selección"></th><th>Factura</th><th>Estado</th></tr>
+              </thead>
+              <tbody class="cap-stagger-rows">
+                <tr>
+                  <td class="recipe-table__check"><input class="cap-check__box" type="checkbox" aria-label="Seleccionar F-10234"></td>
+                  <td>F-10234 · Minera Sur<small>Emitida 28/10/2026</small></td>
+                  <td><span class="recipe-badge recipe-badge--ok">Pagada</span></td>
+                </tr>
+                <tr>
+                  <td class="recipe-table__check"><input class="cap-check__box" type="checkbox" aria-label="Seleccionar F-10233"></td>
+                  <td>F-10233 · Aceros Norte<small>Emitida 27/10/2026</small></td>
+                  <td><span class="recipe-badge recipe-badge--warning">Pendiente</span></td>
+                </tr>
+                <tr>
+                  <td class="recipe-table__check"><input class="cap-check__box" type="checkbox" aria-label="Seleccionar F-10232"></td>
+                  <td>F-10232 · Puerto Talca<small>Emitida 25/10/2026</small></td>
+                  <td><span class="recipe-badge recipe-badge--error">Vencida</span></td>
+                </tr>
+                <tr>
+                  <td class="recipe-table__check"><input class="cap-check__box" type="checkbox" aria-label="Seleccionar F-10231"></td>
+                  <td>F-10231 · Cintac<small>Emitida 24/10/2026</small></td>
+                  <td><span class="recipe-badge recipe-badge--ok">Pagada</span></td>
+                </tr>
+                <tr>
+                  <td class="recipe-table__check"><input class="cap-check__box" type="checkbox" aria-label="Seleccionar F-10230"></td>
+                  <td>F-10230 · Minera Sur<small>Emitida 22/10/2026</small></td>
+                  <td><span class="recipe-badge recipe-badge--ok">Pagada</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </article>
+          <article class="recipe-card recipe-card--narrow">
+            <h3 class="recipe-card-title">Clientes con más deuda</h3>
+            <div class="recipe-list-row"><span>Aceros Norte<small>9 facturas</small></span><b>$ 18,4 M</b></div>
+            <div class="recipe-list-row"><span>Puerto Talca<small>6 facturas</small></span><b>$ 11,0 M</b></div>
+            <div class="recipe-list-row"><span>Minera Sur<small>4 facturas</small></span><b>$ 7,9 M</b></div>
+            <div class="recipe-list-row"><span>Cintac<small>3 facturas</small></span><b>$ 4,2 M</b></div>
+          </article>
+        </section>
+
+        <section class="recipe-row" aria-label="Capas y avisos">
+          <article class="recipe-card">
+            <h3 class="recipe-card-title">Toasts y confirmación</h3>
+            <div class="recipe-actions">
+              <button class="cap-button cap-button--secondary" type="button" onclick="capToast({ status: 'ok', title: 'Factura emitida', detail: 'F-10235 · Minera Sur · $ 6,2 M' })">Éxito</button>
+              <button class="cap-button cap-button--secondary" type="button" onclick="capToast({ status: 'info', title: 'Exportación en curso', detail: 'Te avisaremos cuando esté lista.' })">Información</button>
+              <button class="cap-button cap-button--secondary" type="button" onclick="capToast({ status: 'warning', title: 'Período por cerrar', detail: 'Septiembre se cierra hoy a las 18:00.' })">Advertencia</button>
+              <button class="cap-button cap-button--secondary" type="button" onclick="capToast({ status: 'error', title: 'No se pudo enviar al SII', detail: 'El servicio no respondió. Reintentaremos en 5 min.' })">Error</button>
+              <button class="cap-button cap-button--secondary" type="button" onclick="capToast({ status: 'neutral', title: 'Cliente archivado', detail: 'Puerto Talca ya no aparece en listados.', action: { label: 'Deshacer', onSelect: () => {} } })">Neutro</button>
+              <button class="cap-button cap-button--danger" type="button" data-cap-confirm-open="cap-confirm-void">Anular factura</button>
+            </div>
+          </article>
+          <article class="recipe-card recipe-stack">
+            <div class="cap-alert cap-alert--warning"><i class="cap-alert__icon mdi mdi-lock-clock" aria-hidden="true"></i><div><strong class="cap-alert__title">Este período ya está cerrado</strong><span class="cap-alert__detail">Las facturas de septiembre solo se pueden consultar.</span></div></div>
+            <div class="cap-alert cap-alert--error"><i class="cap-alert__icon mdi mdi-alert-circle-outline" aria-hidden="true"></i><div><strong class="cap-alert__title">No se pudo guardar</strong><span class="cap-alert__detail">Revisa los datos e inténtalo de nuevo.</span></div></div>
+            <div class="cap-alert cap-alert--ok"><i class="cap-alert__icon mdi mdi-check-circle-outline" aria-hidden="true"></i><div><strong class="cap-alert__title">Cambios guardados</strong><span class="cap-alert__detail">La factura quedó actualizada.</span></div></div>
+            <div class="cap-alert cap-alert--info"><i class="cap-alert__icon mdi mdi-information-outline" aria-hidden="true"></i><div><strong class="cap-alert__title">Mantención programada</strong><span class="cap-alert__detail">El sistema no estará disponible el domingo a las 22:00.</span></div></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <header class="cap-shell-topbar cap-glass">
+      <span class="cap-shell-logo" aria-hidden="true">E</span>
+      <span class="cap-shell-topbar__title">Facturación</span>
+      <h1 class="cap-shell-topbar__hidden-title">Tablero</h1>
+      <a class="cap-shell-topbar__icon-button" href="#" aria-label="Buscar"><i class="mdi mdi-magnify" aria-hidden="true"></i></a>
+      <button class="cap-shell-topbar__icon-button" type="button" aria-label="Notificaciones, 3 sin leer" aria-expanded="false" aria-controls="cap-notifications" data-cap-popover-trigger>
+        <i class="mdi mdi-bell-outline" aria-hidden="true"></i>
+        <span class="cap-shell-header__badge-dot" aria-hidden="true"></span>
+      </button>
+    </header>
+
+    <nav class="cap-shell-tabbar cap-glass" aria-label="Destinos principales">
+      <a class="cap-shell-tabbar__tab" href="#" aria-current="page"><i class="mdi mdi-view-dashboard" aria-hidden="true"></i>Inicio</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-file-document-outline" aria-hidden="true"></i>Facturas</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i>Cobranza</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-chart-box-outline" aria-hidden="true"></i>Reportes</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-cog-outline" aria-hidden="true"></i>Configuración</a>
+      <button class="cap-shell-tabbar__tab cap-shell-tabbar__tab--more" type="button" aria-expanded="false" aria-controls="cap-more-sheet" data-cap-sheet-trigger><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i>Más</button>
+    </nav>
+
+    <a class="cap-shell-fab" href="#" aria-label="Nueva factura"><i class="mdi mdi-plus" aria-hidden="true"></i></a>
+
+    <div class="cap-shell-sheet" id="cap-more-sheet" role="dialog" aria-modal="true" aria-label="Menú completo" data-open="false">
+      <div class="cap-shell-sheet__backdrop" data-cap-sheet-backdrop></div>
+      <div class="cap-shell-sheet__panel cap-glass">
+        <div class="cap-shell-sheet__handle" data-cap-sheet-handle></div>
+        <p class="cap-shell-sidebar__group-label">Módulos</p>
+        <nav class="cap-module-switcher__grid" aria-label="Módulos">
+          <a class="cap-module-switcher__item" href="#" aria-current="true"><span class="cap-module-tile"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i></span>Cobranza</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-cart-outline" aria-hidden="true"></i></span>Ventas</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-package-variant-closed" aria-hidden="true"></i></span>Inventario</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-wrench-outline" aria-hidden="true"></i></span>Mantenciones</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-book-open-variant" aria-hidden="true"></i></span>Contabilidad</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-bank-outline" aria-hidden="true"></i></span>Tesorería</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-truck-outline" aria-hidden="true"></i></span>Compras</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-account-group-outline" aria-hidden="true"></i></span>Personas</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-shield-account-outline" aria-hidden="true"></i></span>Usuarios y permisos</a>
+        </nav>
+        <p class="cap-shell-sidebar__group-label">Principal</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-current="page"><i class="cap-shell-sidebar__icon mdi mdi-view-dashboard" aria-hidden="true"></i>Inicio</a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-file-document-outline" aria-hidden="true"></i>Facturas<span class="cap-shell-sidebar__count">12</span></a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-cash-multiple" aria-hidden="true"></i>Cobranza<span class="cap-shell-sidebar__count cap-shell-sidebar__count--urgent">3</span></a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-domain" aria-hidden="true"></i>Empresas</a>
+        <div class="cap-shell-sidebar__children">
+          <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-wine)"></span>CAP Acero</a>
+          <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red)"></span>CAP Minería</a>
+          <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red-400)"></span>Cintac</a>
+        </div>
+        <p class="cap-shell-sidebar__group-label">General</p>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-chart-box-outline" aria-hidden="true"></i>Reportes</a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-cog-outline" aria-hidden="true"></i>Configuración</a>
+        <button class="cap-shell-sidebar__item" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro"><i class="cap-shell-sidebar__icon mdi mdi-weather-night" aria-hidden="true"></i>Modo oscuro<span class="cap-shell-sidebar__switch" aria-hidden="true"></span></button>
+        <div class="cap-shell-sidebar__user">
+          <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+          <div class="cap-shell-sidebar__user-text">
+            <strong class="cap-shell-sidebar__user-name">Ana Muñoz</strong>
+            <small class="cap-shell-sidebar__user-mail">amunoz@ejemplo.com</small>
+          </div>
+          <form method="POST" action="/logout">
+            <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <section class="cap-notifications cap-glass" id="cap-notifications" aria-label="Notificaciones" data-cap-notifications hidden>
+      <div class="cap-notifications__header">
+        <h2 class="cap-notifications__title">Notificaciones</h2>
+        <form method="POST" action="/notifications/read">
+          <button class="cap-notifications__mark-read" type="submit">Marcar todo como leído</button>
+        </form>
+      </div>
+      <div class="cap-notifications__tabs">
+        <button class="cap-notifications__tab" type="button" aria-pressed="true" data-cap-notification-filter="all">Todas</button>
+        <button class="cap-notifications__tab" type="button" aria-pressed="false" data-cap-notification-filter="unread">No leídas<span class="cap-notifications__tab-count">3</span></button>
+      </div>
+      <p class="cap-notifications__group">Hoy</p>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon cap-notifications__icon--alert"><i class="mdi mdi-alert-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">F-10232 venció</strong><small class="cap-notifications__detail">Puerto Talca · $ 3,7 M</small></div>
+        <span class="cap-notifications__time">hace 5 min</span>
+      </div>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon"><i class="mdi mdi-cash-check" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Pago recibido</strong><small class="cap-notifications__detail">Minera Sur pagó F-10234</small></div>
+        <span class="cap-notifications__time">hace 1 h</span>
+      </div>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon"><i class="mdi mdi-account-plus-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Nuevo cliente</strong><small class="cap-notifications__detail">Cintac Perú fue agregado</small></div>
+        <span class="cap-notifications__time">10:12</span>
+      </div>
+      <p class="cap-notifications__group">Ayer</p>
+      <div class="cap-notifications__item">
+        <span class="cap-notifications__icon"><i class="mdi mdi-file-export-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Reporte listo</strong><small class="cap-notifications__detail">Cobranza de octubre.xlsx</small></div>
+        <span class="cap-notifications__time">18:40</span>
+      </div>
+      <p class="cap-notifications__group" data-cap-notification-empty hidden>No tienes notificaciones sin leer.</p>
+      <a class="cap-notifications__footer" href="#">Ver todas</a>
+    </section>
+
+    <section class="cap-module-switcher cap-glass" id="cap-modules" aria-label="Cambiar de módulo" hidden>
+      <div class="cap-module-switcher__head">
+        <span>Módulos</span>
+        <a class="cap-module-switcher__all" href="#">Ver todos</a>
+      </div>
+      <div class="cap-module-switcher__grid">
+        <a class="cap-module-switcher__item" href="#" aria-current="true"><span class="cap-module-tile"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i></span>Cobranza</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-cart-outline" aria-hidden="true"></i></span>Ventas</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-package-variant-closed" aria-hidden="true"></i></span>Inventario</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-wrench-outline" aria-hidden="true"></i></span>Mantenciones</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-book-open-variant" aria-hidden="true"></i></span>Contabilidad</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-bank-outline" aria-hidden="true"></i></span>Tesorería</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-truck-outline" aria-hidden="true"></i></span>Compras</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-account-group-outline" aria-hidden="true"></i></span>Personas</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-shield-account-outline" aria-hidden="true"></i></span>Usuarios y permisos</a>
+      </div>
+    </section>
+
+    <div class="cap-toaster" data-cap-toaster></div>
+
+    <div class="cap-dialog" id="cap-confirm-void" data-cap-confirm hidden>
+      <div class="cap-dialog__backdrop"></div>
+      <div class="cap-dialog__panel" role="alertdialog" aria-modal="true" aria-labelledby="cap-confirm-void-title" aria-describedby="cap-confirm-void-text">
+        <button class="cap-dialog__close" type="button" data-cap-confirm-close aria-label="Cerrar"><i class="mdi mdi-close" aria-hidden="true"></i></button>
+        <span class="cap-dialog__icon"><i class="mdi mdi-file-cancel-outline" aria-hidden="true"></i></span>
+        <h2 class="cap-dialog__title" id="cap-confirm-void-title">¿Anular la factura F-10233?</h2>
+        <p class="cap-dialog__text" id="cap-confirm-void-text">Se generará una nota de crédito y la cuenta por cobrar de Aceros Norte quedará cancelada. No se puede deshacer.</p>
+        <label class="cap-check cap-dialog__ack"><input class="cap-check__box" type="checkbox" data-cap-confirm-ack>Entiendo que esta anulación es definitiva</label>
+        <div class="cap-dialog__actions">
+          <button class="cap-button cap-button--secondary" type="button" data-cap-confirm-cancel>Cancelar</button>
+          <button class="cap-button cap-button--danger-solid" type="button" data-cap-confirm-accept disabled>Anular factura</button>
+        </div>
+      </div>
+    </div>
+    <div class="cap-selection-bar cap-glass" role="region" aria-label="Facturas seleccionadas" hidden>
+      <span class="cap-selection-bar__count" aria-live="polite"></span>
+      <button class="cap-button cap-button--secondary" type="button">Exportar</button>
+      <button class="cap-button cap-button--danger" type="button">Anular</button>
+    </div>
+
+    <script>
+      const invoiceBoxes = [...document.querySelectorAll('.recipe-table tbody .cap-check__box')];
+      const selectionBar = document.querySelector('.cap-selection-bar');
+      const selectionCount = selectionBar.querySelector('.cap-selection-bar__count');
+
+      function syncSelectionBar() {
+        const selected = invoiceBoxes.filter((box) => box.checked).length;
+        selectionBar.hidden = selected === 0;
+        selectionCount.textContent = selected === 1 ? '1 seleccionada' : `${selected} seleccionadas`;
+      }
+
+      invoiceBoxes.forEach((box) => box.addEventListener('change', syncSelectionBar));
+    </script>
+  </div>
+</body>
+</html>

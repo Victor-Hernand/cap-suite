@@ -1,0 +1,262 @@
+/* Vista móvil (< 1024px): el sidebar y el header ceden su lugar a estas piezas. */
+
+.cap-shell-topbar,
+.cap-shell-tabbar,
+.cap-shell-sheet,
+.cap-shell-fab,
+.cap-shell-header__nav--mobile {
+  display: none;
+}
+
+@media (max-width: 1023.98px) {
+  .cap-shell {
+    display: block;
+    padding: 0;
+  }
+
+  .cap-shell-sidebar,
+  .cap-shell-header {
+    display: none;
+  }
+
+  .cap-shell-header__nav--mobile {
+    position: sticky;
+    top: calc(70px + env(safe-area-inset-top));
+    z-index: var(--cap-z-header);
+    display: flex;
+    margin: 0 14px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cap-shell__content {
+    padding:
+      calc(74px + env(safe-area-inset-top)) 14px
+      calc(106px + env(safe-area-inset-bottom));
+    gap: 10px;
+  }
+
+  .cap-shell-topbar {
+    position: fixed;
+    top: calc(10px + env(safe-area-inset-top));
+    right: 10px;
+    left: 10px;
+    z-index: var(--cap-z-header);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 52px;
+    padding: 0 6px;
+    border-radius: 20px;
+  }
+
+  .cap-shell-topbar .cap-shell-logo {
+    width: 36px;
+    height: 36px;
+    margin-left: 2px;
+  }
+
+  .cap-shell-topbar__title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    font: 600 15px var(--cap-font-display);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* El h1 sigue en el árbol de accesibilidad cuando la barra muestra el nombre del sistema. */
+  .cap-shell-topbar__hidden-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* 40px y no los 36 del boceto: el spec pide áreas de toque de al menos 40. */
+  .cap-shell-topbar__icon-button {
+    width: 40px;
+    height: 40px;
+    border-color: transparent;
+  }
+
+  .cap-shell-tabbar {
+    position: fixed;
+    right: 10px;
+    bottom: calc(10px + env(safe-area-inset-bottom));
+    left: 10px;
+    z-index: var(--cap-z-header);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    height: 64px;
+    padding: 0 6px;
+    border-radius: var(--cap-radius-shell);
+  }
+
+  .cap-shell-tabbar__tab {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 0;
+    max-width: 72px;
+    padding: 6px 0;
+    border: 0;
+    border-radius: 16px;
+    background: transparent;
+    color: var(--cap-frame-ink-soft);
+    font: 400 12px var(--cap-font-text);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .cap-shell-tabbar__tab .mdi {
+    font-size: 21px;
+    line-height: 1;
+  }
+
+  .cap-shell-tabbar__tab[aria-current="page"] {
+    background: var(--cap-glass-active);
+    box-shadow: var(--cap-shadow-active);
+    color: var(--cap-frame-ink);
+  }
+
+  /* Máximo 4 destinos + «Más», aunque el sistema entregue más: el resto vive en la hoja. */
+  .cap-shell-tabbar__tab:nth-child(n + 5):not(.cap-shell-tabbar__tab--more) {
+    display: none;
+  }
+
+  .cap-shell-fab {
+    position: fixed;
+    right: 18px;
+    bottom: calc(88px + env(safe-area-inset-bottom));
+    z-index: var(--cap-z-header);
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--cap-red);
+    box-shadow: var(--cap-shadow-fab);
+    color: var(--cap-on-accent);
+    font-size: 26px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  /* El vidrio va en __panel: un backdrop-filter en la raíz encerraría al fondo fijo. */
+  .cap-shell-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: var(--cap-z-drawer);
+    display: block;
+    visibility: hidden;
+    transition: visibility 0s linear var(--cap-duration-slow);
+  }
+
+  .cap-shell-sheet[data-open="true"] {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+
+  .cap-shell-sheet__backdrop {
+    position: absolute;
+    inset: 0;
+    background: var(--cap-overlay);
+    opacity: 0;
+    transition: opacity var(--cap-duration-slow) var(--cap-ease-standard);
+  }
+
+  .cap-shell-sheet[data-open="true"] .cap-shell-sheet__backdrop {
+    opacity: 1;
+  }
+
+  .cap-shell-sheet__panel {
+    position: absolute;
+    right: 8px;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    left: 8px;
+    max-height: calc(100dvh - 16px);
+    padding: 0 12px 14px;
+    border-radius: var(--cap-radius-sheet);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    transform: translateY(calc(100% + 16px));
+    transition: transform var(--cap-duration-slow) var(--cap-ease-enter);
+  }
+
+  .cap-shell-sheet[data-open="true"] .cap-shell-sheet__panel {
+    transform: none;
+  }
+
+  .cap-shell-sheet__handle {
+    display: grid;
+    place-items: center;
+    height: 22px;
+    margin-bottom: 4px;
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .cap-shell-sheet__handle::before {
+    content: "";
+    width: 38px;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--cap-glass-handle);
+  }
+
+  .cap-shell-sheet .cap-shell-sidebar__group-label {
+    margin: 8px 12px 4px;
+  }
+
+  .cap-shell-sheet .cap-shell-sidebar__item {
+    gap: 12px;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: var(--cap-radius-control);
+  }
+
+  .cap-shell-sheet .cap-shell-sidebar__icon {
+    font-size: 21px;
+  }
+
+  .cap-shell-sheet .cap-shell-sidebar__item[aria-current="page"]::before {
+    display: none;
+  }
+
+  .cap-shell-sheet .cap-shell-sidebar__user {
+    margin-top: 8px;
+    padding: 12px 12px 2px;
+  }
+
+  .cap-shell-sheet .cap-shell-sidebar__user-menu {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+  }
+
+  .cap-shell-sheet .cap-shell-avatar {
+    width: 36px;
+    height: 36px;
+  }
+
+  .cap-selection-bar {
+    display: none;
+  }
+}
+
+@media (max-width: 1023.98px) and (prefers-reduced-motion: reduce) {
+  .cap-shell-sheet,
+  .cap-shell-sheet__backdrop,
+  .cap-shell-sheet__panel {
+    transition: none;
+  }
+}

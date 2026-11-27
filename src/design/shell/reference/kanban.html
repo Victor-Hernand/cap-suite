@@ -1,0 +1,365 @@
+<!doctype html>
+<!-- Textos de ejemplo; en producción salen de tokens.json › company -->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Tablero kanban CAP · referencia</title>
+  <script>
+    let storedTheme;
+    try { storedTheme = localStorage.theme; } catch { storedTheme = undefined; }
+    const theme = location.hash === '#dark'
+      ? 'dark'
+      : storedTheme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../../shell.css">
+  <script type="module" src="../../shell-auto.js"></script>
+</head>
+<body>
+  <div class="cap-shell">
+    <aside class="cap-shell-sidebar cap-glass" data-cap-sidebar data-collapsed="false">
+      <button class="cap-shell-sidebar__collapse" type="button" data-cap-collapse aria-expanded="true" aria-label="Contraer menú"><i class="mdi mdi-chevron-left" aria-hidden="true"></i></button>
+
+      <div class="cap-shell-sidebar__brand">
+        <span class="cap-shell-logo" aria-hidden="true">E</span>
+        <div class="cap-shell-sidebar__brand-text">
+          <strong class="cap-shell-sidebar__brand-name">Facturación</strong>
+          <small class="cap-shell-sidebar__brand-owner">Nombre de la empresa</small>
+        </div>
+      </div>
+
+      <nav class="cap-shell-sidebar__nav" aria-label="Menú principal">
+        <p class="cap-shell-sidebar__group-label">Principal</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Tablero">
+          <i class="cap-shell-sidebar__icon mdi mdi-view-dashboard" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Tablero</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Tablero</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Facturas, 12 pendientes">
+          <i class="cap-shell-sidebar__icon mdi mdi-file-document-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Facturas</span>
+          <span class="cap-shell-sidebar__count">12</span>
+          <span class="cap-shell-sidebar__dot" aria-hidden="true"></span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Facturas</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-current="page" aria-label="Cobranza, 3 urgentes">
+          <i class="cap-shell-sidebar__icon mdi mdi-cash-multiple" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Cobranza</span>
+          <span class="cap-shell-sidebar__count cap-shell-sidebar__count--urgent">3</span>
+          <span class="cap-shell-sidebar__dot" aria-hidden="true"></span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Cobranza</span>
+        </a>
+        <details class="cap-shell-sidebar__branch" open>
+          <summary class="cap-shell-sidebar__item" aria-label="Empresas">
+            <i class="cap-shell-sidebar__icon mdi mdi-domain" aria-hidden="true"></i>
+            <span class="cap-shell-sidebar__label">Empresas</span>
+            <i class="cap-shell-sidebar__chevron mdi mdi-chevron-down" aria-hidden="true"></i>
+            <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Empresas</span>
+          </summary>
+          <div class="cap-shell-sidebar__children">
+            <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-wine)"></span>CAP Acero</a>
+            <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red)"></span>CAP Minería</a>
+            <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red-400)"></span>Cintac</a>
+          </div>
+        </details>
+        <p class="cap-shell-sidebar__group-label">General</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Reportes">
+          <i class="cap-shell-sidebar__icon mdi mdi-chart-box-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Reportes</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Reportes</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Configuración">
+          <i class="cap-shell-sidebar__icon mdi mdi-cog-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Configuración</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Configuración</span>
+        </a>
+      </nav>
+
+      <div class="cap-shell-sidebar__spacer"></div>
+
+      <button class="cap-shell-sidebar__item cap-shell-sidebar__theme" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro">
+        <i class="cap-shell-sidebar__icon mdi mdi-weather-night" aria-hidden="true"></i>
+        <span class="cap-shell-sidebar__label">Modo oscuro</span>
+        <span class="cap-shell-sidebar__switch" aria-hidden="true"></span>
+        <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Modo oscuro</span>
+      </button>
+
+      <div class="cap-shell-sidebar__user">
+        <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+        <div class="cap-shell-sidebar__user-text">
+          <strong class="cap-shell-sidebar__user-name">Ana Muñoz</strong>
+          <small class="cap-shell-sidebar__user-mail">amunoz@ejemplo.com</small>
+        </div>
+        <form method="POST" action="/logout">
+          <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+        </form>
+      </div>
+    </aside>
+
+    <div class="cap-shell__main">
+      <header class="cap-shell-header cap-glass cap-shell-header--with-nav">
+        <div>
+          <nav class="cap-shell-header__crumbs" aria-label="Migas de pan">Facturación › Cobranza</nav>
+          <h1 class="cap-shell-header__title">Cobranza</h1>
+        </div>
+        <nav class="cap-shell-header__nav" aria-label="Secciones" data-cap-pill-nav>
+          <span class="cap-shell-header__nav-pill" aria-hidden="true" data-cap-pill></span>
+          <a class="cap-shell-header__nav-item" href="#">Resumen</a>
+          <a class="cap-shell-header__nav-item" href="#" aria-current="page">Tablero</a>
+          <a class="cap-shell-header__nav-item" href="#">Lista</a>
+          <a class="cap-shell-header__nav-item" href="#">Promesas</a>
+        </nav>
+        <div class="cap-shell-header__actions">
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Mensajes"><i class="mdi mdi-email-outline" aria-hidden="true"></i></button>
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Notificaciones, 3 sin leer" aria-expanded="false" aria-controls="cap-notifications" data-cap-popover-trigger>
+            <i class="mdi mdi-bell-outline" aria-hidden="true"></i>
+            <span class="cap-shell-header__badge-dot" aria-hidden="true"></span>
+          </button>
+          <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+        </div>
+      </header>
+
+      <nav class="cap-shell-header__nav cap-shell-header__nav--mobile cap-glass" aria-label="Secciones" data-cap-pill-nav>
+        <span class="cap-shell-header__nav-pill" aria-hidden="true" data-cap-pill></span>
+        <a class="cap-shell-header__nav-item" href="#">Resumen</a>
+        <a class="cap-shell-header__nav-item" href="#" aria-current="page">Tablero</a>
+        <a class="cap-shell-header__nav-item" href="#">Lista</a>
+        <a class="cap-shell-header__nav-item" href="#">Promesas</a>
+      </nav>
+
+      <main class="cap-shell__content">
+        <div class="cap-segmented cap-kanban__picker" role="group" aria-label="Etapa" data-cap-pill-nav data-cap-kanban-picker>
+          <span class="cap-segmented__pill" aria-hidden="true" data-cap-pill></span>
+          <button class="cap-segmented__item" type="button" value="por-contactar" aria-pressed="true">Por contactar</button>
+          <button class="cap-segmented__item" type="button" value="en-gestion" aria-pressed="false">En gestión</button>
+          <button class="cap-segmented__item" type="button" value="promesa" aria-pressed="false">Promesa</button>
+          <button class="cap-segmented__item" type="button" value="escalado" aria-pressed="false">Escalado</button>
+          <button class="cap-segmented__item" type="button" value="cerrado" aria-pressed="false">Cerrado</button>
+        </div>
+
+        <section class="cap-kanban" aria-label="Tablero de cobranza" data-cap-kanban>
+          <div class="cap-kanban__column" data-cap-kanban-column="por-contactar" data-tone="neutral" data-active="true">
+            <header class="cap-kanban__head">
+              <span class="cap-kanban__dot" aria-hidden="true"></span>
+              <h3 class="cap-kanban__title">Por contactar</h3>
+              <span class="cap-kanban__count" data-cap-kanban-count>3</span>
+              <button class="cap-kanban__action" type="button" aria-label="Agregar en Por contactar"><i class="mdi mdi-plus" aria-hidden="true"></i></button>
+              <button class="cap-kanban__action" type="button" aria-label="Opciones de la columna"><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i></button>
+            </header>
+            <div class="cap-kanban__list" data-cap-kanban-list>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10232" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad alta" data-level="high"></span><span>F-10232</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Puerto Talca · 3 facturas sin respuesta desde el 25/10</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 4.2 M</span><span class="cap-kanban-card__badge" data-status="error"><i class="mdi mdi-clock-alert-outline" aria-hidden="true"></i>Vencida 14 d</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="Ana Muñoz">AM</span></span><span class="cap-kanban-card__tag">Retail</span><span class="cap-kanban-card__meta"><i class="mdi mdi-comment-outline" aria-hidden="true"></i>2</span></div>
+              </article>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10240" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad media" data-level="medium"></span><span>F-10240</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Aceros Norte · Nota de crédito pendiente de aplicar</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 1.8 M</span><span class="cap-kanban-card__badge" data-status="warning"><i class="mdi mdi-clock-outline" aria-hidden="true"></i>Vence en 3 d</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="José Rojas">JR</span><span class="cap-kanban-card__avatar" title="Ana Muñoz">AM</span></span><span class="cap-kanban-card__tag">Industria</span><span class="cap-kanban-card__meta"><i class="mdi mdi-paperclip" aria-hidden="true"></i>1</span></div>
+              </article>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10244" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad normal"></span><span>F-10244</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Cintac · Primer recordatorio de pago</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 920 mil</span><span class="cap-kanban-card__badge"><i class="mdi mdi-calendar-blank-outline" aria-hidden="true"></i>12 nov</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="Lucía Pérez">LP</span></span><span class="cap-kanban-card__tag">Construcción</span></div>
+              </article>
+            </div>
+            <button class="cap-kanban__add" type="button">Agregar tarjeta</button>
+          </div>
+
+          <div class="cap-kanban__column" data-cap-kanban-column="en-gestion" data-tone="info" data-wip-limit="3">
+            <header class="cap-kanban__head">
+              <span class="cap-kanban__dot" aria-hidden="true"></span>
+              <h3 class="cap-kanban__title">En gestión</h3>
+              <span class="cap-kanban__count" data-cap-kanban-count>3</span>
+              <span class="cap-kanban__wip" title="Límite de trabajo en curso" data-full="true">3 / 3</span>
+              <button class="cap-kanban__action" type="button" aria-label="Agregar en En gestión"><i class="mdi mdi-plus" aria-hidden="true"></i></button>
+              <button class="cap-kanban__action" type="button" aria-label="Opciones de la columna"><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i></button>
+            </header>
+            <div class="cap-kanban__list" data-cap-kanban-list>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10233" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad alta" data-level="high"></span><span>F-10233</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Minera Sur · Llamada agendada con tesorería</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 7.9 M</span><span class="cap-kanban-card__badge" data-status="warning"><i class="mdi mdi-clock-outline" aria-hidden="true"></i>Vence mañana</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="Ana Muñoz">AM</span></span><span class="cap-kanban-card__tag">Minería</span><span class="cap-kanban-card__meta"><i class="mdi mdi-phone-outline" aria-hidden="true"></i>Hoy 15:00</span></div>
+              </article>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10228" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad media" data-level="medium"></span><span>F-10228</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Puerto Talca · Esperando orden de compra corregida</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 2.4 M</span><span class="cap-kanban-card__badge"><i class="mdi mdi-calendar-blank-outline" aria-hidden="true"></i>18 nov</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="José Rojas">JR</span></span><span class="cap-kanban-card__tag">Retail</span><span class="cap-kanban-card__meta"><i class="mdi mdi-comment-outline" aria-hidden="true"></i>5</span></div>
+              </article>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10219" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad normal"></span><span>F-10219</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Aceros Norte · Conciliación de abonos parciales</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 3.1 M</span><span class="cap-kanban-card__badge" data-status="info"><i class="mdi mdi-progress-check" aria-hidden="true"></i>60 % abonado</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="Lucía Pérez">LP</span><span class="cap-kanban-card__avatar" title="Ana Muñoz">AM</span></span><span class="cap-kanban-card__tag">Industria</span></div>
+              </article>
+            </div>
+            <button class="cap-kanban__add" type="button">Agregar tarjeta</button>
+          </div>
+
+          <div class="cap-kanban__column" data-cap-kanban-column="promesa" data-tone="ok">
+            <header class="cap-kanban__head">
+              <span class="cap-kanban__dot" aria-hidden="true"></span>
+              <h3 class="cap-kanban__title">Promesa de pago</h3>
+              <span class="cap-kanban__count" data-cap-kanban-count>2</span>
+              <button class="cap-kanban__action" type="button" aria-label="Agregar en Promesa de pago"><i class="mdi mdi-plus" aria-hidden="true"></i></button>
+              <button class="cap-kanban__action" type="button" aria-label="Opciones de la columna"><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i></button>
+            </header>
+            <div class="cap-kanban__list" data-cap-kanban-list>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10201" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad normal"></span><span>F-10201</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Cintac · Promete pagar el 15/11 por transferencia</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 5.6 M</span><span class="cap-kanban-card__badge" data-status="ok"><i class="mdi mdi-handshake-outline" aria-hidden="true"></i>Promesa 15 nov</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="Ana Muñoz">AM</span></span><span class="cap-kanban-card__tag">Construcción</span></div>
+              </article>
+              <article class="cap-kanban-card" data-cap-kanban-card="F-10207" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad normal"></span><span>F-10207</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Minera Sur · Pago parcial comprometido</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 2.0 M</span><span class="cap-kanban-card__badge" data-status="ok"><i class="mdi mdi-handshake-outline" aria-hidden="true"></i>Promesa 20 nov</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="José Rojas">JR</span></span><span class="cap-kanban-card__tag">Minería</span><span class="cap-kanban-card__meta"><i class="mdi mdi-paperclip" aria-hidden="true"></i>2</span></div>
+              </article>
+            </div>
+            <button class="cap-kanban__add" type="button">Agregar tarjeta</button>
+          </div>
+
+          <div class="cap-kanban__column" data-cap-kanban-column="escalado" data-tone="error">
+            <header class="cap-kanban__head">
+              <span class="cap-kanban__dot" aria-hidden="true"></span>
+              <h3 class="cap-kanban__title">Escalado</h3>
+              <span class="cap-kanban__count" data-cap-kanban-count>1</span>
+              <button class="cap-kanban__action" type="button" aria-label="Agregar en Escalado"><i class="mdi mdi-plus" aria-hidden="true"></i></button>
+              <button class="cap-kanban__action" type="button" aria-label="Opciones de la columna"><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i></button>
+            </header>
+            <div class="cap-kanban__list" data-cap-kanban-list>
+              <article class="cap-kanban-card cap-kanban-card--blocked" data-cap-kanban-card="F-10188" tabindex="0" draggable="true">
+                <div class="cap-kanban-card__top"><span class="cap-kanban-card__priority" role="img" aria-label="Prioridad alta" data-level="high"></span><span>F-10188</span><button class="cap-kanban-card__menu" type="button" aria-label="Más acciones"><i class="mdi mdi-dots-vertical" aria-hidden="true"></i></button></div>
+                <p class="cap-kanban-card__title">Comercial Andina · Derivada a legal por 60 días de mora</p>
+                <div class="cap-kanban-card__row"><span class="cap-kanban-card__amount">L 12.3 M</span><span class="cap-kanban-card__badge" data-status="error"><i class="mdi mdi-gavel" aria-hidden="true"></i>Legal</span></div>
+                <div class="cap-kanban-card__foot"><span class="cap-kanban-card__avatars"><span class="cap-kanban-card__avatar" title="Rodrigo Castro">RC</span></span><span class="cap-kanban-card__tag">Distribución</span><span class="cap-kanban-card__meta"><i class="mdi mdi-comment-outline" aria-hidden="true"></i>9</span></div>
+              </article>
+            </div>
+            <button class="cap-kanban__add" type="button">Agregar tarjeta</button>
+          </div>
+
+          <div class="cap-kanban__column" data-cap-kanban-column="cerrado" data-tone="neutral">
+            <header class="cap-kanban__head">
+              <span class="cap-kanban__dot" aria-hidden="true"></span>
+              <h3 class="cap-kanban__title">Cerrado esta semana</h3>
+              <span class="cap-kanban__count" data-cap-kanban-count>0</span>
+              <button class="cap-kanban__action" type="button" aria-label="Opciones de la columna"><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i></button>
+            </header>
+            <div class="cap-kanban__list" data-cap-kanban-list>
+              <div class="cap-kanban__empty">
+                <i class="mdi mdi-tray-arrow-down" aria-hidden="true"></i>
+                <p>Aún no se cierra ninguna gestión esta semana.</p>
+                <p>Arrastra una tarjeta aquí cuando se pague.</p>
+              </div>
+            </div>
+          </div>
+          <p class="cap-kanban__live" aria-live="polite"></p>
+        </section>
+      </main>
+    </div>
+
+    <header class="cap-shell-topbar cap-glass">
+      <span class="cap-shell-logo" aria-hidden="true">E</span>
+      <span class="cap-shell-topbar__title">Facturación</span>
+      <h1 class="cap-shell-topbar__hidden-title">Cobranza</h1>
+      <a class="cap-shell-topbar__icon-button" href="#" aria-label="Buscar"><i class="mdi mdi-magnify" aria-hidden="true"></i></a>
+      <button class="cap-shell-topbar__icon-button" type="button" aria-label="Notificaciones, 3 sin leer" aria-expanded="false" aria-controls="cap-notifications" data-cap-popover-trigger>
+        <i class="mdi mdi-bell-outline" aria-hidden="true"></i>
+        <span class="cap-shell-header__badge-dot" aria-hidden="true"></span>
+      </button>
+    </header>
+
+    <nav class="cap-shell-tabbar cap-glass" aria-label="Destinos principales">
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-view-dashboard" aria-hidden="true"></i>Inicio</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-file-document-outline" aria-hidden="true"></i>Facturas</a>
+      <a class="cap-shell-tabbar__tab" href="#" aria-current="page"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i>Cobranza</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-chart-box-outline" aria-hidden="true"></i>Reportes</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-cog-outline" aria-hidden="true"></i>Configuración</a>
+      <button class="cap-shell-tabbar__tab cap-shell-tabbar__tab--more" type="button" aria-expanded="false" aria-controls="cap-more-sheet" data-cap-sheet-trigger><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i>Más</button>
+    </nav>
+
+    <a class="cap-shell-fab" href="#" aria-label="Nueva gestión"><i class="mdi mdi-plus" aria-hidden="true"></i></a>
+
+    <div class="cap-shell-sheet" id="cap-more-sheet" role="dialog" aria-modal="true" aria-label="Menú completo" data-open="false">
+      <div class="cap-shell-sheet__backdrop" data-cap-sheet-backdrop></div>
+      <div class="cap-shell-sheet__panel cap-glass">
+        <div class="cap-shell-sheet__handle" data-cap-sheet-handle></div>
+        <p class="cap-shell-sidebar__group-label">Principal</p>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-view-dashboard" aria-hidden="true"></i>Inicio</a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-file-document-outline" aria-hidden="true"></i>Facturas<span class="cap-shell-sidebar__count">12</span></a>
+        <a class="cap-shell-sidebar__item" href="#" aria-current="page"><i class="cap-shell-sidebar__icon mdi mdi-cash-multiple" aria-hidden="true"></i>Cobranza<span class="cap-shell-sidebar__count cap-shell-sidebar__count--urgent">3</span></a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-domain" aria-hidden="true"></i>Empresas</a>
+        <div class="cap-shell-sidebar__children">
+          <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-wine)"></span>CAP Acero</a>
+          <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red)"></span>CAP Minería</a>
+          <a class="cap-shell-sidebar__child" href="#"><span class="cap-shell-sidebar__child-swatch" style="background: var(--cap-red-400)"></span>Cintac</a>
+        </div>
+        <p class="cap-shell-sidebar__group-label">General</p>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-chart-box-outline" aria-hidden="true"></i>Reportes</a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-cog-outline" aria-hidden="true"></i>Configuración</a>
+        <button class="cap-shell-sidebar__item" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro"><i class="cap-shell-sidebar__icon mdi mdi-weather-night" aria-hidden="true"></i>Modo oscuro<span class="cap-shell-sidebar__switch" aria-hidden="true"></span></button>
+        <div class="cap-shell-sidebar__user">
+          <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+          <div class="cap-shell-sidebar__user-text">
+            <strong class="cap-shell-sidebar__user-name">Ana Muñoz</strong>
+            <small class="cap-shell-sidebar__user-mail">amunoz@ejemplo.com</small>
+          </div>
+          <form method="POST" action="/logout">
+            <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <section class="cap-notifications cap-glass" id="cap-notifications" aria-label="Notificaciones" data-cap-notifications hidden>
+      <div class="cap-notifications__header">
+        <h2 class="cap-notifications__title">Notificaciones</h2>
+        <form method="POST" action="/notifications/read">
+          <button class="cap-notifications__mark-read" type="submit">Marcar todo como leído</button>
+        </form>
+      </div>
+      <div class="cap-notifications__tabs">
+        <button class="cap-notifications__tab" type="button" aria-pressed="true" data-cap-notification-filter="all">Todas</button>
+        <button class="cap-notifications__tab" type="button" aria-pressed="false" data-cap-notification-filter="unread">No leídas<span class="cap-notifications__tab-count">3</span></button>
+      </div>
+      <p class="cap-notifications__group">Hoy</p>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon cap-notifications__icon--alert"><i class="mdi mdi-alert-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">F-10232 venció</strong><small class="cap-notifications__detail">Puerto Talca · $ 3,7 M</small></div>
+        <span class="cap-notifications__time">hace 5 min</span>
+      </div>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon"><i class="mdi mdi-cash-check" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Pago recibido</strong><small class="cap-notifications__detail">Minera Sur pagó F-10234</small></div>
+        <span class="cap-notifications__time">hace 1 h</span>
+      </div>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon"><i class="mdi mdi-account-plus-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Nuevo cliente</strong><small class="cap-notifications__detail">Cintac Perú fue agregado</small></div>
+        <span class="cap-notifications__time">10:12</span>
+      </div>
+      <p class="cap-notifications__group">Ayer</p>
+      <div class="cap-notifications__item">
+        <span class="cap-notifications__icon"><i class="mdi mdi-file-export-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Reporte listo</strong><small class="cap-notifications__detail">Cobranza de octubre.xlsx</small></div>
+        <span class="cap-notifications__time">18:40</span>
+      </div>
+      <p class="cap-notifications__group" data-cap-notification-empty hidden>No tienes notificaciones sin leer.</p>
+      <a class="cap-notifications__footer" href="#">Ver todas</a>
+    </section>
+
+    <div class="cap-toaster" data-cap-toaster></div>
+  </div>
+</body>
+</html>

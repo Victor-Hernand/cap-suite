@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import {
   createCapGestionClient,
+  DEFAULT_CAP_GESTION_URL,
   DISCARD_PATH,
   DRAFTS_PATH,
   exitWithErrors,
@@ -12,7 +13,7 @@ import {
 } from './lib.mjs';
 
 const USAGE = 'Uso: node publish.mjs --check --branch <rama> | --merged [--branch <rama>] [--commits <sha,…>] [--merge-sha <sha>] | --closed --branch <rama>';
-const REQUIRED_VARIABLES = ['GITHUB_REPOSITORY', 'CAP_GESTION_URL', 'CAP_GESTION_TOKEN'];
+const REQUIRED_VARIABLES = ['GITHUB_REPOSITORY', 'CAP_GESTION_TOKEN'];
 
 const OPTIONS = {
   check: { type: 'boolean' },
@@ -85,12 +86,18 @@ async function runClosed(options) {
 
 const MODE_RUNNERS = { check: runCheck, merged: runMerged, closed: runClosed };
 
+// El secret CAP_GESTION_URL es opcional: sin él se usa la URL de CAP Gestión de la empresa.
+export function readPublishEnvironment(env) {
+  const environment = requireEnvironment(env, REQUIRED_VARIABLES);
+  return { repository: environment.GITHUB_REPOSITORY, url: env.CAP_GESTION_URL || DEFAULT_CAP_GESTION_URL, token: environment.CAP_GESTION_TOKEN };
+}
+
 async function main(...args) {
   try {
     const { mode, ...options } = parsePublishArguments(args);
-    const environment = requireEnvironment(process.env, REQUIRED_VARIABLES);
-    const client = createCapGestionClient({ url: environment.CAP_GESTION_URL, token: environment.CAP_GESTION_TOKEN });
-    await MODE_RUNNERS[mode]({ client, repository: environment.GITHUB_REPOSITORY, ...options });
+    const { repository, url, token } = readPublishEnvironment(process.env);
+    const client = createCapGestionClient({ url, token });
+    await MODE_RUNNERS[mode]({ client, repository, ...options });
   } catch (error) {
     exitWithErrors(explainRequestError(error));
   }

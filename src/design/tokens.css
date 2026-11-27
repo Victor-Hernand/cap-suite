@@ -1,0 +1,220 @@
+/* Generado desde tokens.json (node scripts/build-tokens-css.mjs). No editar a mano. */
+:root {
+  --cap-font-text: "Inter", system-ui, sans-serif;
+  --cap-font-display: "Poppins", "Inter", system-ui, sans-serif;
+  --cap-brand: #B12530;
+  --cap-red: #B12530;
+  --cap-red-hover: #951F28;
+  --cap-red-soft: #E8707A;
+  --cap-gray: #B2B2B2;
+  --cap-chrome: #1E1B1A;
+  --cap-head: #1E1B1A;
+  --cap-rail: #171717;
+  --cap-raised: #2B2B2B;
+  --cap-line: #3A3A3A;
+  --cap-page: #F1EDE9;
+  --cap-card: #FFFDFB;
+  --cap-card-2: #F1EDE9;
+  --cap-divider: #E6DFD8;
+  --cap-text: #1E1B1A;
+  --cap-text-inverse: #FFFFFF;
+  --cap-text-soft: #695F58;
+  --cap-on-accent: #FFFFFF;
+  --cap-on-chrome: #E9E4E0;
+  --cap-on-chrome-soft: #D2CAC3;
+  --cap-wine: #6E1219;
+  --cap-taupe: #A89C91;
+  --cap-red-50: #FBEDEE;
+  --cap-red-100: #F3DADD;
+  --cap-red-200: #F2D3D6;
+  --cap-red-400: #DB7F87;
+  --cap-red-600: #B12530;
+  --cap-red-800: #6E1219;
+  --cap-red-tint: #FBEDEE;
+  --cap-red-tint-border: #F3DADD;
+  --cap-frame: #FFFDFB;
+  --cap-frame-ink: #1E1B1A;
+  --cap-frame-ink-soft: #695F58;
+  --cap-glass-tooltip-bg: #1E1B1A;
+  --cap-glass-tooltip-ink: #E9E4E0;
+  --cap-glass-tooltip-hover: rgba(255,255,255,.12);
+  --cap-table-head: #F1EDE9;
+  --cap-table-head-ink: #1E1B1A;
+  --cap-table-head-line: #E6DFD8;
+  --cap-glass-bg: rgba(255,253,251, 0.72);
+  --cap-glass-blur: 22px;
+  --cap-glass-saturate: 170%;
+  --cap-glass-border: rgba(255,255,255,.95);
+  --cap-glass-highlight: rgba(255,255,255,.95);
+  --cap-glass-hover: rgba(110,18,25,.06);
+  --cap-glass-active: rgba(110,18,25,.10);
+  --cap-glass-active-border: rgba(110,18,25,.16);
+  --cap-glass-fill: rgba(110,18,25,.05);
+  --cap-glass-chip: rgba(110,18,25,.10);
+  --cap-glass-handle: rgba(110,18,25,.25);
+  --cap-glass-meter: rgba(110,18,25,.6);
+  --cap-glass-light-bg: rgba(255,253,251, 0.58);
+  --cap-glass-light-blur: 26px;
+  --cap-glass-light-saturate: 180%;
+  --cap-glass-light-border: rgba(255,255,255,.75);
+  --cap-glass-light-highlight: rgba(255,255,255,.95);
+  --cap-overlay: rgba(30,27,26,.35);
+  --cap-overlay-blur: 6px;
+  --cap-photo-veil-top: rgba(30,27,26,.15);
+  --cap-photo-veil-bottom: rgba(30,27,26,.70);
+  --cap-blob-red: rgba(177, 37, 48, 0.2);
+  --cap-blob-wine: rgba(110, 18, 25, 0.16);
+  --cap-blob-taupe: rgba(168, 156, 145, 0.25);
+  --cap-blob-login-red: rgba(177, 37, 48, 0.3);
+  --cap-blob-login-wine: rgba(110, 18, 25, 0.26);
+  --cap-blob-login-taupe: rgba(168, 156, 145, 0.35);
+  --cap-blob-panel-red: rgba(177, 37, 48, 0.55);
+  --cap-blob-panel-wine: rgba(110, 18, 25, 0.65);
+  --cap-blob-panel-taupe: rgba(168, 156, 145, 0.18);
+  --cap-radius-control: 14px;
+  --cap-radius-card: 20px;
+  --cap-radius-shell: 24px;
+  --cap-radius-sheet: 28px;
+  --cap-input-line: #8C8985;
+  --cap-control-line: #CFC6BE;
+  --cap-focus-ring: rgba(30,27,26,.08);
+  --cap-skeleton-sheen: rgba(255,255,255,.72);
+  --cap-status-ok: #276B2B;
+  --cap-status-error: #B12530;
+  --cap-status-warning: #A85300;
+  --cap-status-info: #1565C0;
+  --cap-status-neutral: #616161;
+  --cap-status-ok-solid: #3FA35B;
+  --cap-status-info-solid: #1565C0;
+  --cap-status-warning-solid: #A85300;
+  --cap-status-error-solid: #B12530;
+  --cap-status-error-solid-hover: #951F28;
+  --cap-status-ok-tint: #E7F4EC;
+  --cap-status-info-tint: #E3EEF9;
+  --cap-status-warning-tint: #FCF1DC;
+  --cap-status-error-tint: #FBEDEE;
+  --cap-status-error-tint-border: #F3DADD;
+  --cap-status-ok-ink: #1E6B3A;
+  --cap-status-info-ink: #0F4C92;
+  --cap-status-warning-ink: #7A4E00;
+  --cap-status-error-ink: #B12530;
+  --cap-status-error-detail: #7A2A30;
+  --cap-shadow-glass: inset 0 1px 0 rgba(255,255,255,.95), 0 12px 32px rgba(110,18,25,.10);
+  --cap-shadow-active: inset 0 1px 0 rgba(255,255,255,.9);
+  --cap-shadow-glass-light: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(30,27,26,.04), 0 20px 50px rgba(110,18,25,.12);
+  --cap-shadow-logo: inset 0 1px 0 rgba(255,255,255,.35);
+  --cap-shadow-control: 0 2px 8px rgba(0,0,0,.2);
+  --cap-shadow-floating: 0 4px 14px rgba(0,0,0,.15);
+  --cap-shadow-fab: 0 8px 20px rgba(177,37,48,.35), inset 0 1px 0 rgba(255,255,255,.3);
+  --cap-shadow-modal: 0 24px 60px rgba(30,27,26,.30);
+  --cap-shadow-card: 0 1px 2px rgba(0,0,0,.06), 0 6px 16px rgba(0,0,0,.08);
+  --cap-shadow-card-hover: 0 2px 4px rgba(0,0,0,.08), 0 10px 24px rgba(0,0,0,.12);
+  --cap-gradient-featured: radial-gradient(90% 120% at 15% 0%, #B12530 0%, #8A1C25 45%, #5A0E14 100%);
+  --cap-gradient-primary: linear-gradient(135deg, #B12530 0%, #6E1219 100%);
+  --cap-z-header: 30;
+  --cap-z-sidebar: 40;
+  --cap-z-dropdown: 50;
+  --cap-z-drawer: 60;
+  --cap-z-modal: 70;
+  --cap-z-toast: 80;
+  --cap-duration-fast: 120ms;
+  --cap-duration-base: 180ms;
+  --cap-duration-slow: 260ms;
+  --cap-duration-toast: 5000ms;
+  --cap-duration-shimmer: 1400ms;
+  --cap-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --cap-ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --cap-ease-exit: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* Modo oscuro: clase `dark` en <html> o <body>. El marco cambia a vidrio ahumado en oscuro; --cap-chrome y --cap-rail no cambian de tema. */
+.dark {
+  --cap-brand: #E8707A;
+  --cap-head: #2B2B2B;
+  --cap-page: #151312;
+  --cap-card: #211D1C;
+  --cap-card-2: #2B2624;
+  --cap-divider: #3A3431;
+  --cap-text: #E9E4E0;
+  --cap-text-inverse: #1E1B1A;
+  --cap-text-soft: #A89C91;
+  --cap-red-tint: rgba(177,37,48,.16);
+  --cap-red-tint-border: rgba(232,112,122,.28);
+  --cap-frame: #1E1B1A;
+  --cap-frame-ink: #FFFFFF;
+  --cap-frame-ink-soft: #D2CAC3;
+  --cap-glass-tooltip-bg: rgba(255,253,251, 0.94);
+  --cap-glass-tooltip-ink: #1E1B1A;
+  --cap-glass-tooltip-hover: #F1EDE9;
+  --cap-table-head: #2B2624;
+  --cap-table-head-ink: #E9E4E0;
+  --cap-table-head-line: #3A3431;
+  --cap-glass-bg: rgba(20,18,17, 0.78);
+  --cap-glass-blur: 22px;
+  --cap-glass-saturate: 170%;
+  --cap-glass-border: rgba(255,255,255,.10);
+  --cap-glass-highlight: rgba(255,255,255,.22);
+  --cap-glass-hover: rgba(255,255,255,.10);
+  --cap-glass-active: rgba(255,255,255,.16);
+  --cap-glass-active-border: rgba(255,255,255,.22);
+  --cap-glass-fill: rgba(255,255,255,.08);
+  --cap-glass-chip: rgba(255,255,255,.14);
+  --cap-glass-handle: rgba(255,255,255,.35);
+  --cap-glass-meter: rgba(255,255,255,.6);
+  --cap-shadow-glass: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.25), 0 12px 32px rgba(30,27,26,.18);
+  --cap-shadow-active: inset 0 1px 0 rgba(255,255,255,.25);
+  --cap-shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 6px 16px rgba(0,0,0,.35);
+  --cap-shadow-card-hover: 0 2px 4px rgba(0,0,0,.35), 0 10px 24px rgba(0,0,0,.4);
+  --cap-glass-light-bg: rgba(20,18,17, 0.78);
+  --cap-glass-light-border: rgba(255,255,255,.10);
+  --cap-shadow-glass-light: inset 0 1px 0 rgba(255,255,255,.22), inset 0 -1px 0 rgba(0,0,0,.25), 0 12px 32px rgba(30,27,26,.18);
+  --cap-blob-red: rgba(177, 37, 48, 0.1);
+  --cap-blob-wine: rgba(110, 18, 25, 0.08);
+  --cap-blob-taupe: rgba(168, 156, 145, 0.125);
+  --cap-blob-login-red: rgba(177, 37, 48, 0.15);
+  --cap-blob-login-wine: rgba(110, 18, 25, 0.13);
+  --cap-blob-login-taupe: rgba(168, 156, 145, 0.175);
+  --cap-input-line: #808080;
+  --cap-control-line: #4A423E;
+  --cap-focus-ring: rgba(255,255,255,.14);
+  --cap-skeleton-sheen: rgba(255,255,255,.06);
+  --cap-status-ok: #81C784;
+  --cap-status-error: #E8707A;
+  --cap-status-warning: #FFA726;
+  --cap-status-info: #64B5F6;
+  --cap-status-neutral: #9E9E9E;
+  --cap-status-ok-tint: rgba(129,199,132,.14);
+  --cap-status-info-tint: rgba(100,181,246,.14);
+  --cap-status-warning-tint: rgba(255,167,38,.14);
+  --cap-status-error-tint: rgba(177,37,48,.16);
+  --cap-status-error-tint-border: rgba(232,112,122,.28);
+  --cap-status-ok-ink: #81C784;
+  --cap-status-info-ink: #64B5F6;
+  --cap-status-warning-ink: #FFA726;
+  --cap-status-error-ink: #E8707A;
+  --cap-status-error-detail: #E9E4E0;
+}
+
+body {
+  font-family: var(--cap-font-text);
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--cap-font-display);
+}
+
+/* Movimiento: aparecer y entrar desde abajo (modales, menús, toasts). */
+@keyframes cap-fade-in { from { opacity: 0; } }
+@keyframes cap-rise-in { from { opacity: 0; transform: translateY(8px); } }
+@keyframes cap-pulse { 50% { opacity: 0.45; } }
+
+/* Quien pide menos movimiento recibe los cambios al instante: sin desplazamientos ni esperas. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

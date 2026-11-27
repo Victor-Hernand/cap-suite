@@ -1,0 +1,11 @@
+/* Marco CAP: cargar después de tokens.css. Solo var(--cap-*); sirve a cualquier stack. */
+@import "shell/css/base.css";
+@import "shell/css/sidebar.css";
+@import "shell/css/header.css";
+@import "shell/css/segmented.css";
+@import "shell/css/kanban.css";
+@import "shell/css/modules.css";
+@import "shell/css/motion.css";
+@import "shell/css/mobile.css";
+@import "shell/css/overlays.css";
+@import "shell/css/login.css";
