@@ -1,6 +1,7 @@
 ---
 import { actions } from 'astro:actions';
 import '../../styles/global.css';
+import ThemeHead from '../../components/shell/ThemeHead.astro';
 
 const result = Astro.getActionResult(actions.auth.login);
 if (result && !result.error) return Astro.redirect('/admin');
@@ -8,10 +9,7 @@ if (result && !result.error) return Astro.redirect('/admin');
 
 <html lang="es">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
-    <title>Acceso admin — CAP Suite</title>
+    <ThemeHead title="Acceso admin — CAP Suite" />
   </head>
   <body class="flex min-h-screen items-center justify-center bg-base font-sans">
     <form method="POST" action={actions.auth.login} class="w-full max-w-sm rounded-2xl border border-edge bg-surface p-8 shadow-sm">

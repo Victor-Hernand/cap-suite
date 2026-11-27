@@ -2,7 +2,6 @@
 import { computed, ref } from 'vue';
 import type { Department } from '../data/departments';
 import {
-  badgeClassOf,
   labelOf,
   policyCountLabel,
   policyClassifications,
@@ -10,6 +9,7 @@ import {
   policyTypes,
   visiblePolicyStatuses,
 } from '../data/policies';
+import { policyBadgeClass } from '../lib/policyBadges';
 import { formatVersionLine } from '../lib/dates';
 import { cardClass, eyebrowClass } from '../lib/publicStyles';
 import { inputClass, labelClass, primaryButtonClass, selectClass } from './admin/formStyles';
@@ -145,9 +145,9 @@ function updateFilter(key: keyof PolicyFilters, event: Event) {
             >
               <span class="text-sm font-bold text-ink">{{ policy.title }}</span>
               <span class="mt-3 flex flex-wrap gap-1.5">
-                <span :class="badgeClassOf(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
-                <span :class="badgeClassOf(policy.status)">{{ labelOf(policyStatuses, policy.status) }}</span>
-                <span :class="badgeClassOf(policy.classification)">
+                <span :class="policyBadgeClass(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
+                <span :class="policyBadgeClass(policy.status)"><span class="h-1.5 w-1.5 rounded-full bg-current" />{{ labelOf(policyStatuses, policy.status) }}</span>
+                <span :class="policyBadgeClass(policy.classification)">
                   {{ labelOf(policyClassifications, policy.classification) }}
                 </span>
               </span>

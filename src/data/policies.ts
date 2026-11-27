@@ -42,22 +42,6 @@ export function labelOf(list: readonly ListOption[], id: string): string {
   return list.find((option) => option.id === id)?.label ?? id;
 }
 
-const BADGE_BASE = 'rounded border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.18em]';
-
-export const neutralBadgeClass = `${BADGE_BASE} border-edge text-muted`;
-
-const badgeClasses: Record<string, string> = {
-  active: `${BADGE_BASE} border-ink bg-ink text-white`,
-  'under-review': `${BADGE_BASE} border-admin-gold bg-admin-gold/15 text-ink`,
-  obsolete: `${BADGE_BASE} border-edge bg-base text-muted line-through`,
-  public: `${BADGE_BASE} border-edge-strong bg-surface text-body`,
-  internal: `${BADGE_BASE} border-edge bg-base text-body`,
-};
-
-export function badgeClassOf(id: string): string {
-  return badgeClasses[id] ?? neutralBadgeClass;
-}
-
 export function policyCountLabel(total: number): string {
   return `${total} ${total === 1 ? 'política' : 'políticas'}`;
 }

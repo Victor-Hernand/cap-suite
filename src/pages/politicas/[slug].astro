@@ -4,7 +4,8 @@ import PolicyBadges from '../../components/PolicyBadges.astro';
 import { getDb } from '../../lib/db';
 import { getVisiblePolicyBySlug } from '../../lib/policies';
 import { getDepartmentByName } from '../../lib/departments';
-import { attachmentKinds, labelOf, neutralBadgeClass, policyClassifications } from '../../data/policies';
+import { attachmentKinds, labelOf, policyClassifications } from '../../data/policies';
+import { policyBadgeClass } from '../../lib/policyBadges';
 import { formatDate } from '../../lib/dates';
 import { cardClass, eyebrowClass } from '../../lib/publicStyles';
 
@@ -105,7 +106,7 @@ const sideBoxClass = `${cardClass} p-4`;
                       rel={isFile ? undefined : 'noopener'}
                       class="flex items-center gap-3 rounded-lg border border-edge px-3 py-2 text-sm text-ink hover:bg-base"
                     >
-                      <span class={neutralBadgeClass}>{labelOf(attachmentKinds, attachment.kind)}</span>
+                      <span class={policyBadgeClass(attachment.kind)}>{labelOf(attachmentKinds, attachment.kind)}</span>
                       {attachment.label}
                       {!isFile && <span class="sr-only"> (se abre en una pestaña nueva)</span>}
                     </a>

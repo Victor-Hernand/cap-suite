@@ -8,7 +8,7 @@ import { useActionForm } from './useActionForm';
 import { useTableView } from './useTableView';
 import { alertErrorClass, inputClass, primaryButtonClass } from './formStyles';
 import type { Column, Row } from './types';
-import { badgeClassOf } from '../../data/policies';
+import { policyBadgeClass } from '../../lib/policyBadges';
 
 const props = withDefaults(defineProps<{ rows?: Row[] }>(), { rows: () => [] });
 
@@ -80,7 +80,7 @@ function removePolicy(id: number) {
             <td class="px-4 py-3 text-muted">{{ row.department }}</td>
             <td class="px-4 py-3 text-muted">{{ row.typeLabel }}</td>
             <td class="px-4 py-3">
-              <span :class="badgeClassOf(String(row.status))">{{ row.statusLabel }}</span>
+              <span :class="policyBadgeClass(String(row.status))"><span class="h-1.5 w-1.5 rounded-full bg-current" />{{ row.statusLabel }}</span>
             </td>
             <td class="px-4 py-3 font-mono text-xs text-muted">{{ row.version || '—' }}</td>
             <td class="px-4 py-3 text-right whitespace-nowrap">

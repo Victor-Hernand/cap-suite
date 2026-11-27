@@ -1,6 +1,5 @@
 ---
 import {
-  badgeClassOf,
   labelOf,
   policyClassifications,
   policyStatuses,
@@ -9,6 +8,7 @@ import {
   type PolicyStatus,
   type PolicyType,
 } from '../data/policies';
+import { policyBadgeClass } from '../lib/policyBadges';
 import { formatVersionLine } from '../lib/dates';
 
 interface Props {
@@ -24,8 +24,8 @@ const versionLine = formatVersionLine(version, effectiveDate);
 ---
 
 <div class="flex flex-wrap items-center gap-1.5">
-  <span class={badgeClassOf(type)}>{labelOf(policyTypes, type)}</span>
-  <span class={badgeClassOf(status)}>{labelOf(policyStatuses, status)}</span>
-  <span class={badgeClassOf(classification)}>{labelOf(policyClassifications, classification)}</span>
+  <span class={policyBadgeClass(type)}>{labelOf(policyTypes, type)}</span>
+  <span class={policyBadgeClass(status)}><span class="h-1.5 w-1.5 rounded-full bg-current"></span>{labelOf(policyStatuses, status)}</span>
+  <span class={policyBadgeClass(classification)}>{labelOf(policyClassifications, classification)}</span>
   {versionLine && <span class="font-mono text-[10px] tracking-[0.12em] text-muted">{versionLine}</span>}
 </div>
