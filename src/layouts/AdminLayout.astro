@@ -1,5 +1,4 @@
 ---
-import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 import ThemeHead from '../components/shell/ThemeHead.astro';
 import AppShell from '../components/shell/AppShell.astro';
@@ -20,7 +19,6 @@ const user = { name: 'Administrador', caption: company.name, logoutAction: '/adm
 <html lang="es">
   <head>
     <ThemeHead title={`${title} — Admin CAP Suite`} />
-    <ClientRouter />
   </head>
   <body class="bg-cap-page">
     <AppShell

@@ -56,10 +56,24 @@ const headerProps = { title, crumbs, systemName };
 
   window.capToast = showToast;
 
-  // ClientRouter reemplaza el DOM en cada navegación y dispara astro:page-load también en la carga inicial.
   let teardownShell = () => {};
-  document.addEventListener('astro:page-load', () => {
+
+  function startShell() {
     teardownShell();
     teardownShell = initShell();
-  });
+  }
+
+  function stopShell() {
+    teardownShell();
+    teardownShell = () => {};
+  }
+
+  // Con ClientRouter, astro:page-load llega también en la carga inicial; sin él (admin) se enlaza una sola vez.
+  const usesClientRouter = document.querySelector('meta[name="astro-view-transitions-enabled"]') !== null;
+  if (usesClientRouter) {
+    document.addEventListener('astro:before-swap', stopShell);
+    document.addEventListener('astro:page-load', startShell);
+  } else {
+    startShell();
+  }
 </script>

@@ -20,7 +20,7 @@ const initials = user.name
     <strong class="cap-shell-sidebar__user-name">{user.name}</strong>
     <small class="cap-shell-sidebar__user-mail">{user.caption}</small>
   </div>
-  <a class="cap-shell-sidebar__user-menu" href={user.logoutAction} aria-label="Cerrar sesión" data-astro-reload>
-    <i class="mdi mdi-logout" aria-hidden="true"></i>
-  </a>
+  <form method="POST" action={user.logoutAction}>
+    <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+  </form>
 </div>

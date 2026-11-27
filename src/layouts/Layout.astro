@@ -10,24 +10,17 @@ interface Props {
   crumbs?: string[];
 }
 
-const PRODUCT_NAME = 'CAP Suite';
-
 const { title, crumbs } = Astro.props;
-// Las páginas pasan el título del documento («Aplicaciones — CAP Suite»); el header muestra solo el de la página.
-const pageTitle = title
-  .split(' — ')
-  .filter((part) => part !== PRODUCT_NAME)
-  .join(' — ');
 ---
 
 <html lang="es">
   <head>
-    <ThemeHead title={title} />
+    <ThemeHead title={`${title} — CAP Suite`} />
     <ClientRouter />
   </head>
   <body class="bg-cap-page">
     <AppShell
-      title={pageTitle}
+      title={title}
       crumbs={crumbs}
       systemName="Portal"
       navigation={publicNavigation}
