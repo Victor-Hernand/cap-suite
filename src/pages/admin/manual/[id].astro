@@ -16,7 +16,7 @@ const pdfUrl = manual.pdfPath
 const sectionLabelClass = 'font-mono text-[10px] uppercase tracking-widest text-muted';
 ---
 
-<AdminLayout title={manual.title} active="manual">
+<AdminLayout title={manual.title}>
   <a href="/admin/manual" class="text-xs font-semibold text-muted hover:text-ink">← Todos los manuales</a>
   <h1 class="mt-2 text-2xl font-extrabold">{manual.title}</h1>
   {manual.description && <p class="mt-1 max-w-4xl text-sm text-body">{manual.description}</p>}

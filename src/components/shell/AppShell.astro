@@ -1,0 +1,65 @@
+---
+import type { NavGroup, PortalLink, ShellUser } from '../../data/navigation';
+import ShellHeader from './ShellHeader.astro';
+import ShellMoreSheet from './ShellMoreSheet.astro';
+import ShellSidebar from './ShellSidebar.astro';
+import ShellTabBar from './ShellTabBar.astro';
+
+interface Props {
+  title: string;
+  crumbs?: string[];
+  systemName: string;
+  navigation: NavGroup[];
+  user?: ShellUser | null;
+  portalLink?: PortalLink | null;
+}
+
+const { title, crumbs = [], systemName, navigation, user = null, portalLink = null } = Astro.props;
+const headerProps = { title, crumbs, systemName };
+---
+
+<a
+  href="#contenido"
+  class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-cap-toast focus:rounded-cap-control focus:bg-cap-card focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-gray-900 dark:focus:text-gray-100"
+>
+  Saltar al contenido
+</a>
+
+<div class="cap-shell">
+  <ShellSidebar systemName={systemName} navigation={navigation} user={user} portalLink={portalLink} />
+
+  <div class="cap-shell__main">
+    {/* Reenviar el slot vacío lo daría por presente: el header solo pinta el buscador si llega. */}
+    {Astro.slots.has('search') ? (
+      <ShellHeader {...headerProps}>
+        <slot name="search" slot="search" />
+      </ShellHeader>
+    ) : (
+      <ShellHeader {...headerProps} />
+    )}
+
+    <main class="cap-shell__content" id="contenido">
+      <div class="flex flex-col gap-6">
+        <slot />
+      </div>
+    </main>
+  </div>
+
+  <ShellTabBar navigation={navigation} />
+  <ShellMoreSheet navigation={navigation} user={user} portalLink={portalLink} />
+  <div class="cap-toaster" data-cap-toaster></div>
+</div>
+
+<script>
+  import { initShell } from '../../design/shell.js';
+  import { showToast } from '../../design/shell/js/toasts.js';
+
+  window.capToast = showToast;
+
+  // ClientRouter reemplaza el DOM en cada navegación y dispara astro:page-load también en la carga inicial.
+  let teardownShell = () => {};
+  document.addEventListener('astro:page-load', () => {
+    teardownShell();
+    teardownShell = initShell();
+  });
+</script>

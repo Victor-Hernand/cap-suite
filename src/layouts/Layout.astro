@@ -1,15 +1,23 @@
 ---
 import { ClientRouter } from 'astro:transitions';
 import ThemeHead from '../components/shell/ThemeHead.astro';
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
+import AppShell from '../components/shell/AppShell.astro';
+import { publicNavigation } from '../data/navigation';
 import '../styles/global.css';
 
 interface Props {
   title: string;
+  crumbs?: string[];
 }
 
-const { title } = Astro.props;
+const PRODUCT_NAME = 'CAP Suite';
+
+const { title, crumbs } = Astro.props;
+// Las páginas pasan el título del documento («Aplicaciones — CAP Suite»); el header muestra solo el de la página.
+const pageTitle = title
+  .split(' — ')
+  .filter((part) => part !== PRODUCT_NAME)
+  .join(' — ');
 ---
 
 <html lang="es">
@@ -17,17 +25,15 @@ const { title } = Astro.props;
     <ThemeHead title={title} />
     <ClientRouter />
   </head>
-  <body class="flex min-h-screen flex-col bg-base font-sans text-ink [background-image:radial-gradient(130%_90%_at_50%_-25%,#ffffff_0%,#eef0f3_65%)]">
-    <a
-      href="#contenido"
-      class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-xl focus:bg-ink focus:px-4 focus:py-2 focus:font-semibold focus:text-white"
+  <body class="bg-cap-page">
+    <AppShell
+      title={pageTitle}
+      crumbs={crumbs}
+      systemName="Portal"
+      navigation={publicNavigation}
+      portalLink={{ label: 'Administración', href: '/admin' }}
     >
-      Saltar al contenido
-    </a>
-    <Nav />
-    <main id="contenido" class="flex-1 page-enter">
       <slot />
-    </main>
-    <Footer />
+    </AppShell>
   </body>
 </html>

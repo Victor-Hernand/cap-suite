@@ -1,0 +1,26 @@
+---
+import type { ShellUser } from '../../data/navigation';
+
+interface Props {
+  user: ShellUser;
+}
+
+const { user } = Astro.props;
+const initials = user.name
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((word) => word[0].toUpperCase())
+  .join('');
+---
+
+<div class="cap-shell-sidebar__user">
+  <span class="cap-shell-avatar" aria-hidden="true">{initials}</span>
+  <div class="cap-shell-sidebar__user-text">
+    <strong class="cap-shell-sidebar__user-name">{user.name}</strong>
+    <small class="cap-shell-sidebar__user-mail">{user.caption}</small>
+  </div>
+  <a class="cap-shell-sidebar__user-menu" href={user.logoutAction} aria-label="Cerrar sesión" data-astro-reload>
+    <i class="mdi mdi-logout" aria-hidden="true"></i>
+  </a>
+</div>
