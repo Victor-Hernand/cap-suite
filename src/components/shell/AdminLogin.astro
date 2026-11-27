@@ -23,7 +23,7 @@ const { errorMessage = null } = Astro.props;
   <section class="cap-login__card cap-glass--light">
     <form class="cap-login__form" method="POST" action={actions.auth.login} data-cap-login-form="Ingresando…">
       <h1 class="cap-login__title">Ingresa a la administración</h1>
-      <p class="cap-login__subtitle">{company.loginSubtitle}</p>
+      <p class="cap-login__subtitle">Ingresa la contraseña de administración.</p>
 
       {errorMessage && (
         <div class="cap-alert cap-alert--error" id="login-error" role="alert">

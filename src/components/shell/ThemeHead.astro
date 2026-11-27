@@ -3,13 +3,13 @@ interface Props {
   title: string;
 }
 
+// ClientRouter reemplaza los atributos de <html> al navegar: el script reaplica el tema tras cada cambio.
 const { title } = Astro.props;
 ---
 
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
-<!-- ClientRouter reemplaza los atributos de <html> al navegar: se vuelve a aplicar el tema tras cada cambio. -->
 <script is:inline>
   (() => {
     const applyStoredTheme = () => {
