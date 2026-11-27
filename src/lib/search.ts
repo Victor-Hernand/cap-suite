@@ -4,8 +4,6 @@ import { listVisiblePolicies } from './policies';
 import { listDepartments } from './departments';
 import { type Db, listApps, listResources, listContacts, listCompanies } from './db';
 
-export { filterSearchItems } from './filterSearchItems';
-
 export function buildSearchItems(db: Db): SearchItem[] {
   return [
     ...listApps(db).map((app) => ({

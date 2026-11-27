@@ -2,7 +2,8 @@ import { describe, expect, test } from 'vitest';
 import type { SearchItem } from '../src/data/types';
 import { openDb } from '../src/lib/db';
 import { createPolicy, publishPolicyVersion } from '../src/lib/policies';
-import { buildSearchItems, filterSearchItems } from '../src/lib/search';
+import { filterSearchItems } from '../src/lib/filterSearchItems';
+import { buildSearchItems } from '../src/lib/search';
 import { draftInput } from './policyFixtures';
 
 test('la búsqueda incluye políticas visibles y departamentos, nunca borradores', () => {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { SearchItem } from '../data/types';
 import { filterSearchItems } from '../lib/filterSearchItems';
 import SearchResultsList from './SearchResultsList.vue';
@@ -16,12 +16,15 @@ const activeIndex = ref(0);
 const container = ref<HTMLElement | null>(null);
 const mobilePanel = ref<HTMLElement | null>(null);
 const mobileInput = ref<HTMLInputElement | null>(null);
+const mobileTrigger = ref<HTMLElement | null>(null);
 
 const results = computed(() => filterSearchItems(props.items, query.value));
 const activeItem = computed(() => results.value[activeIndex.value]);
+const activeListboxId = computed(() => (isMobileOpen.value ? mobileListboxId : desktopListboxId));
 
 function optionId(listboxId: string): string | undefined {
-  return isOpen.value && activeItem.value ? `${listboxId}-option-${activeIndex.value}` : undefined;
+  const isActiveListbox = listboxId === activeListboxId.value;
+  return isOpen.value && isActiveListbox && activeItem.value ? `${listboxId}-option-${activeIndex.value}` : undefined;
 }
 
 watch(results, () => {
@@ -36,52 +39,62 @@ function closeResults() {
   isOpen.value = false;
 }
 
-function closeMobile() {
+async function openMobile(trigger: HTMLElement) {
+  mobileTrigger.value = trigger;
+  isMobileOpen.value = true;
+  activeIndex.value = 0;
+  openResults();
+  await nextTick();
+  mobileInput.value?.focus();
+}
+
+function closeMobile({ restoreFocus }: { restoreFocus: boolean }) {
   isMobileOpen.value = false;
   closeResults();
   query.value = '';
+  if (restoreFocus) mobileTrigger.value?.focus();
 }
 
-function openItem(item: SearchItem) {
-  if (item.url.startsWith('http')) {
-    window.open(item.url, '_blank', 'noopener');
-  } else {
-    window.location.assign(item.url);
-  }
+function activateActiveOption() {
+  document.getElementById(`${activeListboxId.value}-option-${activeIndex.value}`)?.click();
 }
 
 function onInputKeydown(event: KeyboardEvent) {
   if (event.key === 'ArrowDown') {
     event.preventDefault();
-    openResults();
-    activeIndex.value = Math.min(activeIndex.value + 1, results.value.length - 1);
+    if (isOpen.value) {
+      activeIndex.value = Math.min(activeIndex.value + 1, Math.max(results.value.length - 1, 0));
+    } else {
+      activeIndex.value = 0;
+      openResults();
+    }
   } else if (event.key === 'ArrowUp') {
     event.preventDefault();
     activeIndex.value = Math.max(activeIndex.value - 1, 0);
   } else if (event.key === 'Enter' && isOpen.value && activeItem.value) {
     event.preventDefault();
-    openItem(activeItem.value);
+    activateActiveOption();
   } else if (event.key === 'Escape') {
     event.preventDefault();
-    if (isMobileOpen.value) closeMobile();
+    if (isMobileOpen.value) closeMobile({ restoreFocus: true });
     else closeResults();
   }
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
-  const target = event.target as Node;
-  if (container.value?.contains(target) || mobilePanel.value?.contains(target)) return;
-  if (isMobileOpen.value) closeMobile();
+  const target = event.target as Element;
+  const isInsideSearch = container.value?.contains(target) || mobilePanel.value?.contains(target);
+  if (isInsideSearch || target.closest('[data-cap-search-open]')) return;
+  if (isMobileOpen.value) closeMobile({ restoreFocus: false });
   else closeResults();
 }
 
-async function onDocumentClick(event: MouseEvent) {
-  if (!(event.target instanceof Element) || !event.target.closest('[data-cap-search-open]')) return;
+function onDocumentClick(event: MouseEvent) {
+  const trigger = event.target instanceof Element ? event.target.closest<HTMLElement>('[data-cap-search-open]') : null;
+  if (!trigger) return;
   event.preventDefault();
-  isMobileOpen.value = true;
-  openResults();
-  await Promise.resolve();
-  mobileInput.value?.focus();
+  if (isMobileOpen.value) closeMobile({ restoreFocus: true });
+  else openMobile(trigger);
 }
 
 onMounted(() => {
@@ -154,7 +167,7 @@ onBeforeUnmount(() => {
             @input="openResults"
             @keydown="onInputKeydown"
           />
-          <button type="button" class="cap-shell-topbar__icon-button" aria-label="Cerrar búsqueda" @click="closeMobile">
+          <button type="button" class="cap-shell-topbar__icon-button" aria-label="Cerrar búsqueda" @click="closeMobile({ restoreFocus: true })">
             <i class="mdi mdi-close" aria-hidden="true"></i>
           </button>
         </div>
@@ -164,7 +177,7 @@ onBeforeUnmount(() => {
           :active-index="activeIndex"
           :query="query"
           @hover="activeIndex = $event"
-          @select="closeMobile"
+          @select="closeMobile({ restoreFocus: false })"
         />
       </div>
     </div>
