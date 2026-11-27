@@ -12,3 +12,7 @@ interface CapToastOptions {
 interface Window {
   capToast: (options: CapToastOptions) => unknown;
 }
+
+declare module '*/design/vue/helpers.js' {
+  export function initialsOf(name: string): string;
+}

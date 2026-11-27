@@ -1,14 +1,18 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SectionHeader from '../components/SectionHeader.astro';
 import AppCard from '../components/AppCard.astro';
 import { getDb, listApps } from '../lib/db';
 import { appCategories } from '../data/categories';
+import { emptyStateClass, fieldLabelClass, fieldSelectClass } from '../lib/capClasses';
 
 const db = getDb();
 const apps = listApps(db);
 
+const requestedCategory = Astro.url.searchParams.get('categoria') ?? '';
+const selectedCategory = appCategories.some((category) => category.id === requestedCategory) ? requestedCategory : '';
+
 const categorySections = appCategories
+  .filter((category) => !selectedCategory || category.id === selectedCategory)
   .map((category) => ({ ...category, apps: apps.filter((app) => app.category === category.id) }))
   .filter((section) => section.apps.length > 0);
 
@@ -20,42 +24,75 @@ const upcomingApps = [
   { name: 'To-Do + Pomodoro', description: 'Tareas personales con temporizador.' },
   { name: 'Contratos tipo', description: 'Plantillas de contratos.' },
 ];
+
+const sectionTitleClass = 'font-display text-lg font-semibold text-gray-900 dark:text-gray-100';
 ---
 
 <Layout title="Aplicaciones">
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-6 sm:px-6">
-    <SectionHeader as="h1" eyebrow="Aplicaciones" title="Todos los sistemas del grupo" />
-
-    {categorySections.length === 0 && (
-      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
-        Aún no hay aplicaciones registradas.
-      </p>
-    )}
-
-    {categorySections.map((section) => (
-      <div class="mt-10">
-        <div class="flex items-baseline justify-between border-b border-edge pb-2">
-          <h2 class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{section.label}</h2>
-          <span class="font-mono text-[10px] tracking-[0.18em] text-muted">
-            {section.apps.length} {section.apps.length === 1 ? 'sistema' : 'sistemas'}
-          </span>
+  {apps.length === 0 ? (
+    <div class={emptyStateClass}>
+      <i class="mdi mdi-apps text-cap-icon text-gray-400" aria-hidden="true"></i>
+      <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Aún no hay aplicaciones registradas</p>
+      <p class="mt-1 text-sm text-cap-text-soft">Se agregan desde el panel de administración.</p>
+    </div>
+  ) : (
+    <>
+      <form method="get" class="flex flex-wrap items-end justify-between gap-3" role="search" aria-label="Filtrar aplicaciones">
+        <p class="text-sm text-cap-text-soft tabular-nums">{apps.length} sistemas, agrupados por categoría</p>
+        <div class="w-full sm:w-64">
+          <label for="app-category" class={fieldLabelClass}>Categoría</label>
+          <select id="app-category" name="categoria" class={fieldSelectClass} data-submit-on-change>
+            <option value="">Todas</option>
+            {appCategories.map((category) => (
+              <option value={category.id} selected={category.id === selectedCategory}>{category.label}</option>
+            ))}
+          </select>
         </div>
-        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {section.apps.map((app) => <AppCard app={app} />)}
-        </div>
-      </div>
-    ))}
+        <noscript><button type="submit" class="cap-button cap-button--secondary">Filtrar</button></noscript>
+      </form>
 
-    <div class="mt-12">
-      <h2 class="border-b border-edge pb-2 font-mono text-[10px] uppercase tracking-[0.22em] text-muted">En camino</h2>
-      <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {upcomingApps.map((app) => (
-          <div class="rounded-xl border border-dashed border-edge-strong p-4">
-            <p class="text-sm font-bold text-ink">{app.name}</p>
-            <p class="mt-1 text-sm text-body">{app.description}</p>
+      {categorySections.length === 0 && (
+        <div class="flex flex-col items-center justify-center px-6 py-12 text-center">
+          <i class="mdi mdi-filter-off-outline text-cap-icon text-gray-400" aria-hidden="true"></i>
+          <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Ninguna aplicación coincide con los filtros</p>
+          <p class="mt-1 text-sm text-cap-text-soft">Esta categoría aún no tiene sistemas.</p>
+          <div class="mt-4"><a href="/apps" class="cap-button cap-button--secondary">Limpiar filtros</a></div>
+        </div>
+      )}
+
+      {categorySections.map((section) => (
+        <section aria-labelledby={`apps-${section.id}`} class="flex flex-col gap-3">
+          <div class="flex items-baseline justify-between gap-3">
+            <h2 id={`apps-${section.id}`} class={sectionTitleClass}>{section.label}</h2>
+            <span class="text-xs text-cap-text-soft tabular-nums">
+              {section.apps.length} {section.apps.length === 1 ? 'sistema' : 'sistemas'}
+            </span>
           </div>
-        ))}
-      </div>
+          <div class="cap-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {section.apps.map((app) => <AppCard app={app} />)}
+          </div>
+        </section>
+      ))}
+    </>
+  )}
+
+  <section aria-labelledby="apps-upcoming" class="flex flex-col gap-3">
+    <h2 id="apps-upcoming" class={sectionTitleClass}>En camino</h2>
+    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {upcomingApps.map((app) => (
+        <div class="rounded-cap-card border border-dashed border-cap-divider p-5">
+          <p class="text-sm font-semibold text-gray-900 dark:text-gray-100">{app.name}</p>
+          <p class="mt-1 text-sm text-cap-text-soft">{app.description}</p>
+        </div>
+      ))}
     </div>
   </section>
 </Layout>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    document.querySelectorAll<HTMLSelectElement>('select[data-submit-on-change]').forEach((select) => {
+      select.addEventListener('change', () => select.form?.requestSubmit());
+    });
+  });
+</script>

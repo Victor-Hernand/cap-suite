@@ -1,6 +1,5 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import SectionHeader from '../../components/SectionHeader.astro';
 import PolicyLibrary from '../../components/PolicyLibrary.vue';
 import { getDb } from '../../lib/db';
 import { listVisiblePolicies } from '../../lib/policies';
@@ -14,12 +13,9 @@ const initialFilters = filtersFromQuery(Astro.url.searchParams, departments);
 ---
 
 <Layout title="Políticas">
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
-    <SectionHeader as="h1" eyebrow="Políticas" title="Centro de Políticas y Lineamientos" />
-    <p class="mt-3 max-w-2xl text-sm text-body">
-      Consulta las políticas, procedimientos e instructivos vigentes del grupo. Filtra por departamento, tipo o estado
-      para encontrar el documento que necesitas.
-    </p>
-    <PolicyLibrary client:load policies={policies} departments={departments} initialFilters={initialFilters} />
-  </section>
+  <p class="max-w-3xl text-sm text-cap-text-soft">
+    Consulta las políticas, procedimientos e instructivos vigentes. Filtra por estado, departamento, tipo o
+    clasificación para encontrar el documento que necesitas.
+  </p>
+  <PolicyLibrary client:load policies={policies} departments={departments} initialFilters={initialFilters} />
 </Layout>

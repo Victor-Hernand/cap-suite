@@ -7,7 +7,7 @@ import { getDepartmentByName } from '../../lib/departments';
 import { attachmentKinds, labelOf, policyClassifications } from '../../data/policies';
 import { policyBadgeClass } from '../../lib/policyBadges';
 import { formatDate } from '../../lib/dates';
-import { cardClass, eyebrowClass } from '../../lib/publicStyles';
+import { cardClass } from '../../lib/capClasses';
 
 const SUPERVISOR = 'Mejora Continua y Automatización';
 const EMBEDDABLE_IMAGE = /\.(png|jpe?g|webp)$/i;
@@ -25,7 +25,7 @@ const textSections = [
   { title: 'Ámbito de aplicación', text: policy.scope },
 ].filter((section) => section.text);
 
-const sidebarFacts = [
+const recordFacts = [
   { label: 'Clasificación', value: labelOf(policyClassifications, policy.classification) },
   { label: 'Vigencia desde', value: formatDate(policy.effectiveDate) },
   { label: 'Próxima revisión', value: formatDate(policy.nextReviewDate) },
@@ -36,134 +36,135 @@ const sidebarFacts = [
   { label: 'Indicadores asociados', value: policy.indicators },
 ].filter((fact) => fact.value);
 
-const proseClass = 'mt-2 whitespace-pre-line text-sm leading-relaxed text-body';
-const sideBoxClass = `${cardClass} p-4`;
+const sectionTitleClass = 'font-display text-base font-semibold text-gray-900 dark:text-gray-100';
+const proseClass = 'mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-gray-300';
+const textLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:decoration-current';
 ---
 
-<Layout title={policy.title}>
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
-    <a href="/politicas" class="text-sm font-semibold text-body hover:text-ink">&larr; Volver al Centro de Políticas</a>
-
-    {policy.status === 'obsolete' && (
-      <p class="mt-4 rounded-xl border border-admin-gold bg-admin-gold/15 px-4 py-3 text-sm font-semibold text-ink" role="status">
-        Esta política está obsoleta y ya no está vigente. Consulta la versión vigente antes de aplicarla.
-      </p>
+<Layout title={policy.title} crumbs={['Políticas']}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <a href="/politicas" class="inline-flex items-center gap-1 text-sm text-cap-text-soft transition-colors duration-cap-fast ease-cap hover:text-gray-900 dark:hover:text-gray-100">
+      <i class="mdi mdi-arrow-left text-base leading-none" aria-hidden="true"></i>Volver al Centro de Políticas
+    </a>
+    {officialHref && (
+      <a href={officialHref} download class="cap-button cap-button--primary">
+        <i class="mdi mdi-download text-xl leading-none" aria-hidden="true"></i>Descargar oficial
+      </a>
     )}
+  </div>
 
-    <div class="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <article class={`${cardClass} p-5 sm:p-7`}>
-        <PolicyBadges
-          type={policy.type}
-          status={policy.status}
-          classification={policy.classification}
-          version={policy.version}
-          effectiveDate={policy.effectiveDate}
-        />
-        <h1 class="mt-3 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{policy.title}</h1>
-        <p class={`${eyebrowClass} mt-2`}>
-          {policy.department}{policy.owner && ` · Responsable: ${policy.owner}`}
-        </p>
-
-        {policy.summary && (
-          <p class="mt-5 rounded-lg border border-edge bg-base px-4 py-3 text-sm text-body">
-            <strong class="text-ink">Resumen:</strong> {policy.summary}
-          </p>
-        )}
-
-        {textSections.map((section) => (
-          <div class="mt-7">
-            <h2 class={eyebrowClass}>{section.title}</h2>
-            <p class={proseClass}>{section.text}</p>
-          </div>
-        ))}
-
-        {policy.guidelines.length > 0 && (
-          <div class="mt-7">
-            <h2 class={eyebrowClass}>Lineamientos</h2>
-            <ol class="mt-3 space-y-3">
-              {policy.guidelines.map((guideline, index) => (
-                <li class="rounded-lg border border-edge px-4 py-3">
-                  <h3 class="text-sm font-bold text-ink">{index + 1}. {guideline.title}</h3>
-                  <p class={proseClass}>{guideline.body}</p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        )}
-
-        {policy.attachments.length > 0 && (
-          <div class="mt-7">
-            <h2 class={eyebrowClass}>Anexos</h2>
-            <ul class="mt-3 space-y-2">
-              {policy.attachments.map((attachment) => {
-                const isFile = attachment.kind === 'file';
-                const href = isFile ? `/files/${attachment.filePath}` : attachment.url;
-                return (
-                  <li>
-                    <a
-                      href={href}
-                      target={isFile ? undefined : '_blank'}
-                      rel={isFile ? undefined : 'noopener'}
-                      class="flex items-center gap-3 rounded-lg border border-edge px-3 py-2 text-sm text-ink hover:bg-base"
-                    >
-                      <span class={policyBadgeClass(attachment.kind)}>{labelOf(attachmentKinds, attachment.kind)}</span>
-                      {attachment.label}
-                      {!isFile && <span class="sr-only"> (se abre en una pestaña nueva)</span>}
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-
-        {officialHref && officialIsImage && (
-          <img src={officialHref} alt={`Documento oficial: ${policy.title}`} class="mt-7 w-full rounded-lg border border-edge" />
-        )}
-
-        {officialHref && (
-          <a
-            href={officialHref}
-            download
-            class="mt-7 inline-block rounded-lg bg-ink px-4 py-2 text-sm font-bold text-white"
-          >
-            Descargar oficial
-          </a>
-        )}
-      </article>
-
-      <aside class="space-y-3 self-start">
-        <div class={sideBoxClass}>
-          <p class={eyebrowClass}>Departamento</p>
-          <p class="mt-1 text-sm font-bold text-ink">
-            {department
-              ? <a href={`/departamentos/${department.slug}`} class="underline decoration-edge-strong underline-offset-2 hover:decoration-ink">{policy.department}</a>
-              : policy.department}
-          </p>
-        </div>
-
-        {sidebarFacts.map((fact) => (
-          <div class={sideBoxClass}>
-            <p class={eyebrowClass}>{fact.label}</p>
-            <p class="mt-1 whitespace-pre-line text-sm text-ink">{fact.value}</p>
-          </div>
-        ))}
-
-        {policy.versions.length > 0 && (
-          <div class={sideBoxClass}>
-            <p class={eyebrowClass}>Control de cambios</p>
-            <ul class="mt-2 space-y-2">
-              {policy.versions.map((entry) => (
-                <li class="text-sm text-ink">
-                  <span class="font-bold">{entry.version}</span>
-                  <span class="text-body"> · {formatDate(entry.date)} — {entry.author}</span>
-                  <span class="block text-xs text-muted">{entry.reason}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </aside>
+  {policy.status === 'obsolete' && (
+    <div role="status" class="cap-alert cap-alert--warning">
+      <i class="cap-alert__icon mdi mdi-alert-outline" aria-hidden="true"></i>
+      <div><strong class="cap-alert__title">Esta política está obsoleta</strong><span class="cap-alert__detail">Ya no está vigente. Consulta la versión vigente antes de aplicarla.</span></div>
     </div>
-  </section>
+  )}
+
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+    <article class={cardClass}>
+      <PolicyBadges
+        type={policy.type}
+        status={policy.status}
+        classification={policy.classification}
+        version={policy.version}
+        effectiveDate={policy.effectiveDate}
+      />
+
+      {policy.summary && (
+        <div class="mt-4 rounded-cap-control bg-cap-card-2 p-3 text-sm text-gray-700 dark:text-gray-300">
+          <strong class="font-semibold text-gray-900 dark:text-gray-100">Resumen:</strong> {policy.summary}
+        </div>
+      )}
+
+      {textSections.map((section) => (
+        <section class="mt-6">
+          <h2 class={sectionTitleClass}>{section.title}</h2>
+          <p class={proseClass}>{section.text}</p>
+        </section>
+      ))}
+
+      {policy.guidelines.length > 0 && (
+        <section class="mt-6">
+          <h2 class={sectionTitleClass}>Lineamientos</h2>
+          <ol class="mt-3 flex flex-col gap-3">
+            {policy.guidelines.map((guideline, index) => (
+              <li class="rounded-cap-control bg-cap-card-2 p-3">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{index + 1}. {guideline.title}</h3>
+                <p class={proseClass}>{guideline.body}</p>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
+      {policy.attachments.length > 0 && (
+        <section class="mt-6">
+          <h2 class={sectionTitleClass}>Anexos</h2>
+          <ul class="mt-3 flex flex-col gap-2">
+            {policy.attachments.map((attachment) => {
+              const isFile = attachment.kind === 'file';
+              const href = isFile ? `/files/${attachment.filePath}` : attachment.url;
+              return (
+                <li class="flex items-center gap-3 text-sm text-gray-900 dark:text-gray-100">
+                  <span class={policyBadgeClass(attachment.kind)}>{labelOf(attachmentKinds, attachment.kind)}</span>
+                  <a href={href} target={isFile ? undefined : '_blank'} rel={isFile ? undefined : 'noopener'} class={textLinkClass}>
+                    {attachment.label}
+                  </a>
+                  {!isFile && (
+                    <>
+                      <i class="mdi mdi-open-in-new text-base leading-none text-cap-text-soft" aria-hidden="true"></i>
+                      <span class="sr-only"> (se abre en una pestaña nueva)</span>
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+
+      {officialHref && officialIsImage && (
+        <img src={officialHref} alt={`Documento oficial: ${policy.title}`} class="mt-6 w-full rounded-cap-control border border-cap-divider" />
+      )}
+    </article>
+
+    <aside class="flex flex-col gap-6 self-start">
+      <section class={cardClass} aria-labelledby="policy-record-title">
+        <h2 id="policy-record-title" class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">Ficha</h2>
+        <dl class="mt-4 grid gap-x-6 gap-y-4 md:grid-cols-2 lg:grid-cols-1">
+          <div>
+            <dt class="text-xs font-medium text-cap-text-soft">Departamento</dt>
+            <dd class="mt-1 text-sm text-gray-900 dark:text-gray-100">
+              {department ? <a href={`/departamentos/${department.slug}`} class={textLinkClass}>{policy.department}</a> : policy.department}
+            </dd>
+          </div>
+          {recordFacts.map((fact) => (
+            <div>
+              <dt class="text-xs font-medium text-cap-text-soft">{fact.label}</dt>
+              <dd class="mt-1 whitespace-pre-line text-sm text-gray-900 dark:text-gray-100">{fact.value}</dd>
+            </div>
+          ))}
+        </dl>
+      </section>
+
+      <section class={cardClass} aria-labelledby="policy-history-title">
+        <h2 id="policy-history-title" class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">Control de cambios</h2>
+        {policy.versions.length === 0 ? (
+          <p class="mt-2 text-sm text-cap-text-soft">Aún no hay cambios registrados.</p>
+        ) : (
+          <ol class="mt-4 space-y-4">
+            {policy.versions.map((entry) => (
+              <li class="flex gap-3">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-cap-card-2 text-cap-text-soft" aria-hidden="true"><i class="mdi mdi-file-document-outline text-base leading-none"></i></span>
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{entry.version} · {entry.reason}</p>
+                  <p class="text-xs text-cap-text-soft">{entry.author}, {formatDate(entry.date)}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
+    </aside>
+  </div>
 </Layout>

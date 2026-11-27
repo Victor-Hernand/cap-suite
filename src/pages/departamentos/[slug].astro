@@ -8,7 +8,7 @@ import { formats as formatStore, links as linkStore, notices as noticeStore, pro
 import { EMPTY_FILTERS, filtersToQuery } from '../../lib/policyFilter';
 import { getDepartmentBySlug } from '../../lib/departments';
 import { formatDate } from '../../lib/dates';
-import { cardClass, emptyStateClass, eyebrowClass } from '../../lib/publicStyles';
+import { cardClass } from '../../lib/capClasses';
 
 const db = getDb();
 const department = getDepartmentBySlug(db, Astro.params.slug ?? '');
@@ -29,165 +29,163 @@ const counters = [
   { label: 'Personas', value: team.length },
 ];
 
-const blockClass = `${cardClass} p-5`;
-const rowClass = 'flex items-center justify-between gap-3 rounded-lg border border-edge px-3 py-2 text-sm text-ink hover:bg-base';
+const cardTitleClass = 'font-display text-lg font-semibold text-gray-900 dark:text-gray-100';
+const sectionEmptyClass = 'mt-2 text-sm text-cap-text-soft';
+const rowLinkClass =
+  '-mx-3 flex items-center justify-between gap-3 rounded-cap-control px-3 py-2.5 text-sm text-gray-900 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2 dark:text-gray-100';
 
 function formatHref(format: { url: string | null; filePath: string | null }): string {
   return format.url ?? `/files/${format.filePath}`;
 }
 ---
 
-<Layout title={department.name}>
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
-    <a href="/departamentos" class="text-sm font-semibold text-body hover:text-ink">&larr; Volver a Departamentos</a>
+<Layout title={department.name} crumbs={['Departamentos']}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <a href="/departamentos" class="inline-flex items-center gap-1 text-sm text-cap-text-soft transition-colors duration-cap-fast ease-cap hover:text-gray-900 dark:hover:text-gray-100">
+      <i class="mdi mdi-arrow-left text-base leading-none" aria-hidden="true"></i>Volver a Departamentos
+    </a>
+    <p class="text-sm text-cap-text-soft">Políticas, procesos, formatos, equipo, enlaces y avisos de {department.name}.</p>
+  </div>
 
-    <header class="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p class={eyebrowClass}>Departamento</p>
-        <h1 class="mt-1.5 text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">{department.name}</h1>
-        <p class="mt-2 max-w-xl text-sm text-body">
-          Todo lo que necesitas para trabajar con {department.name}: políticas, procesos, formatos, equipo, sistemas y avisos.
-        </p>
+  <dl class="grid grid-cols-2 gap-3 md:grid-cols-4">
+    {counters.map((counter) => (
+      <div class="flex flex-col-reverse rounded-cap-card border border-cap-divider bg-cap-card p-4">
+        <dt class="mt-1 text-xs text-cap-text-soft">{counter.label}</dt>
+        <dd class="font-display text-3xl font-semibold tabular-nums text-gray-900 dark:text-gray-100" data-cap-count={counter.value} data-cap-format="integer">{counter.value}</dd>
       </div>
-      <dl class="grid grid-cols-4 gap-2">
-        {counters.map((counter) => (
-          <div class="flex flex-col-reverse rounded-xl border border-edge bg-surface px-4 py-2 text-center">
-            <dt class={eyebrowClass}>{counter.label}</dt>
-            <dd class="text-xl font-extrabold text-ink">{counter.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </header>
+    ))}
+  </dl>
 
-    <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <div class="space-y-6">
-        <div class={blockClass}>
-          <div class="flex items-baseline justify-between">
-            <h2 class={eyebrowClass}>Políticas del departamento</h2>
-            <a href={`/politicas?${allPoliciesQuery}`} class="text-sm font-semibold text-body hover:text-ink">Ver todas →</a>
-          </div>
-          {policies.length === 0 ? (
-            <p class={emptyStateClass}>Aún no hay políticas</p>
-          ) : (
-            <ul class="mt-3 space-y-2">
-              {policies.map((policy) => (
-                <li class="rounded-lg border border-edge px-3 py-2.5">
-                  <a href={`/politicas/${policy.slug}`} class="text-sm font-bold text-ink hover:underline">{policy.title}</a>
-                  <div class="mt-1.5">
-                    <PolicyBadges
-                      type={policy.type}
-                      status={policy.status}
-                      classification={policy.classification}
-                      version={policy.version}
-                      effectiveDate={policy.effectiveDate}
-                    />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+  <div class="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+    <div class="flex flex-col gap-6">
+      <section class={cardClass} aria-labelledby="department-policies-title">
+        <div class="flex items-baseline justify-between gap-3">
+          <h2 id="department-policies-title" class={cardTitleClass}>Políticas del departamento</h2>
+          <a href={`/politicas?${allPoliciesQuery}`} class="shrink-0 whitespace-nowrap text-sm text-gray-700 underline decoration-gray-400 underline-offset-2 hover:decoration-current dark:text-gray-300">Ver todas</a>
         </div>
+        {policies.length === 0 ? (
+          <p class={sectionEmptyClass}>Aún no hay políticas publicadas.</p>
+        ) : (
+          <ul class="mt-3 divide-y divide-cap-divider">
+            {policies.map((policy) => (
+              <li class="py-3">
+                <a href={`/politicas/${policy.slug}`} class="text-sm font-medium text-cap-brand hover:underline dark:text-cap-brand-soft">{policy.title}</a>
+                <div class="mt-1.5">
+                  <PolicyBadges
+                    type={policy.type}
+                    status={policy.status}
+                    classification={policy.classification}
+                    version={policy.version}
+                    effectiveDate={policy.effectiveDate}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
-        <div class={blockClass}>
-          <h2 class={eyebrowClass}>Procesos y flujos</h2>
-          {processes.length === 0 ? (
-            <p class={emptyStateClass}>Aún no hay procesos</p>
-          ) : (
-            <ol class="mt-3 space-y-3">
-              {processes.map((process, index) => (
-                <li class="rounded-lg border border-edge px-4 py-3">
-                  <h3 class="text-sm font-bold text-ink">{index + 1}. {process.name}</h3>
-                  <ul class="mt-2 flex flex-wrap items-center gap-1.5">
-                    {process.stepList.map((step, stepIndex) => (
-                      <>
-                        {stepIndex > 0 && <li class="text-muted" aria-hidden="true">→</li>}
-                        <li class="rounded-full border border-edge bg-base px-2.5 py-0.5 text-xs text-body">{step}</li>
-                      </>
-                    ))}
-                  </ul>
-                </li>
-              ))}
-            </ol>
-          )}
-        </div>
+      <section class={cardClass} aria-labelledby="department-processes-title">
+        <h2 id="department-processes-title" class={cardTitleClass}>Procesos y flujos</h2>
+        {processes.length === 0 ? (
+          <p class={sectionEmptyClass}>Aún no hay procesos documentados.</p>
+        ) : (
+          <ol class="mt-3 flex flex-col gap-3">
+            {processes.map((process, index) => (
+              <li class="rounded-cap-control bg-cap-card-2 p-3">
+                <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">{index + 1}. {process.name}</h3>
+                <ul class="mt-2 flex flex-wrap items-center gap-2">
+                  {process.stepList.map((step, stepIndex) => (
+                    <>
+                      {stepIndex > 0 && <li class="text-cap-text-soft" aria-hidden="true"><i class="mdi mdi-chevron-right text-base leading-none"></i></li>}
+                      <li class="rounded-md border border-cap-divider bg-cap-card px-2 py-0.5 text-xs text-gray-700 dark:text-gray-300">{step}</li>
+                    </>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ol>
+        )}
+      </section>
 
-        <div class={blockClass}>
-          <h2 class={eyebrowClass}>Formatos y plantillas</h2>
-          {formats.length === 0 ? (
-            <p class={emptyStateClass}>Aún no hay formatos</p>
-          ) : (
-            <ul class="mt-3 space-y-2">
-              {formats.map((format) => (
-                <li>
-                  <a
-                    href={formatHref(format)}
-                    target={format.url ? '_blank' : undefined}
-                    rel={format.url ? 'noopener' : undefined}
-                    download={format.url ? undefined : true}
-                    class={rowClass}
-                  >
-                    {format.name}
-                    <span class={eyebrowClass}>{format.url ? 'Enlace' : 'Descargar'}</span>
-                    {format.url && <span class="sr-only"> (se abre en una pestaña nueva)</span>}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </div>
-
-      <aside class="space-y-6 self-start">
-        <div class={blockClass}>
-          <h2 class={eyebrowClass}>Equipo</h2>
-          {team.length === 0 ? (
-            <p class={emptyStateClass}>Aún no hay personas en el directorio</p>
-          ) : (
-            <div class="mt-3 space-y-3">
-              {team.map((contact) => <ContactCard contact={contact} />)}
-            </div>
-          )}
-        </div>
-
-        <div class={blockClass}>
-          <h2 class={eyebrowClass}>Enlaces rápidos</h2>
-          {links.length === 0 ? (
-            <p class={emptyStateClass}>Aún no hay enlaces</p>
-          ) : (
-            <ul class="mt-3 space-y-2">
-              {links.map((link) => (
-                <li>
-                  <a href={link.url} target="_blank" rel="noopener" class={rowClass}>
-                    {link.label}
-                    <span class="sr-only"> (se abre en una pestaña nueva)</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-
-        <div class={blockClass}>
-          <h2 class={eyebrowClass}>Avisos</h2>
-          {notices.length === 0 ? (
-            <p class={emptyStateClass}>Sin avisos</p>
-          ) : (
-            <ul class="mt-3 space-y-2">
-              {notices.map((notice) => (
-                <li
-                  class:list={[
-                    'rounded-lg border px-3 py-2.5 text-sm text-ink',
-                    notice.kind === 'warning' ? 'border-admin-gold bg-admin-gold/15' : 'border-edge bg-base',
-                  ]}
+      <section class={cardClass} aria-labelledby="department-formats-title">
+        <h2 id="department-formats-title" class={cardTitleClass}>Formatos y plantillas</h2>
+        {formats.length === 0 ? (
+          <p class={sectionEmptyClass}>Aún no hay formatos.</p>
+        ) : (
+          <ul class="mt-3 flex flex-col">
+            {formats.map((format) => (
+              <li>
+                <a
+                  href={formatHref(format)}
+                  target={format.url ? '_blank' : undefined}
+                  rel={format.url ? 'noopener' : undefined}
+                  download={format.url ? undefined : true}
+                  class={rowLinkClass}
                 >
-                  <span class={`${eyebrowClass} block`}>{formatDate(notice.date)}</span>
-                  {notice.body}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      </aside>
+                  <span class="min-w-0 truncate">{format.name}</span>
+                  <span class="flex shrink-0 items-center gap-1 text-xs text-cap-text-soft">
+                    <i class={`mdi ${format.url ? 'mdi-open-in-new' : 'mdi-download'} text-base leading-none`} aria-hidden="true"></i>
+                    {format.url ? 'Enlace' : 'Descargar'}
+                  </span>
+                  {format.url && <span class="sr-only"> (se abre en una pestaña nueva)</span>}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
-  </section>
+
+    <aside class="flex flex-col gap-6 self-start">
+      <section class={cardClass} aria-labelledby="department-notices-title">
+        <h2 id="department-notices-title" class={cardTitleClass}>Avisos</h2>
+        {notices.length === 0 ? (
+          <p class={sectionEmptyClass}>Sin avisos por ahora.</p>
+        ) : (
+          <div class="mt-3 flex flex-col gap-3">
+            {notices.map((notice) => {
+              const isWarning = notice.kind === 'warning';
+              return (
+                <div role="status" class={`cap-alert ${isWarning ? 'cap-alert--warning' : 'cap-alert--info'}`}>
+                  <i class={`cap-alert__icon mdi ${isWarning ? 'mdi-alert-outline' : 'mdi-information-outline'}`} aria-hidden="true"></i>
+                  <div><strong class="cap-alert__title">{formatDate(notice.date)}</strong><span class="cap-alert__detail">{notice.body}</span></div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      <section class={cardClass} aria-labelledby="department-team-title">
+        <h2 id="department-team-title" class={cardTitleClass}>Equipo</h2>
+        {team.length === 0 ? (
+          <p class={sectionEmptyClass}>Aún no hay personas en el directorio.</p>
+        ) : (
+          <div class="mt-3 flex flex-col gap-3">
+            {team.map((contact) => <ContactCard contact={contact} nested />)}
+          </div>
+        )}
+      </section>
+
+      <section class={cardClass} aria-labelledby="department-links-title">
+        <h2 id="department-links-title" class={cardTitleClass}>Enlaces rápidos</h2>
+        {links.length === 0 ? (
+          <p class={sectionEmptyClass}>Aún no hay enlaces.</p>
+        ) : (
+          <ul class="mt-3 flex flex-col">
+            {links.map((link) => (
+              <li>
+                <a href={link.url} target="_blank" rel="noopener" class={rowLinkClass}>
+                  <span class="min-w-0 truncate">{link.label}</span>
+                  <i class="mdi mdi-open-in-new shrink-0 text-base leading-none text-cap-text-soft" aria-hidden="true"></i>
+                  <span class="sr-only"> (se abre en una pestaña nueva)</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </aside>
+  </div>
 </Layout>

@@ -1,0 +1,20 @@
+---
+import { initialsOf } from '../design/vue/helpers.js';
+import { logoSrc } from '../lib/assets';
+
+interface Props {
+  name: string;
+  photoPath: string | null;
+}
+
+const { name, photoPath } = Astro.props;
+const photo = logoSrc(photoPath);
+---
+
+{photo ? (
+  <img src={photo} alt={`Foto de ${name}`} width="40" height="40" class="h-10 w-10 shrink-0 rounded-full object-cover" />
+) : (
+  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-cap-taupe text-xs font-semibold text-gray-900" aria-hidden="true">
+    {initialsOf(name)}
+  </span>
+)}

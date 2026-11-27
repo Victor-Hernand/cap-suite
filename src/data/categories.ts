@@ -9,9 +9,9 @@ export const appCategories: { id: AppCategory; label: string }[] = [
   { id: 'marketing', label: 'Marketing y Clientes' },
 ];
 
-export const resourceTypes: { id: ResourceType; label: string; badge: string }[] = [
-  { id: 'manual', label: 'Manuales', badge: 'MANUAL' },
-  { id: 'template', label: 'Plantillas', badge: 'PLANTILLA' },
-  { id: 'folder', label: 'Carpetas compartidas', badge: 'CARPETA' },
-  { id: 'link', label: 'Enlaces', badge: 'ENLACE' },
+export const resourceTypes: { id: ResourceType; label: string; badge: string; icon: string }[] = [
+  { id: 'manual', label: 'Manuales', badge: 'Manual', icon: 'book-open-outline' },
+  { id: 'template', label: 'Plantillas', badge: 'Plantilla', icon: 'file-document-outline' },
+  { id: 'folder', label: 'Carpetas compartidas', badge: 'Carpeta', icon: 'folder-outline' },
+  { id: 'link', label: 'Enlaces', badge: 'Enlace', icon: 'link-variant' },
 ];
