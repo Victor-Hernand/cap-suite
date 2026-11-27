@@ -1,0 +1,69 @@
+---
+import { actions } from 'astro:actions';
+import { company } from '../../design/company.js';
+
+interface Props {
+  errorMessage?: string | null;
+}
+
+const { errorMessage = null } = Astro.props;
+---
+
+<main class="cap-login">
+  <section class="cap-login__photo">
+    <div class="cap-login__brand-tag cap-glass">
+      <span class="cap-shell-logo" aria-hidden="true">{company.mark}</span>CAP Suite · Administración
+    </div>
+    <div class="cap-login__quote cap-glass">
+      <p class="cap-login__quote-text">Administra las aplicaciones, políticas y directorio del portal.</p>
+      <small class="cap-login__quote-owner">{company.loginOwner}</small>
+    </div>
+  </section>
+
+  <section class="cap-login__card cap-glass--light">
+    <form class="cap-login__form" method="POST" action={actions.auth.login} data-cap-login-form="Ingresando…">
+      <h1 class="cap-login__title">Ingresa a la administración</h1>
+      <p class="cap-login__subtitle">{company.loginSubtitle}</p>
+
+      {errorMessage && (
+        <div class="cap-alert cap-alert--error" id="login-error" role="alert">
+          <i class="cap-alert__icon mdi mdi-alert-circle-outline" aria-hidden="true"></i>
+          <div><strong class="cap-alert__title">{errorMessage}</strong></div>
+        </div>
+      )}
+
+      <div class:list={['cap-field', { 'cap-field--error': errorMessage }]}>
+        <label class="cap-field__label" for="password">Contraseña</label>
+        <div class="cap-field__control">
+          <input
+            class="cap-field__input"
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            required
+            autofocus
+            aria-invalid={errorMessage ? 'true' : undefined}
+            aria-describedby={errorMessage ? 'login-error' : undefined}
+          />
+          <button class="cap-field__reveal" type="button" data-cap-password-toggle aria-controls="password" aria-label="Mostrar contraseña">
+            <i class="mdi mdi-eye-outline" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+
+      <button class="cap-button cap-button--primary cap-login__submit" type="submit">Ingresar</button>
+    </form>
+  </section>
+
+  <button class="cap-login__theme" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro">
+    <i class="mdi mdi-weather-night" aria-hidden="true"></i>
+  </button>
+</main>
+
+<script>
+  import { initShell } from '../../design/shell.js';
+
+  initShell();
+</script>
