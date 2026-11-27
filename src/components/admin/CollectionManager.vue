@@ -34,12 +34,14 @@ const props = withDefaults(
     summary?: string;
     /** Título de la lista cuando va dentro de una tarjeta con otras listas; reemplaza al texto de la barra. */
     title?: string;
+    /** Con varias listas en la pantalla no llevan filtro de texto: un solo buscador por pantalla. */
+    filterable?: boolean;
     /** Con varias listas en la pantalla, solo una lleva el botón de crear primario. */
     createVariant?: 'primary' | 'secondary';
     /** Valores que no se editan en el formulario y se envían en crear y editar. */
     fixedValues?: Record<string, string>;
   }>(),
-  { summary: '', title: '', createVariant: 'primary', fixedValues: () => ({}) },
+  { summary: '', title: '', filterable: true, createVariant: 'primary', fixedValues: () => ({}) },
 );
 
 const COLLECTION_ICONS: Record<Collection, string> = {
@@ -161,7 +163,7 @@ function onRowAction(row: Row, key: string) {
       <h2 v-if="props.title" :class="sectionTitleClass">{{ props.title }}</h2>
       <p v-else class="text-sm text-cap-text-soft">{{ props.summary }}</p>
       <div v-if="props.rows.length > 0" class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-        <TableFilter v-model="filterText" :label="`Filtrar ${props.entityNamePlural}`" />
+        <TableFilter v-if="props.filterable" v-model="filterText" :label="`Filtrar ${props.entityNamePlural}`" />
         <CapButton :variant="props.createVariant" icon="plus" @click="openForm()">{{ newLabel }}</CapButton>
       </div>
     </div>

@@ -45,6 +45,10 @@ const POLICY: EntityNames = { singular: 'política', plural: 'políticas', gende
 
 const { submitting, formError, fieldErrors, runAction, submit } = useActionForm();
 const alertRef = ref<HTMLElement | null>(null);
+const lastAction = ref<'save' | 'delete'>('save');
+const failedActionTitle = computed(() =>
+  lastAction.value === 'delete' ? 'No se completó la acción' : 'No se pudo guardar la política',
+);
 const removal = useDeleteConfirmation<number>(runAction);
 const { pendingTarget: pendingDeleteId, deleting } = removal;
 const leavingAfterSuccess = ref(false);
@@ -89,6 +93,7 @@ function leaveTo(url: string, toast: CapToastOptions) {
 }
 
 function save() {
+  lastAction.value = 'save';
   const formData = buildPolicyFormData(state, policyId);
   const toast: CapToastOptions = {
     status: 'ok',
@@ -99,6 +104,7 @@ function save() {
 }
 
 function removePolicy() {
+  lastAction.value = 'delete';
   removal.confirm(
     (id) => actions.policies.remove({ id }),
     () => leaveTo('/admin/politicas', { status: 'ok', title: outcomeTitle(POLICY, 'deleted'), detail: props.policy?.title }),
@@ -112,7 +118,7 @@ const sectionHeadingClass = `${sectionTitleClass} mb-4`;
   <!-- novalidate: los mensajes de validación los da el servidor, en español. -->
   <form class="flex max-w-7xl flex-col gap-8" novalidate @submit.prevent="save">
     <div v-if="formError" ref="alertRef">
-      <CapAlert status="error" title="No se pudo guardar la política" :detail="[formError, ...listErrors].join(' ')" />
+      <CapAlert status="error" :title="failedActionTitle" :detail="[formError, ...listErrors].join(' ')" />
     </div>
 
     <section :class="cardClass">
