@@ -5,20 +5,15 @@ import type { PolicySummary } from './policies';
 export type PolicyCard = Omit<PolicySummary, 'id'>;
 
 export interface PolicyFilters {
-  text: string;
   department: string;
   type: string;
   classification: string;
   status: string;
 }
 
-export const EMPTY_FILTERS: PolicyFilters = { text: '', department: '', type: '', classification: '', status: '' };
+export const EMPTY_FILTERS: PolicyFilters = { department: '', type: '', classification: '', status: '' };
 
 const HIDDEN_BY_DEFAULT_STATUS: PolicyStatus = 'obsolete';
-
-function normalizeText(value: string): string {
-  return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
 
 function matchesStatus(policy: PolicyCard, statusFilter: string): boolean {
   if (statusFilter) return policy.status === statusFilter;
@@ -26,13 +21,11 @@ function matchesStatus(policy: PolicyCard, statusFilter: string): boolean {
 }
 
 export function filterPolicies(policies: PolicyCard[], filters: PolicyFilters): PolicyCard[] {
-  const needle = normalizeText(filters.text.trim());
   return policies.filter((policy) => {
     if (!matchesStatus(policy, filters.status)) return false;
     if (filters.department && policy.department !== filters.department) return false;
     if (filters.type && policy.type !== filters.type) return false;
-    if (filters.classification && policy.classification !== filters.classification) return false;
-    return !needle || normalizeText(policy.title).includes(needle);
+    return !filters.classification || policy.classification === filters.classification;
   });
 }
 
@@ -74,7 +67,6 @@ function validOrEmpty(value: string | null, validIds: readonly string[]): string
 
 export function filtersFromQuery(params: URLSearchParams, departments: readonly Department[]): PolicyFilters {
   return {
-    text: params.get('q')?.trim() ?? '',
     department: findDepartmentBySlug(departments, params.get('departamento') ?? '')?.name ?? '',
     type: validOrEmpty(params.get('tipo'), policyTypes.map((type) => type.id)),
     classification: validOrEmpty(params.get('clasificacion'), policyClassifications.map((item) => item.id)),
@@ -85,7 +77,6 @@ export function filtersFromQuery(params: URLSearchParams, departments: readonly 
 export function filtersToQuery(filters: PolicyFilters, departments: readonly Department[]): string {
   const params = new URLSearchParams();
   const entries: [string, string][] = [
-    ['q', filters.text.trim()],
     ['departamento', findDepartmentByName(departments, filters.department)?.slug ?? ''],
     ['tipo', filters.type],
     ['clasificacion', filters.classification],

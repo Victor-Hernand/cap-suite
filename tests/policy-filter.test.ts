@@ -42,10 +42,6 @@ describe('filterPolicies', () => {
     expect(filterPolicies(sample, { ...EMPTY_FILTERS, status: 'obsolete' })).toHaveLength(1);
   });
 
-  test('la búsqueda ignora mayúsculas y acentos', () => {
-    expect(filterPolicies(sample, { ...EMPTY_FILTERS, status: 'obsolete', text: 'INFORMACION' })).toHaveLength(1);
-  });
-
   test('filtra por clasificación', () => {
     const result = filterPolicies(sample, { ...EMPTY_FILTERS, classification: 'public' });
     expect(result.map((policy) => policy.slug)).toEqual(['c']);
@@ -71,6 +67,14 @@ describe('groupPoliciesByDepartment', () => {
 });
 
 describe('query string', () => {
+  test('los filtros no llevan texto libre', () => {
+    expect(EMPTY_FILTERS).toEqual({ department: '', type: '', classification: '', status: '' });
+  });
+
+  test('el parámetro q de enlaces antiguos se ignora', () => {
+    expect(filtersFromQuery(new URLSearchParams('q=riesgo'), DEFAULT_DEPARTMENTS)).toEqual(EMPTY_FILTERS);
+  });
+
   test('valores desconocidos se ignoran', () => {
     const filters = filtersFromQuery(new URLSearchParams('departamento=no-existe&tipo=xyz&estado=draft'), DEFAULT_DEPARTMENTS);
     expect(filters).toEqual(EMPTY_FILTERS);
@@ -83,8 +87,8 @@ describe('query string', () => {
   });
 
   test('emite los parámetros en orden fijo y omite los vacíos', () => {
-    const query = filtersToQuery({ text: 'riesgo', department: 'Legal', type: '', classification: 'public', status: 'active' }, DEFAULT_DEPARTMENTS);
-    expect(query).toBe('q=riesgo&departamento=legal&clasificacion=public&estado=active');
+    const query = filtersToQuery({ department: 'Legal', type: '', classification: 'public', status: 'active' }, DEFAULT_DEPARTMENTS);
+    expect(query).toBe('departamento=legal&clasificacion=public&estado=active');
     expect(filtersToQuery(EMPTY_FILTERS, DEFAULT_DEPARTMENTS)).toBe('');
   });
 });
