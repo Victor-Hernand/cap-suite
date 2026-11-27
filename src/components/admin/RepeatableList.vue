@@ -40,7 +40,7 @@ function moveItem(index: number, offset: -1 | 1) {
       <li
         v-for="(item, index) in items"
         :key="item.key"
-        class="flex gap-3 rounded-lg border border-edge bg-base p-3"
+        class="flex gap-3 rounded-lg border border-edge bg-canvas p-3"
       >
         <span class="pt-1 font-mono text-[10px] text-muted">{{ index + 1 }}</span>
         <div class="min-w-0 flex-1">

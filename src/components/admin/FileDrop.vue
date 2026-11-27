@@ -44,7 +44,7 @@ function onDrop(event: DragEvent) {
     <p :class="labelClass">{{ props.label }}</p>
     <div
       class="cursor-pointer rounded-lg border border-dashed p-4 text-center text-xs transition-colors"
-      :class="dragging ? 'border-ink bg-white' : 'border-edge-strong bg-base text-muted'"
+      :class="dragging ? 'border-ink bg-white' : 'border-edge-strong bg-canvas text-muted'"
       role="button"
       tabindex="0"
       @click="openPicker"

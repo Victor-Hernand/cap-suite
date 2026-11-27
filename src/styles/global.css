@@ -5,7 +5,7 @@
 @config '../../tailwind.config.js';
 
 @theme {
-  --color-base: #eef0f3;
+  --color-canvas: #eef0f3;
   --color-surface: #ffffff;
   --color-edge: #dfe3e9;
   --color-edge-strong: #c3c8d1;

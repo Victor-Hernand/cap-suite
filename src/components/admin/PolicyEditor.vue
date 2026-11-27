@@ -206,7 +206,7 @@ const sectionTitleClass = 'mb-4 font-mono text-[10px] uppercase tracking-widest 
       />
     </section>
 
-    <div class="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-edge bg-base py-4">
+    <div class="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-edge bg-canvas py-4">
       <p class="text-xs" :class="hasPendingChanges ? 'font-semibold text-ink' : 'text-muted'">
         {{ hasPendingChanges ? 'Cambios pendientes sin guardar' : 'Sin cambios pendientes' }}
       </p>

@@ -30,7 +30,7 @@ const listedVersions = computed(() => versions.value.map((entry) => entry.versio
 
 <template>
   <div>
-    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-edge bg-base px-4 py-3">
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-edge bg-canvas px-4 py-3">
       <p class="text-sm text-body">
         {{ currentVersionLabel }}: <span class="font-mono font-semibold text-ink">{{ props.currentVersion ?? 'sin publicar' }}</span>
       </p>
