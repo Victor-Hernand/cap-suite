@@ -8,11 +8,11 @@
   scroll-margin-top: 5rem;
 }
 
-/* Sin input: los campos del recetario marcan el foco con borde y anillo propios. */
+/* Sin input: este selector no es de especificidad cero (:focus-visible cuenta) y es más fuerte que
+   focus:outline-none (capa de utilidades), así que los campos marcan el foco con su borde y anillo. */
 :where(a, button, [tabindex]):focus-visible {
   outline: 2px solid var(--cap-chrome);
   outline-offset: 2px;
-  border-radius: 0.5rem;
 }
 
 ::selection {

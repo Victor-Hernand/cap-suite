@@ -1,10 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import BackLink from '../../../components/admin/BackLink.astro';
+import BackLink from '../../../components/BackLink.astro';
 import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
 import { labelOf, policyStatuses } from '../../../data/policies';
 import { policyBadgeClass } from '../../../lib/policyBadges';
-import { inlineLinkClass } from '../../../lib/capClasses';
+import { inlineLinkClass, statusDotClass } from '../../../lib/capClasses';
 import { getDb } from '../../../lib/db';
 import { getPolicy } from '../../../lib/policies';
 import { listDepartments } from '../../../lib/departments';
@@ -21,7 +21,7 @@ const departments = listDepartments(db);
   <div class="flex flex-wrap items-center justify-between gap-3">
     <BackLink href="/admin/politicas" label="Todas las políticas" />
     <div class="flex flex-wrap items-center gap-3 text-sm text-cap-text-soft">
-      <span class={policyBadgeClass(policy.status)}><span class="h-1.5 w-1.5 rounded-full bg-current"></span>{labelOf(policyStatuses, policy.status)}</span>
+      <span class={policyBadgeClass(policy.status)}><span class={statusDotClass}></span>{labelOf(policyStatuses, policy.status)}</span>
       {isDraft
         ? <span>Borrador: no aparece en el portal hasta publicar una versión.</span>
         : (

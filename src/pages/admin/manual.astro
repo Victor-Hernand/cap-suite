@@ -5,6 +5,7 @@ import type { Column, Field } from '../../components/admin/types';
 import { FIELD_MAX } from '../../lib/fieldRules';
 import { getDb, listManuals } from '../../lib/db';
 import { statusBadgeClass } from '../../design/statuses.js';
+import { brandTileClass } from '../../lib/capClasses';
 
 const manuals = listManuals(getDb()).map((manual) => ({
   ...manual,
@@ -50,7 +51,7 @@ const fields: Field[] = [
           class="flex flex-col rounded-cap-card border border-cap-divider bg-cap-card p-5 transition-transform duration-cap-fast ease-cap hover:-translate-y-0.5"
         >
           <span class="flex items-start gap-3">
-            <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-cap-control bg-cap-red-200 text-cap-red-800 dark:bg-cap-red-600/20 dark:text-cap-brand-soft" aria-hidden="true">
+            <span class={brandTileClass} aria-hidden="true">
               <i class="mdi mdi-book-open-outline text-xl leading-none"></i>
             </span>
             <span class="min-w-0 flex-1">

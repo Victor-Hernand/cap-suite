@@ -12,7 +12,8 @@ import {
 } from '../data/policies';
 import { policyBadgeClass } from '../lib/policyBadges';
 import { formatVersionLine } from '../lib/dates';
-import { cardClass, emptyStateClass, fieldLabelClass, fieldSelectClass } from '../lib/capClasses';
+import EmptyState from './EmptyState.vue';
+import { cardClass, fieldLabelClass, fieldSelectClass, sectionTitleClass, statusDotClass } from '../lib/capClasses';
 import {
   EMPTY_FILTERS,
   filterPolicies,
@@ -72,11 +73,12 @@ function updateSelectFilter(key: SelectFilterKey, event: Event) {
 </script>
 
 <template>
-  <div v-if="props.policies.length === 0" :class="emptyStateClass">
-    <i class="mdi mdi-file-document-outline text-cap-icon text-gray-400" aria-hidden="true" />
-    <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Aún no hay políticas publicadas</p>
-    <p class="mt-1 text-sm text-cap-text-soft">Cuando se publique la primera, aparecerá aquí agrupada por departamento.</p>
-  </div>
+  <EmptyState
+    v-if="props.policies.length === 0"
+    icon="file-document-outline"
+    title="Aún no hay políticas publicadas"
+    detail="Cuando se publique la primera, aparecerá aquí agrupada por departamento."
+  />
 
   <template v-else>
     <form class="flex flex-col gap-4" role="search" aria-label="Filtrar políticas" @submit.prevent>
@@ -105,16 +107,17 @@ function updateSelectFilter(key: SelectFilterKey, event: Event) {
 
     <p class="text-sm text-cap-text-soft tabular-nums" aria-live="polite">{{ policyCountLabel(visiblePolicies.length) }}</p>
 
-    <div v-if="visiblePolicies.length === 0" class="flex flex-col items-center justify-center px-6 py-12 text-center">
-      <i class="mdi mdi-filter-off-outline text-cap-icon text-gray-400" aria-hidden="true" />
-      <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Ninguna política coincide con los filtros</p>
-      <p class="mt-1 text-sm text-cap-text-soft">Prueba con otro estado, tipo o departamento.</p>
-      <div class="mt-4">
-        <button type="button" class="cap-button cap-button--secondary" @click="applyFilters({ ...EMPTY_FILTERS })">
-          Limpiar filtros
-        </button>
-      </div>
-    </div>
+    <EmptyState
+      v-if="visiblePolicies.length === 0"
+      filtered
+      icon="filter-off-outline"
+      title="Ninguna política coincide con los filtros"
+      detail="Prueba con otro estado, tipo o departamento."
+    >
+      <button type="button" class="cap-button cap-button--secondary" @click="applyFilters({ ...EMPTY_FILTERS })">
+        Limpiar filtros
+      </button>
+    </EmptyState>
 
     <template v-else>
       <section
@@ -124,7 +127,7 @@ function updateSelectFilter(key: SelectFilterKey, event: Event) {
         :class="cardClass"
       >
         <div class="flex items-baseline justify-between gap-4">
-          <h2 class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <h2 :class="sectionTitleClass">
             <a
               v-if="group.slug"
               :href="`/departamentos/${group.slug}`"
@@ -144,7 +147,7 @@ function updateSelectFilter(key: SelectFilterKey, event: Event) {
                 <span class="block text-sm font-medium text-cap-brand dark:text-cap-brand-soft">{{ policy.title }}</span>
                 <span class="mt-1.5 flex flex-wrap gap-1.5">
                   <span :class="policyBadgeClass(policy.type)">{{ labelOf(policyTypes, policy.type) }}</span>
-                  <span :class="policyBadgeClass(policy.status)"><span class="h-1.5 w-1.5 rounded-full bg-current" />{{ labelOf(policyStatuses, policy.status) }}</span>
+                  <span :class="policyBadgeClass(policy.status)"><span :class="statusDotClass" />{{ labelOf(policyStatuses, policy.status) }}</span>
                   <span :class="policyBadgeClass(policy.classification)">{{ labelOf(policyClassifications, policy.classification) }}</span>
                 </span>
               </span>

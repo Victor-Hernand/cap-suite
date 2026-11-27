@@ -4,7 +4,8 @@ import { getDb } from '../../lib/db';
 import { countVisiblePoliciesByDepartment } from '../../lib/policies';
 import { listDepartments } from '../../lib/departments';
 import { policyCountLabel } from '../../data/policies';
-import { emptyStateClass } from '../../lib/capClasses';
+import { brandTileClass } from '../../lib/capClasses';
+import EmptyState from '../../components/EmptyState.astro';
 
 const db = getDb();
 const departments = listDepartments(db);
@@ -22,11 +23,7 @@ function departmentPolicyCountLabel(departmentName: string): string {
   </p>
 
   {departments.length === 0 ? (
-    <div class={emptyStateClass}>
-      <i class="mdi mdi-office-building-outline text-cap-icon text-gray-400" aria-hidden="true"></i>
-      <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Aún no hay departamentos</p>
-      <p class="mt-1 text-sm text-cap-text-soft">Se agregan desde el panel de administración.</p>
-    </div>
+    <EmptyState icon="office-building-outline" title="Aún no hay departamentos" detail="Se agregan desde el panel de administración." />
   ) : (
     <div class="cap-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {departments.map((department) => (
@@ -34,7 +31,7 @@ function departmentPolicyCountLabel(departmentName: string): string {
           href={`/departamentos/${department.slug}`}
           class="flex items-center gap-3 rounded-cap-card border border-cap-divider bg-cap-card p-5 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2"
         >
-          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-cap-control bg-cap-red-200 text-cap-red-800 dark:bg-cap-red-600/20 dark:text-cap-brand-soft" aria-hidden="true">
+          <span class={brandTileClass} aria-hidden="true">
             <i class="mdi mdi-office-building-outline text-xl leading-none"></i>
           </span>
           <span class="min-w-0 flex-1">

@@ -28,7 +28,7 @@ import {
   fieldLabelClass,
   fieldSelectClass,
   sectionTitleClass,
-  withFieldError,
+  statusDotClass,
 } from '../../lib/capClasses';
 
 const props = withDefaults(defineProps<{ policy?: PolicyDetail | null; departments?: Department[] }>(), {
@@ -142,7 +142,8 @@ const sectionHeadingClass = `${sectionTitleClass} mb-4`;
             id="field-status"
             v-model="state.fields.status"
             aria-required="true"
-            :class="withFieldError(fieldSelectClass, Boolean(fieldErrors.status?.[0]))"
+            :aria-invalid="fieldErrors.status?.[0] ? 'true' : undefined"
+            :class="fieldSelectClass"
             :disabled="isStoredDraft"
           >
             <option v-for="status in statusOptions" :key="status.id" :value="status.id">{{ status.label }}</option>
@@ -210,7 +211,7 @@ const sectionHeadingClass = `${sectionTitleClass} mb-4`;
       class="sticky bottom-4 flex flex-wrap items-center gap-3 rounded-cap-card border border-cap-divider bg-cap-card px-5 py-3 shadow-md max-lg:bottom-24"
     >
       <span :class="statusBadgeClass(hasPendingChanges ? 'warning' : 'neutral')">
-        <span class="h-1.5 w-1.5 rounded-full bg-current" />{{ hasPendingChanges ? 'Cambios sin guardar' : 'Sin cambios pendientes' }}
+        <span :class="statusDotClass" />{{ hasPendingChanges ? 'Cambios sin guardar' : 'Sin cambios pendientes' }}
       </span>
       <div class="ml-auto flex flex-wrap items-center gap-2">
         <CapButton v-if="policyId !== null" variant="danger" icon="delete-outline" @click="removal.request(policyId)">

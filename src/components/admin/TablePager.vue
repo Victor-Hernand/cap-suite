@@ -10,7 +10,6 @@ const props = defineProps<{
   total: number;
 }>();
 
-const disabledClass = 'disabled:cursor-not-allowed disabled:opacity-50';
 </script>
 
 <template>
@@ -21,7 +20,7 @@ const disabledClass = 'disabled:cursor-not-allowed disabled:opacity-50';
         type="button"
         aria-label="Página anterior"
         title="Página anterior"
-        :class="[iconButtonClass, disabledClass]"
+        :class="iconButtonClass"
         :disabled="page === 1"
         @click="page -= 1"
       >
@@ -31,7 +30,7 @@ const disabledClass = 'disabled:cursor-not-allowed disabled:opacity-50';
         type="button"
         aria-label="Página siguiente"
         title="Página siguiente"
-        :class="[iconButtonClass, disabledClass]"
+        :class="iconButtonClass"
         :disabled="page === props.pageCount"
         @click="page += 1"
       >

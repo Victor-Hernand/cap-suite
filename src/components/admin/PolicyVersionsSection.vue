@@ -4,7 +4,7 @@ import PublishVersionDialog from './PublishVersionDialog.vue';
 import RepeatableList from './RepeatableList.vue';
 import RequiredMark from './RequiredMark.vue';
 import CapButton from '../../design/vue/CapButton.vue';
-import { fieldDateClass, fieldInputClass, fieldLabelClass } from '../../lib/capClasses';
+import { fieldInputClass, fieldLabelClass, fieldSelectClass } from '../../lib/capClasses';
 import { createVersion, type VersionDraft } from './policyEditorState';
 import { FIELD_MAX } from '../../lib/fieldRules';
 
@@ -77,7 +77,7 @@ const listedVersions = computed(() => versions.value.map((entry) => entry.versio
           </div>
           <div>
             <label :class="fieldLabelClass" :for="`version-date-${item.key}`">Fecha <RequiredMark /></label>
-            <input :id="`version-date-${item.key}`" v-model="item.date" type="date" :class="fieldDateClass" />
+            <input :id="`version-date-${item.key}`" v-model="item.date" type="date" :class="fieldSelectClass" />
           </div>
           <div>
             <label :class="fieldLabelClass" :for="`version-author-${item.key}`">Autor <RequiredMark /></label>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { brandTileClass, cardCompactClass } from '../../lib/capClasses';
+
 const props = withDefaults(defineProps<{ icon: string; title: string; subtitle?: string; href?: string }>(), {
   subtitle: '',
   href: '',
@@ -6,11 +8,8 @@ const props = withDefaults(defineProps<{ icon: string; title: string; subtitle?:
 </script>
 
 <template>
-  <article class="flex min-h-16 items-center gap-3 rounded-cap-card border border-cap-divider bg-cap-card p-4">
-    <span
-      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-cap-control bg-cap-red-200 text-cap-red-800 dark:bg-cap-red-600/20 dark:text-cap-brand-soft"
-      aria-hidden="true"
-    >
+  <article :class="['flex min-h-16 items-center gap-3', cardCompactClass]">
+    <span :class="brandTileClass" aria-hidden="true">
       <i class="mdi text-xl leading-none" :class="`mdi-${props.icon}`" />
     </span>
     <span class="min-w-0 flex-1">

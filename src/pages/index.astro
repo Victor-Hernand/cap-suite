@@ -6,7 +6,7 @@ import { logoSrc } from '../lib/assets';
 import { company } from '../design/company.js';
 import { appCategories, resourceTypes } from '../data/categories';
 import { policyCountLabel } from '../data/policies';
-import { emptyStateClass } from '../lib/capClasses';
+import EmptyState from '../components/EmptyState.astro';
 
 const QUICK_ACCESS_LIMIT = 8;
 
@@ -77,11 +77,7 @@ function categoryLabelOf(categoryId: string): string {
         )}
       </div>
       {quickAccess.length === 0 ? (
-        <div class={emptyStateClass}>
-          <i class="mdi mdi-apps text-cap-icon text-gray-400" aria-hidden="true"></i>
-          <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Aún no hay aplicaciones registradas</p>
-          <p class="mt-1 text-sm text-cap-text-soft">Se agregan desde el panel de administración.</p>
-        </div>
+        <EmptyState icon="apps" title="Aún no hay aplicaciones registradas" detail="Se agregan desde el panel de administración." />
       ) : (
         <div class="cap-module-grid cap-stagger">
           {quickAccess.map((app) => {

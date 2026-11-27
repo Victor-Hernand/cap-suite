@@ -2,6 +2,7 @@
 import type { ResourceRow } from '../lib/db';
 import { resourceTypes } from '../data/categories';
 import { statusBadgeClass } from '../design/statuses.js';
+import { brandTileClass, cardClass } from '../lib/capClasses';
 
 interface Props {
   resource: ResourceRow;
@@ -16,9 +17,9 @@ const href = resource.url ?? `/files/${resource.filePath}`;
   href={href}
   target="_blank"
   rel="noopener"
-  class="flex items-start gap-3 rounded-cap-card border border-cap-divider bg-cap-card p-5 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2"
+  class:list={['flex items-start gap-3', cardClass, 'transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2']}
 >
-  <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-cap-control bg-cap-red-200 text-cap-red-800 dark:bg-cap-red-600/20 dark:text-cap-brand-soft" aria-hidden="true">
+  <span class={brandTileClass} aria-hidden="true">
     <i class={`mdi mdi-${type?.icon ?? 'file-outline'} text-xl leading-none`}></i>
   </span>
   <span class="min-w-0 flex-1">

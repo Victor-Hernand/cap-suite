@@ -8,7 +8,8 @@ import { formats as formatStore, links as linkStore, notices as noticeStore, pro
 import { EMPTY_FILTERS, filtersToQuery } from '../../lib/policyFilter';
 import { getDepartmentBySlug } from '../../lib/departments';
 import { formatDate } from '../../lib/dates';
-import { cardClass } from '../../lib/capClasses';
+import BackLink from '../../components/BackLink.astro';
+import { cardClass, cardCompactClass, sectionTitleClass } from '../../lib/capClasses';
 
 const db = getDb();
 const department = getDepartmentBySlug(db, Astro.params.slug ?? '');
@@ -29,7 +30,6 @@ const counters = [
   { label: 'Personas', value: team.length },
 ];
 
-const cardTitleClass = 'font-display text-lg font-semibold text-gray-900 dark:text-gray-100';
 const sectionEmptyClass = 'mt-2 text-sm text-cap-text-soft';
 const rowLinkClass =
   '-mx-3 flex items-center justify-between gap-3 rounded-cap-control px-3 py-2.5 text-sm text-gray-900 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2 dark:text-gray-100';
@@ -41,15 +41,13 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
 
 <Layout title={department.name} crumbs={['Departamentos']}>
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <a href="/departamentos" class="inline-flex items-center gap-1 text-sm text-cap-text-soft transition-colors duration-cap-fast ease-cap hover:text-gray-900 dark:hover:text-gray-100">
-      <i class="mdi mdi-arrow-left text-base leading-none" aria-hidden="true"></i>Volver a Departamentos
-    </a>
+    <BackLink href="/departamentos" label="Volver a Departamentos" />
     <p class="text-sm text-cap-text-soft">Políticas, procesos, formatos, equipo, enlaces y avisos de {department.name}.</p>
   </div>
 
   <dl class="grid grid-cols-2 gap-3 md:grid-cols-4">
     {counters.map((counter) => (
-      <div class="flex flex-col-reverse rounded-cap-card border border-cap-divider bg-cap-card p-4">
+      <div class={`flex flex-col-reverse ${cardCompactClass}`}>
         <dt class="mt-1 text-xs text-cap-text-soft">{counter.label}</dt>
         <dd class="font-display text-3xl font-semibold tabular-nums text-gray-900 dark:text-gray-100" data-cap-count={counter.value} data-cap-format="integer">{counter.value}</dd>
       </div>
@@ -60,7 +58,7 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
     <div class="flex flex-col gap-6">
       <section class={cardClass} aria-labelledby="department-policies-title">
         <div class="flex items-baseline justify-between gap-3">
-          <h2 id="department-policies-title" class={cardTitleClass}>Políticas del departamento</h2>
+          <h2 id="department-policies-title" class={sectionTitleClass}>Políticas del departamento</h2>
           <a href={`/politicas?${allPoliciesQuery}`} class="shrink-0 whitespace-nowrap text-sm text-gray-700 underline decoration-gray-400 underline-offset-2 hover:decoration-current dark:text-gray-300">Ver todas</a>
         </div>
         {policies.length === 0 ? (
@@ -86,7 +84,7 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
       </section>
 
       <section class={cardClass} aria-labelledby="department-processes-title">
-        <h2 id="department-processes-title" class={cardTitleClass}>Procesos y flujos</h2>
+        <h2 id="department-processes-title" class={sectionTitleClass}>Procesos y flujos</h2>
         {processes.length === 0 ? (
           <p class={sectionEmptyClass}>Aún no hay procesos documentados.</p>
         ) : (
@@ -109,7 +107,7 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
       </section>
 
       <section class={cardClass} aria-labelledby="department-formats-title">
-        <h2 id="department-formats-title" class={cardTitleClass}>Formatos y plantillas</h2>
+        <h2 id="department-formats-title" class={sectionTitleClass}>Formatos y plantillas</h2>
         {formats.length === 0 ? (
           <p class={sectionEmptyClass}>Aún no hay formatos.</p>
         ) : (
@@ -139,7 +137,7 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
 
     <aside class="flex flex-col gap-6 self-start">
       <section class={cardClass} aria-labelledby="department-notices-title">
-        <h2 id="department-notices-title" class={cardTitleClass}>Avisos</h2>
+        <h2 id="department-notices-title" class={sectionTitleClass}>Avisos</h2>
         {notices.length === 0 ? (
           <p class={sectionEmptyClass}>Sin avisos por ahora.</p>
         ) : (
@@ -158,7 +156,7 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
       </section>
 
       <section class={cardClass} aria-labelledby="department-team-title">
-        <h2 id="department-team-title" class={cardTitleClass}>Equipo</h2>
+        <h2 id="department-team-title" class={sectionTitleClass}>Equipo</h2>
         {team.length === 0 ? (
           <p class={sectionEmptyClass}>Aún no hay personas en el directorio.</p>
         ) : (
@@ -169,7 +167,7 @@ function formatHref(format: { url: string | null; filePath: string | null }): st
       </section>
 
       <section class={cardClass} aria-labelledby="department-links-title">
-        <h2 id="department-links-title" class={cardTitleClass}>Enlaces rápidos</h2>
+        <h2 id="department-links-title" class={sectionTitleClass}>Enlaces rápidos</h2>
         {links.length === 0 ? (
           <p class={sectionEmptyClass}>Aún no hay enlaces.</p>
         ) : (

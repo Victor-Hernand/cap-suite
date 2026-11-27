@@ -2,7 +2,7 @@
 import type { ContactRow } from '../lib/db';
 import ContactAvatar from './ContactAvatar.astro';
 import { contactPhoneHref, contactPhoneLabel } from '../lib/contacts';
-import { iconButtonClass } from '../lib/capClasses';
+import { cardCompactClass, iconButtonClass } from '../lib/capClasses';
 
 interface Props {
   contact: ContactRow;
@@ -14,7 +14,7 @@ interface Props {
 const { contact, nested = false, departmentHref = null } = Astro.props;
 const containerClass = nested
   ? 'rounded-cap-control bg-cap-card-2 p-3'
-  : 'min-h-16 rounded-cap-card border border-cap-divider bg-cap-card p-4';
+  : `min-h-16 ${cardCompactClass}`;
 ---
 
 <article class={`flex items-center gap-3 ${containerClass}`}>

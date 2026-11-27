@@ -8,10 +8,8 @@ import {
   fieldHelpClass,
   fieldInputClass,
   fieldLabelClass,
-  fieldDateClass,
   fieldSelectClass,
   fieldTextareaClass,
-  withFieldError,
 } from '../../lib/capClasses';
 import { PHONE_DISALLOWED_CHARS, uploadPickerRules } from '../../lib/fieldRules';
 
@@ -53,10 +51,8 @@ const describedBy = computed(
 
 const controlClass = computed(() => {
   if (props.field.kind === 'textarea') return fieldTextareaClass;
-  if (props.field.kind === 'select') return fieldSelectClass;
-  return props.field.kind === 'date' ? fieldDateClass : fieldInputClass;
+  return props.field.kind === 'select' || props.field.kind === 'date' ? fieldSelectClass : fieldInputClass;
 });
-const controlClassWithState = computed(() => withFieldError(controlClass.value, Boolean(props.error)));
 
 // En teléfono solo se aceptan dígitos, "+", guion y espacio mientras se escribe.
 function sanitizeTelInput(event: Event) {
@@ -98,7 +94,7 @@ function sanitizeTelInput(event: Event) {
         :placeholder="field.placeholder"
         :aria-describedby="describedBy"
         rows="3"
-        :class="controlClassWithState"
+        :class="controlClass"
         v-model="model"
       ></textarea>
       <select
@@ -109,7 +105,7 @@ function sanitizeTelInput(event: Event) {
         :aria-required="field.required || undefined"
         :aria-invalid="error ? 'true' : undefined"
         :aria-describedby="describedBy"
-        :class="controlClassWithState"
+        :class="controlClass"
         v-model="model"
       >
         <option v-if="!field.required" value="">{{ field.placeholder ?? 'Ninguna' }}</option>
@@ -128,7 +124,7 @@ function sanitizeTelInput(event: Event) {
         :maxlength="field.maxLength"
         :placeholder="field.placeholder"
         :aria-describedby="describedBy"
-        :class="controlClassWithState"
+        :class="controlClass"
         v-model="model"
         @input="sanitizeTelInput"
       />

@@ -7,6 +7,7 @@ import { useFocusTrap } from '../../design/vue/composables/useFocusTrap.js';
 import FormField from './FormField.vue';
 import RequiredMark from './RequiredMark.vue';
 import type { Field } from './types';
+import { sectionTitleClass } from '../../lib/capClasses';
 import type { FieldErrors } from './useActionForm';
 
 const props = defineProps<{
@@ -70,7 +71,7 @@ function onSubmit() {
     @submit.prevent="onSubmit"
   >
     <header class="flex items-center justify-between border-b border-cap-divider px-6 py-4">
-      <h2 :id="titleId" class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">{{ props.title }}</h2>
+      <h2 :id="titleId" :class="sectionTitleClass">{{ props.title }}</h2>
       <button
         type="button"
         aria-label="Cerrar"

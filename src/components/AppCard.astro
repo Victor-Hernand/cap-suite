@@ -4,6 +4,7 @@ import { appCategories } from '../data/categories';
 import type { AppRow } from '../lib/db';
 import { logoSrc } from '../lib/assets';
 import { statusBadgeClass } from '../design/statuses.js';
+import { brandTileClass, cardClass } from '../lib/capClasses';
 
 interface Props {
   app: AppRow;
@@ -19,13 +20,13 @@ const logo = logoSrc(app.logoPath);
   href={app.url}
   target="_blank"
   rel="noopener"
-  class="flex flex-col rounded-cap-card border border-cap-divider bg-cap-card p-5 transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2"
+  class:list={['flex flex-col', cardClass, 'transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2']}
 >
   <span class="flex items-start gap-3">
     {logo ? (
       <img src={logo} alt="" width="40" height="40" class="h-10 w-10 shrink-0 rounded-cap-control object-contain" />
     ) : (
-      <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-cap-control bg-cap-red-200 text-cap-red-800 dark:bg-cap-red-600/20 dark:text-cap-brand-soft" aria-hidden="true">
+      <span class={brandTileClass} aria-hidden="true">
         <i class="mdi mdi-application-outline text-xl leading-none"></i>
       </span>
     )}

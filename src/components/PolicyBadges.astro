@@ -9,6 +9,7 @@ import {
   type PolicyType,
 } from '../data/policies';
 import { policyBadgeClass } from '../lib/policyBadges';
+import { statusDotClass } from '../lib/capClasses';
 import { formatVersionLine } from '../lib/dates';
 
 interface Props {
@@ -25,7 +26,7 @@ const versionLine = formatVersionLine(version, effectiveDate);
 
 <div class="flex flex-wrap items-center gap-1.5">
   <span class={policyBadgeClass(type)}>{labelOf(policyTypes, type)}</span>
-  <span class={policyBadgeClass(status)}><span class="h-1.5 w-1.5 rounded-full bg-current"></span>{labelOf(policyStatuses, status)}</span>
+  <span class={policyBadgeClass(status)}><span class={statusDotClass}></span>{labelOf(policyStatuses, status)}</span>
   <span class={policyBadgeClass(classification)}>{labelOf(policyClassifications, classification)}</span>
   {versionLine && <span class="text-xs text-cap-text-soft tabular-nums">{versionLine}</span>}
 </div>

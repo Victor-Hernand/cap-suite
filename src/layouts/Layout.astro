@@ -30,7 +30,7 @@ const searchItems = buildSearchItems(getDb());
       navigation={publicNavigation}
       portalLink={{ label: 'Administración', href: '/admin' }}
     >
-      <HeaderSearch slot="search" client:load items={searchItems} />
+      <HeaderSearch slot="search" client:idle items={searchItems} />
       <slot />
     </AppShell>
   </body>

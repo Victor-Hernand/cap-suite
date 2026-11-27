@@ -7,7 +7,8 @@ import { getDepartmentByName } from '../../lib/departments';
 import { attachmentKinds, labelOf, policyClassifications } from '../../data/policies';
 import { policyBadgeClass } from '../../lib/policyBadges';
 import { formatDate } from '../../lib/dates';
-import { cardClass } from '../../lib/capClasses';
+import BackLink from '../../components/BackLink.astro';
+import { cardClass, sectionSubtitleClass, sectionTitleClass } from '../../lib/capClasses';
 
 const SUPERVISOR = 'Mejora Continua y Automatización';
 const EMBEDDABLE_IMAGE = /\.(png|jpe?g|webp)$/i;
@@ -36,16 +37,13 @@ const recordFacts = [
   { label: 'Indicadores asociados', value: policy.indicators },
 ].filter((fact) => fact.value);
 
-const sectionTitleClass = 'font-display text-base font-semibold text-gray-900 dark:text-gray-100';
 const proseClass = 'mt-2 whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-gray-300';
 const textLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:decoration-current';
 ---
 
 <Layout title={policy.title} crumbs={['Políticas']}>
   <div class="flex flex-wrap items-center justify-between gap-3">
-    <a href="/politicas" class="inline-flex items-center gap-1 text-sm text-cap-text-soft transition-colors duration-cap-fast ease-cap hover:text-gray-900 dark:hover:text-gray-100">
-      <i class="mdi mdi-arrow-left text-base leading-none" aria-hidden="true"></i>Volver al Centro de Políticas
-    </a>
+    <BackLink href="/politicas" label="Volver al Centro de Políticas" />
     {officialHref && (
       <a href={officialHref} download class="cap-button cap-button--primary">
         <i class="mdi mdi-download text-xl leading-none" aria-hidden="true"></i>Descargar oficial
@@ -78,14 +76,14 @@ const textLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:de
 
       {textSections.map((section) => (
         <section class="mt-6">
-          <h2 class={sectionTitleClass}>{section.title}</h2>
+          <h2 class={sectionSubtitleClass}>{section.title}</h2>
           <p class={proseClass}>{section.text}</p>
         </section>
       ))}
 
       {policy.guidelines.length > 0 && (
         <section class="mt-6">
-          <h2 class={sectionTitleClass}>Lineamientos</h2>
+          <h2 class={sectionSubtitleClass}>Lineamientos</h2>
           <ol class="mt-3 flex flex-col gap-3">
             {policy.guidelines.map((guideline, index) => (
               <li class="rounded-cap-control bg-cap-card-2 p-3">
@@ -99,7 +97,7 @@ const textLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:de
 
       {policy.attachments.length > 0 && (
         <section class="mt-6">
-          <h2 class={sectionTitleClass}>Anexos</h2>
+          <h2 class={sectionSubtitleClass}>Anexos</h2>
           <ul class="mt-3 flex flex-col gap-2">
             {policy.attachments.map((attachment) => {
               const isFile = attachment.kind === 'file';
@@ -130,7 +128,7 @@ const textLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:de
 
     <aside class="flex flex-col gap-6 self-start">
       <section class={cardClass} aria-labelledby="policy-record-title">
-        <h2 id="policy-record-title" class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">Ficha</h2>
+        <h2 id="policy-record-title" class={sectionTitleClass}>Ficha</h2>
         <dl class="mt-4 grid gap-x-6 gap-y-4 md:grid-cols-2 lg:grid-cols-1">
           <div>
             <dt class="text-xs font-medium text-cap-text-soft">Departamento</dt>
@@ -148,7 +146,7 @@ const textLinkClass = 'underline decoration-gray-400 underline-offset-2 hover:de
       </section>
 
       <section class={cardClass} aria-labelledby="policy-history-title">
-        <h2 id="policy-history-title" class="font-display text-lg font-semibold text-gray-900 dark:text-gray-100">Control de cambios</h2>
+        <h2 id="policy-history-title" class={sectionTitleClass}>Control de cambios</h2>
         {policy.versions.length === 0 ? (
           <p class="mt-2 text-sm text-cap-text-soft">Aún no hay cambios registrados.</p>
         ) : (

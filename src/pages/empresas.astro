@@ -3,7 +3,8 @@ import Layout from '../layouts/Layout.astro';
 import CompanyCard from '../components/CompanyCard.astro';
 import { getDb, listCompanies, listApps } from '../lib/db';
 import { company as installedCompany } from '../design/company.js';
-import { emptyStateClass } from '../lib/capClasses';
+import { cardClass } from '../lib/capClasses';
+import EmptyState from '../components/EmptyState.astro';
 
 const db = getDb();
 const apps = listApps(db);
@@ -38,16 +39,12 @@ const summary = [
   </p>
 
   {companies.length === 0 ? (
-    <div class={emptyStateClass}>
-      <i class="mdi mdi-domain text-cap-icon text-gray-400" aria-hidden="true"></i>
-      <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Aún no hay empresas registradas</p>
-      <p class="mt-1 text-sm text-cap-text-soft">Se agregan desde el panel de administración.</p>
-    </div>
+    <EmptyState icon="domain" title="Aún no hay empresas registradas" detail="Se agregan desde el panel de administración." />
   ) : (
     <>
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {summary.map((stat) => (
-          <div class="rounded-cap-card border border-cap-divider bg-cap-card p-5">
+          <div class={cardClass}>
             <p class="text-xs font-medium text-cap-text-soft">{stat.label}</p>
             <p class="mt-3 font-display text-3xl font-semibold tabular-nums text-gray-900 dark:text-gray-100" data-cap-count={stat.value} data-cap-format="integer">{stat.value}</p>
           </div>

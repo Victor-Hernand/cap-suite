@@ -4,7 +4,7 @@ import { actions } from 'astro:actions';
 import CapAlert from '../../design/vue/CapAlert.vue';
 import CapButton from '../../design/vue/CapButton.vue';
 import CapConfirmDialog from '../../design/vue/CapConfirmDialog.vue';
-import AdminEmptyState from './AdminEmptyState.vue';
+import EmptyState from '../EmptyState.vue';
 import AdminListCard from './AdminListCard.vue';
 import AdminTable from './AdminTable.vue';
 import RowActionsMenu from './RowActionsMenu.vue';
@@ -16,7 +16,7 @@ import { useTableView } from './useTableView';
 import { deleteDialogTitle, outcomeTitle, type EntityNames } from './entityLabels';
 import type { Column, Row, RowAction } from './types';
 import { policyBadgeClass } from '../../lib/policyBadges';
-import { tableLinkClass } from '../../lib/capClasses';
+import { statusDotClass, tableLinkClass } from '../../lib/capClasses';
 
 const props = withDefaults(defineProps<{ rows?: Row[]; summary?: string }>(), { rows: () => [], summary: '' });
 
@@ -68,16 +68,16 @@ function confirmDelete() {
 
     <CapAlert v-if="formError" status="error" title="No se completó la acción" :detail="formError" />
 
-    <AdminEmptyState
+    <EmptyState
       v-if="props.rows.length === 0"
       icon="file-document-outline"
       title="Aún no hay políticas"
       detail="Crea la primera; se guarda como borrador hasta publicarla."
     >
       <CapButton :href="NEW_POLICY_HREF" icon="plus">Nueva política</CapButton>
-    </AdminEmptyState>
+    </EmptyState>
 
-    <AdminEmptyState
+    <EmptyState
       v-else-if="totalFiltered === 0"
       filtered
       icon="magnify"
@@ -85,7 +85,7 @@ function confirmDelete() {
       :detail="`No hay políticas que contengan «${filterText.trim()}».`"
     >
       <CapButton variant="secondary" @click="filterText = ''">Limpiar filtros</CapButton>
-    </AdminEmptyState>
+    </EmptyState>
 
     <div v-else>
       <AdminTable class="hidden lg:block" :columns="columns" :rows="pageRows" :sort-state="sortState" @sort="toggleSort">
@@ -98,7 +98,7 @@ function confirmDelete() {
             :title="String(row.title)"
           >{{ row.title }}</a>
           <span v-else-if="column.key === 'statusLabel'" :class="policyBadgeClass(String(row.status))">
-            <span class="h-1.5 w-1.5 rounded-full bg-current" />{{ row.statusLabel }}
+            <span :class="statusDotClass" />{{ row.statusLabel }}
           </span>
           <span v-else class="block max-w-xs truncate text-cap-text-soft" :title="String(row[column.key] ?? '')">
             {{ row[column.key] || '—' }}
@@ -122,7 +122,7 @@ function confirmDelete() {
             :subtitle="[row.department, row.typeLabel, row.version].filter(Boolean).join(' · ')"
             :href="editHref(row)"
           >
-            <span :class="policyBadgeClass(String(row.status))"><span class="h-1.5 w-1.5 rounded-full bg-current" />{{ row.statusLabel }}</span>
+            <span :class="policyBadgeClass(String(row.status))"><span :class="statusDotClass" />{{ row.statusLabel }}</span>
             <RowActionsMenu
               :menu-id="`policy-${row.id}-actions-mobile`"
               :record-label="String(row.title)"

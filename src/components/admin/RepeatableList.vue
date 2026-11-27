@@ -19,8 +19,6 @@ const props = withDefaults(
 
 defineSlots<{ default(slotProps: { item: Item; index: number }): unknown }>();
 
-const itemButtonClass = `${iconButtonClass} disabled:cursor-not-allowed disabled:opacity-50`;
-
 function addItem() {
   items.value = [...items.value, props.createItem()];
 }
@@ -60,7 +58,7 @@ function moveItem(index: number, offset: -1 | 1) {
           <template v-if="props.reorderable">
             <button
               type="button"
-              :class="itemButtonClass"
+              :class="iconButtonClass"
               aria-label="Subir"
               title="Subir"
               :disabled="index === 0"
@@ -70,7 +68,7 @@ function moveItem(index: number, offset: -1 | 1) {
             </button>
             <button
               type="button"
-              :class="itemButtonClass"
+              :class="iconButtonClass"
               aria-label="Bajar"
               title="Bajar"
               :disabled="index === items.length - 1"
@@ -79,7 +77,7 @@ function moveItem(index: number, offset: -1 | 1) {
               <i class="mdi mdi-arrow-down text-xl leading-none" aria-hidden="true" />
             </button>
           </template>
-          <button type="button" :class="itemButtonClass" aria-label="Quitar" title="Quitar" @click="removeItem(index)">
+          <button type="button" :class="iconButtonClass" aria-label="Quitar" title="Quitar" @click="removeItem(index)">
             <i class="mdi mdi-close text-xl leading-none" aria-hidden="true" />
           </button>
         </div>

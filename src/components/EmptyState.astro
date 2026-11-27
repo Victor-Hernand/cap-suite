@@ -1,0 +1,21 @@
+---
+import { emptyStateBaseClass, emptyStateDashedClass, emptyStateTitleClass } from '../lib/capClasses';
+
+interface Props {
+  icon?: string;
+  title: string;
+  detail?: string;
+  filtered?: boolean;
+  compact?: boolean;
+}
+
+const { icon = 'inbox-outline', title, detail = '', filtered = false, compact = false } = Astro.props;
+const containerClasses = [emptyStateBaseClass, filtered ? '' : emptyStateDashedClass, compact ? 'py-6' : 'py-12'];
+---
+
+<div class:list={containerClasses}>
+  <i class={`mdi mdi-${icon} text-cap-icon text-gray-400`} aria-hidden="true"></i>
+  <p class={emptyStateTitleClass}>{title}</p>
+  {detail && <p class="mt-1 text-sm text-cap-text-soft">{detail}</p>}
+  {Astro.slots.has('default') && <div class="mt-4"><slot /></div>}
+</div>

@@ -1,8 +1,9 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import BackLink from '../../../components/admin/BackLink.astro';
+import BackLink from '../../../components/BackLink.astro';
+import EmptyState from '../../../components/EmptyState.astro';
 import PdfViewer from '../../../components/admin/PdfViewer.vue';
-import { cardClass, emptyStateClass, sectionTitleClass } from '../../../lib/capClasses';
+import { cardClass, sectionTitleClass } from '../../../lib/capClasses';
 import { getDb, getManual } from '../../../lib/db';
 import { loomEmbedUrl } from '../../../lib/loom';
 import { basename } from 'node:path';
@@ -57,10 +58,6 @@ const pdfUrl = manual.pdfPath
   )}
 
   {!videoEmbedUrl && !pdfUrl && (
-    <div class={emptyStateClass}>
-      <i class="mdi mdi-book-open-outline text-cap-icon text-gray-400" aria-hidden="true"></i>
-      <p class="mt-3 font-display text-base font-semibold text-gray-900 dark:text-gray-100">Este manual aún no tiene contenido</p>
-      <p class="mt-1 text-sm text-cap-text-soft">Edítalo en Manuales para agregar un video de Loom o un PDF.</p>
-    </div>
+    <EmptyState icon="book-open-outline" title="Este manual aún no tiene contenido" detail="Edítalo en Manuales para agregar un video de Loom o un PDF." />
   )}
 </AdminLayout>

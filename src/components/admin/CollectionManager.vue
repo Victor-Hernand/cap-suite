@@ -4,7 +4,7 @@ import { actions } from 'astro:actions';
 import CapAlert from '../../design/vue/CapAlert.vue';
 import CapButton from '../../design/vue/CapButton.vue';
 import CapConfirmDialog from '../../design/vue/CapConfirmDialog.vue';
-import AdminEmptyState from './AdminEmptyState.vue';
+import EmptyState from '../EmptyState.vue';
 import AdminListCard from './AdminListCard.vue';
 import AdminTable from './AdminTable.vue';
 import CollectionCell from './CollectionCell.vue';
@@ -170,7 +170,7 @@ function onRowAction(row: Row, key: string) {
 
     <CapAlert v-if="formError && !modalOpen" status="error" title="No se completó la acción" :detail="formError" />
 
-    <AdminEmptyState
+    <EmptyState
       v-if="props.rows.length === 0"
       :compact="Boolean(props.title)"
       :icon="COLLECTION_ICONS[props.collection]"
@@ -178,9 +178,9 @@ function onRowAction(row: Row, key: string) {
       :detail="`${createFirstLabel(entity)} para que aparezca en el portal.`"
     >
       <CapButton :variant="props.createVariant" icon="plus" @click="openForm()">{{ newLabel }}</CapButton>
-    </AdminEmptyState>
+    </EmptyState>
 
-    <AdminEmptyState
+    <EmptyState
       v-else-if="totalFiltered === 0"
       filtered
       icon="magnify"
@@ -188,7 +188,7 @@ function onRowAction(row: Row, key: string) {
       :detail="`No hay ${props.entityNamePlural} que contengan «${filterText.trim()}».`"
     >
       <CapButton variant="secondary" @click="filterText = ''">Limpiar filtros</CapButton>
-    </AdminEmptyState>
+    </EmptyState>
 
     <div v-else>
       <AdminTable class="hidden lg:block" :columns="props.columns" :rows="pageRows" :sort-state="sortState" @sort="toggleSort">
