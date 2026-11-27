@@ -33,8 +33,8 @@ const hasSearch = Astro.slots.has('search');
   <span class="cap-shell-topbar__title">{systemName}</span>
   <h1 class="cap-shell-topbar__hidden-title">{title}</h1>
   {hasSearch && (
-    <a class="cap-shell-topbar__icon-button" href="#cap-global-search" aria-label="Buscar">
+    <button class="cap-shell-topbar__icon-button" type="button" aria-label="Buscar" data-cap-search-open>
       <i class="mdi mdi-magnify" aria-hidden="true"></i>
-    </a>
+    </button>
   )}
 </header>

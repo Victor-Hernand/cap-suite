@@ -2,7 +2,10 @@
 import { ClientRouter } from 'astro:transitions';
 import ThemeHead from '../components/shell/ThemeHead.astro';
 import AppShell from '../components/shell/AppShell.astro';
+import HeaderSearch from '../components/HeaderSearch.vue';
 import { publicNavigation } from '../data/navigation';
+import { getDb } from '../lib/db';
+import { buildSearchItems } from '../lib/search';
 import '../styles/global.css';
 
 interface Props {
@@ -11,6 +14,7 @@ interface Props {
 }
 
 const { title, crumbs } = Astro.props;
+const searchItems = buildSearchItems(getDb());
 ---
 
 <html lang="es">
@@ -26,6 +30,7 @@ const { title, crumbs } = Astro.props;
       navigation={publicNavigation}
       portalLink={{ label: 'Administración', href: '/admin' }}
     >
+      <HeaderSearch slot="search" client:load items={searchItems} />
       <slot />
     </AppShell>
   </body>
