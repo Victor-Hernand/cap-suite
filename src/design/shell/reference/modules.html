@@ -1,0 +1,370 @@
+<!doctype html>
+<!-- Textos de ejemplo; en producción salen de tokens.json › company -->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Portada de módulos CAP · referencia</title>
+  <script>
+    let storedTheme;
+    try { storedTheme = localStorage.theme; } catch { storedTheme = undefined; }
+    const theme = location.hash === '#dark'
+      ? 'dark'
+      : storedTheme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../../shell.css">
+  <script type="module" src="../../shell-auto.js"></script>
+</head>
+<body>
+  <div class="cap-shell">
+    <aside class="cap-shell-sidebar cap-glass" data-cap-sidebar data-collapsed="false">
+      <button class="cap-shell-sidebar__collapse" type="button" data-cap-collapse aria-expanded="true" aria-label="Contraer menú"><i class="mdi mdi-chevron-left" aria-hidden="true"></i></button>
+
+      <div class="cap-shell-sidebar__brand">
+        <span class="cap-shell-logo" aria-hidden="true">E</span>
+        <div class="cap-shell-sidebar__brand-text">
+          <strong class="cap-shell-sidebar__brand-name">ERP</strong>
+          <small class="cap-shell-sidebar__brand-owner">Nombre de la empresa</small>
+        </div>
+      </div>
+
+      <nav class="cap-shell-sidebar__nav" aria-label="Menú principal">
+        <p class="cap-shell-sidebar__group-label">Inicio</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-current="page" aria-label="Módulos">
+          <i class="cap-shell-sidebar__icon mdi mdi-view-grid" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Módulos</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Módulos</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Fijados">
+          <i class="cap-shell-sidebar__icon mdi mdi-star-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Fijados</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Fijados</span>
+        </a>
+        <p class="cap-shell-sidebar__group-label">General</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Mi cuenta">
+          <i class="cap-shell-sidebar__icon mdi mdi-account-circle-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Mi cuenta</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Mi cuenta</span>
+        </a>
+        <a class="cap-shell-sidebar__item" href="#" aria-label="Ayuda">
+          <i class="cap-shell-sidebar__icon mdi mdi-help-circle-outline" aria-hidden="true"></i>
+          <span class="cap-shell-sidebar__label">Ayuda</span>
+          <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Ayuda</span>
+        </a>
+      </nav>
+
+      <div class="cap-shell-sidebar__spacer"></div>
+
+      <button class="cap-shell-sidebar__item cap-shell-sidebar__theme" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro">
+        <i class="cap-shell-sidebar__icon mdi mdi-weather-night" aria-hidden="true"></i>
+        <span class="cap-shell-sidebar__label">Modo oscuro</span>
+        <span class="cap-shell-sidebar__switch" aria-hidden="true"></span>
+        <span class="cap-shell-sidebar__tooltip" aria-hidden="true">Modo oscuro</span>
+      </button>
+
+      <div class="cap-shell-sidebar__user">
+        <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+        <div class="cap-shell-sidebar__user-text">
+          <strong class="cap-shell-sidebar__user-name">Ana Muñoz</strong>
+          <small class="cap-shell-sidebar__user-mail">amunoz@ejemplo.com</small>
+        </div>
+        <form method="POST" action="/logout">
+          <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+        </form>
+      </div>
+    </aside>
+
+    <div class="cap-shell__main">
+      <header class="cap-shell-header cap-glass">
+        <div>
+          <nav class="cap-shell-header__crumbs" aria-label="Migas de pan">Inicio</nav>
+          <h1 class="cap-shell-header__title">Módulos</h1>
+        </div>
+        <label class="cap-shell-header__search">
+          <i class="mdi mdi-magnify" aria-hidden="true"></i>
+          <input class="cap-shell-header__search-input" id="cap-global-search" type="search" placeholder="Buscar módulo o acceso" aria-label="Buscar módulo o acceso" data-cap-search>
+          <kbd class="cap-shell-header__kbd">⌘K</kbd>
+        </label>
+        <div class="cap-shell-header__actions">
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Cambiar de módulo" aria-expanded="false" aria-controls="cap-modules" data-cap-popover-trigger><i class="mdi mdi-apps" aria-hidden="true"></i></button>
+          <button class="cap-shell-header__icon-button" type="button" aria-label="Notificaciones, 3 sin leer" aria-expanded="false" aria-controls="cap-notifications" data-cap-popover-trigger>
+            <i class="mdi mdi-bell-outline" aria-hidden="true"></i>
+            <span class="cap-shell-header__badge-dot" aria-hidden="true"></span>
+          </button>
+          <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+        </div>
+      </header>
+
+      <main class="cap-shell__content">
+        <div class="cap-module-home">
+          <small class="cap-module-home__eyebrow">Buenos días,</small>
+          <h2 class="cap-module-home__name">Ana</h2>
+          <p class="cap-module-home__hint">Tienes acceso a 9 módulos.</p>
+        </div>
+
+        <nav class="cap-module-recent" aria-label="Continuar donde quedaste">
+          <span class="cap-module-recent__label">Continuar</span>
+          <a class="cap-module-recent__link" href="#"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i>Cobranza <small>› Tablero</small></a>
+          <a class="cap-module-recent__link" href="#"><i class="mdi mdi-package-variant-closed" aria-hidden="true"></i>Inventario <small>› Kardex · Bodega 2</small></a>
+          <a class="cap-module-recent__link" href="#"><i class="mdi mdi-cart-outline" aria-hidden="true"></i>Ventas <small>› Cotización #4521</small></a>
+          <a class="cap-module-recent__link" href="#"><i class="mdi mdi-wrench-outline" aria-hidden="true"></i>Mantenciones <small>› OT 2026-118</small></a>
+        </nav>
+
+        <section class="cap-module-group" aria-labelledby="cap-module-group-0">
+          <div class="cap-module-group__head">
+            <h3 id="cap-module-group-0" class="cap-module-group__title">Operación</h3>
+            <span class="cap-module-group__count">4 módulos</span>
+          </div>
+          <div class="cap-module-grid">
+            <a class="cap-module-card cap-module-card--featured" href="#" aria-labelledby="cap-module-cobranza-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Cobranza" aria-pressed="true" data-cap-module-pin="cobranza"><i class="mdi mdi-star" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-cobranza-name">Cobranza</h4>
+                <p class="cap-module-card__desc" title="Gestión de facturas, promesas de pago y escalamientos.">Gestión de facturas, promesas de pago y escalamientos.</p>
+              </div>
+              <div class="cap-module-card__foot"><span class="cap-module-card__count" data-status="error">6 vencidas</span><span>Hoy, 08:12</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-ventas-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-cart-outline" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Ventas" aria-pressed="false" data-cap-module-pin="ventas"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-ventas-name">Ventas</h4>
+                <p class="cap-module-card__desc" title="Cotizaciones, pedidos y facturación a clientes.">Cotizaciones, pedidos y facturación a clientes.</p>
+              </div>
+              <div class="cap-module-card__foot"><span class="cap-module-card__count">3 por aprobar</span><span>Ayer</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-inventario-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-package-variant-closed" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Inventario" aria-pressed="false" data-cap-module-pin="inventario"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-inventario-name">Inventario</h4>
+                <p class="cap-module-card__desc" title="Existencias, kardex, bodegas y traslados.">Existencias, kardex, bodegas y traslados.</p>
+              </div>
+              <div class="cap-module-card__foot"><span class="cap-module-card__count" data-status="warning">2 bajo mínimo</span><span>Hoy, 07:40</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-mantenciones-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-wrench-outline" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Mantenciones" aria-pressed="false" data-cap-module-pin="mantenciones"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-mantenciones-name">Mantenciones</h4>
+                <p class="cap-module-card__desc" title="Órdenes de trabajo, equipos y planes preventivos.">Órdenes de trabajo, equipos y planes preventivos.</p>
+              </div>
+              <div class="cap-module-card__foot"><span class="cap-module-card__count">5 OT abiertas</span><span>Lunes</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+          </div>
+        </section>
+        <section class="cap-module-group" aria-labelledby="cap-module-group-1">
+          <div class="cap-module-group__head">
+            <h3 id="cap-module-group-1" class="cap-module-group__title">Finanzas</h3>
+            <span class="cap-module-group__count">4 módulos</span>
+          </div>
+          <div class="cap-module-grid">
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-contabilidad-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-book-open-variant" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Contabilidad" aria-pressed="false" data-cap-module-pin="contabilidad"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-contabilidad-name">Contabilidad</h4>
+                <p class="cap-module-card__desc" title="Asientos, centros de costo y cierre mensual.">Asientos, centros de costo y cierre mensual.</p>
+              </div>
+              <div class="cap-module-card__foot"><span>Cierre de octubre en curso</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-tesoreria-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-bank-outline" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Tesorería" aria-pressed="false" data-cap-module-pin="tesoreria"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-tesoreria-name">Tesorería</h4>
+                <p class="cap-module-card__desc" title="Bancos, conciliación y flujo de caja.">Bancos, conciliación y flujo de caja.</p>
+              </div>
+              <div class="cap-module-card__foot"><span class="cap-module-card__count">1 conciliación</span><span>Hace 3 días</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-compras-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-truck-outline" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Compras" aria-pressed="false" data-cap-module-pin="compras"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-compras-name">Compras</h4>
+                <p class="cap-module-card__desc" title="Órdenes de compra, proveedores y recepciones.">Órdenes de compra, proveedores y recepciones.</p>
+              </div>
+              <div class="cap-module-card__foot"><span>Sin pendientes</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <div class="cap-module-card cap-module-card--locked" role="group" aria-label="Nómina, sin acceso">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-lock-outline" aria-hidden="true"></i></span>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name">Nómina</h4>
+                <p class="cap-module-card__desc" title="Liquidaciones, planillas y beneficios.">Liquidaciones, planillas y beneficios.</p>
+              </div>
+              <div class="cap-module-card__foot">
+                <span>Sin acceso</span>
+                <button class="cap-module-card__request" type="button" data-cap-module-request="nomina">Solicitar acceso</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="cap-module-group" aria-labelledby="cap-module-group-2">
+          <div class="cap-module-group__head">
+            <h3 id="cap-module-group-2" class="cap-module-group__title">Administración</h3>
+            <span class="cap-module-group__count">2 módulos</span>
+          </div>
+          <div class="cap-module-grid">
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-personas-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-account-group-outline" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Personas" aria-pressed="false" data-cap-module-pin="personas"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-personas-name">Personas</h4>
+                <p class="cap-module-card__desc" title="Colaboradores, cargos y organigrama.">Colaboradores, cargos y organigrama.</p>
+              </div>
+              <div class="cap-module-card__foot"><span class="cap-module-card__count">2 ingresos</span><span>Hoy</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+            <a class="cap-module-card" href="#" aria-labelledby="cap-module-permisos-name">
+              <div class="cap-module-card__top">
+                <span class="cap-module-tile"><i class="mdi mdi-shield-account-outline" aria-hidden="true"></i></span>
+                <button class="cap-module-card__pin" type="button" aria-label="Fijar Usuarios y permisos" aria-pressed="false" data-cap-module-pin="permisos"><i class="mdi mdi-star-outline" aria-hidden="true"></i></button>
+              </div>
+              <div>
+                <h4 class="cap-module-card__name" id="cap-module-permisos-name">Usuarios y permisos</h4>
+                <p class="cap-module-card__desc" title="Roles, accesos por módulo y auditoría.">Roles, accesos por módulo y auditoría.</p>
+              </div>
+              <div class="cap-module-card__foot"><span>Hace 2 semanas</span><i class="cap-module-card__arrow mdi mdi-arrow-right" aria-hidden="true"></i></div>
+            </a>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <header class="cap-shell-topbar cap-glass">
+      <span class="cap-shell-logo" aria-hidden="true">E</span>
+      <span class="cap-shell-topbar__title">ERP</span>
+      <h1 class="cap-shell-topbar__hidden-title">Módulos</h1>
+      <a class="cap-shell-topbar__icon-button" href="#" aria-label="Buscar"><i class="mdi mdi-magnify" aria-hidden="true"></i></a>
+      <button class="cap-shell-topbar__icon-button" type="button" aria-label="Notificaciones, 3 sin leer" aria-expanded="false" aria-controls="cap-notifications" data-cap-popover-trigger>
+        <i class="mdi mdi-bell-outline" aria-hidden="true"></i>
+        <span class="cap-shell-header__badge-dot" aria-hidden="true"></span>
+      </button>
+    </header>
+
+    <nav class="cap-shell-tabbar cap-glass" aria-label="Destinos principales">
+      <a class="cap-shell-tabbar__tab" href="#" aria-current="page"><i class="mdi mdi-view-grid" aria-hidden="true"></i>Módulos</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-star-outline" aria-hidden="true"></i>Fijados</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-account-circle-outline" aria-hidden="true"></i>Mi cuenta</a>
+      <a class="cap-shell-tabbar__tab" href="#"><i class="mdi mdi-help-circle-outline" aria-hidden="true"></i>Ayuda</a>
+      <button class="cap-shell-tabbar__tab cap-shell-tabbar__tab--more" type="button" aria-expanded="false" aria-controls="cap-more-sheet" data-cap-sheet-trigger><i class="mdi mdi-dots-horizontal" aria-hidden="true"></i>Más</button>
+    </nav>
+
+    <div class="cap-shell-sheet" id="cap-more-sheet" role="dialog" aria-modal="true" aria-label="Menú completo" data-open="false">
+      <div class="cap-shell-sheet__backdrop" data-cap-sheet-backdrop></div>
+      <div class="cap-shell-sheet__panel cap-glass">
+        <div class="cap-shell-sheet__handle" data-cap-sheet-handle></div>
+        <p class="cap-shell-sidebar__group-label">Módulos</p>
+        <nav class="cap-module-switcher__grid" aria-label="Módulos">
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i></span>Cobranza</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-cart-outline" aria-hidden="true"></i></span>Ventas</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-package-variant-closed" aria-hidden="true"></i></span>Inventario</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-wrench-outline" aria-hidden="true"></i></span>Mantenciones</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-book-open-variant" aria-hidden="true"></i></span>Contabilidad</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-bank-outline" aria-hidden="true"></i></span>Tesorería</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-truck-outline" aria-hidden="true"></i></span>Compras</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-account-group-outline" aria-hidden="true"></i></span>Personas</a>
+          <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-shield-account-outline" aria-hidden="true"></i></span>Usuarios y permisos</a>
+        </nav>
+        <p class="cap-shell-sidebar__group-label">Inicio</p>
+        <a class="cap-shell-sidebar__item" href="#" aria-current="page"><i class="cap-shell-sidebar__icon mdi mdi-view-grid" aria-hidden="true"></i>Módulos</a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-star-outline" aria-hidden="true"></i>Fijados</a>
+        <p class="cap-shell-sidebar__group-label">General</p>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-account-circle-outline" aria-hidden="true"></i>Mi cuenta</a>
+        <a class="cap-shell-sidebar__item" href="#"><i class="cap-shell-sidebar__icon mdi mdi-help-circle-outline" aria-hidden="true"></i>Ayuda</a>
+        <button class="cap-shell-sidebar__item" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro"><i class="cap-shell-sidebar__icon mdi mdi-weather-night" aria-hidden="true"></i>Modo oscuro<span class="cap-shell-sidebar__switch" aria-hidden="true"></span></button>
+        <div class="cap-shell-sidebar__user">
+          <span class="cap-shell-avatar" aria-hidden="true">AM</span>
+          <div class="cap-shell-sidebar__user-text">
+            <strong class="cap-shell-sidebar__user-name">Ana Muñoz</strong>
+            <small class="cap-shell-sidebar__user-mail">amunoz@ejemplo.com</small>
+          </div>
+          <form method="POST" action="/logout">
+            <button class="cap-shell-sidebar__user-menu" type="submit" aria-label="Cerrar sesión"><i class="mdi mdi-logout" aria-hidden="true"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <section class="cap-notifications cap-glass" id="cap-notifications" aria-label="Notificaciones" data-cap-notifications hidden>
+      <div class="cap-notifications__header">
+        <h2 class="cap-notifications__title">Notificaciones</h2>
+        <form method="POST" action="/notifications/read">
+          <button class="cap-notifications__mark-read" type="submit">Marcar todo como leído</button>
+        </form>
+      </div>
+      <div class="cap-notifications__tabs">
+        <button class="cap-notifications__tab" type="button" aria-pressed="true" data-cap-notification-filter="all">Todas</button>
+        <button class="cap-notifications__tab" type="button" aria-pressed="false" data-cap-notification-filter="unread">No leídas<span class="cap-notifications__tab-count">3</span></button>
+      </div>
+      <p class="cap-notifications__group">Hoy</p>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon cap-notifications__icon--alert"><i class="mdi mdi-alert-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">F-10232 venció</strong><small class="cap-notifications__detail">Puerto Talca · $ 3,7 M</small></div>
+        <span class="cap-notifications__time">hace 5 min</span>
+      </div>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon"><i class="mdi mdi-cash-check" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Pago recibido</strong><small class="cap-notifications__detail">Minera Sur pagó F-10234</small></div>
+        <span class="cap-notifications__time">hace 1 h</span>
+      </div>
+      <div class="cap-notifications__item" data-unread="true">
+        <span class="cap-notifications__icon"><i class="mdi mdi-account-plus-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Nuevo cliente</strong><small class="cap-notifications__detail">Cintac Perú fue agregado</small></div>
+        <span class="cap-notifications__time">10:12</span>
+      </div>
+      <p class="cap-notifications__group">Ayer</p>
+      <div class="cap-notifications__item">
+        <span class="cap-notifications__icon"><i class="mdi mdi-file-export-outline" aria-hidden="true"></i></span>
+        <div class="cap-notifications__text"><strong class="cap-notifications__item-title">Reporte listo</strong><small class="cap-notifications__detail">Cobranza de octubre.xlsx</small></div>
+        <span class="cap-notifications__time">18:40</span>
+      </div>
+      <p class="cap-notifications__group" data-cap-notification-empty hidden>No tienes notificaciones sin leer.</p>
+      <a class="cap-notifications__footer" href="#">Ver todas</a>
+    </section>
+
+
+    <section class="cap-module-switcher cap-glass" id="cap-modules" aria-label="Cambiar de módulo" hidden>
+      <div class="cap-module-switcher__head">
+        <span>Módulos</span>
+        <a class="cap-module-switcher__all" href="#">Ver todos</a>
+      </div>
+      <div class="cap-module-switcher__grid">
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-cash-multiple" aria-hidden="true"></i></span>Cobranza</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-cart-outline" aria-hidden="true"></i></span>Ventas</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-package-variant-closed" aria-hidden="true"></i></span>Inventario</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-wrench-outline" aria-hidden="true"></i></span>Mantenciones</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-book-open-variant" aria-hidden="true"></i></span>Contabilidad</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-bank-outline" aria-hidden="true"></i></span>Tesorería</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-truck-outline" aria-hidden="true"></i></span>Compras</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-account-group-outline" aria-hidden="true"></i></span>Personas</a>
+        <a class="cap-module-switcher__item" href="#"><span class="cap-module-tile"><i class="mdi mdi-shield-account-outline" aria-hidden="true"></i></span>Usuarios y permisos</a>
+      </div>
+    </section>
+
+    <div class="cap-toaster" data-cap-toaster></div>
+  </div>
+</body>
+</html>

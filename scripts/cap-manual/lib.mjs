@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from 'node:fs';
-import { basename, extname, join } from 'node:path';
+import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, statSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { basename, dirname, extname, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 
@@ -200,6 +201,45 @@ export function requireEnvironment(env, names, hint = '') {
     throw new Error(`Faltan variables de entorno: ${missing.join(', ')}.${hint ? ` ${hint}` : ''}`);
   }
   return Object.fromEntries(names.map((name) => [name, env[name]]));
+}
+
+export const DEFAULT_CAP_GESTION_URL = 'https://gestion.capgrupo.com';
+const SETUP_COMMAND = 'node scripts/cap-manual/setup.mjs';
+export const SETUP_HINT = `Corre ${SETUP_COMMAND} y pega el token que te dio tu administrador de CAP Gestión.`;
+
+export function credentialsFilePath(env) {
+  const configHome = env.XDG_CONFIG_HOME || join(env.HOME || homedir(), '.config');
+  return join(configHome, 'cap-gestion', 'credentials.json');
+}
+
+export function readStoredCredentials(filePath) {
+  if (!existsSync(filePath)) return null;
+  try {
+    const { url, token } = JSON.parse(readFileSync(filePath, 'utf8'));
+    return { url, token };
+  } catch {
+    throw new Error(`No pude leer ${filePath}: vuelve a correr ${SETUP_COMMAND}.`);
+  }
+}
+
+// Solo el dueño puede leer el archivo: guarda su token personal.
+export function writeStoredCredentials(filePath, { url, token }) {
+  mkdirSync(dirname(filePath), { recursive: true, mode: 0o700 });
+  writeFileSync(filePath, `${JSON.stringify({ url, token }, null, 2)}\n`, { mode: 0o600 });
+}
+
+// Las variables de entorno mandan (CI y quien ya las tenga); si no, el archivo de setup.mjs.
+// `source` describe de dónde salió el token, para mostrarlo al usuario.
+export function resolveCapGestionCredentials(env) {
+  const filePath = credentialsFilePath(env);
+  const stored = readStoredCredentials(filePath) ?? {};
+  const token = env.CAP_GESTION_TOKEN || stored.token;
+  if (!token) throw new Error(`No hay un token de CAP Gestión configurado en esta máquina. ${SETUP_HINT}`);
+  return {
+    url: env.CAP_GESTION_URL || stored.url || DEFAULT_CAP_GESTION_URL,
+    token,
+    source: env.CAP_GESTION_TOKEN ? 'variable de entorno CAP_GESTION_TOKEN' : filePath,
+  };
 }
 
 export const DRAFTS_PATH = '/api/entregas/borradores';

@@ -1,0 +1,40 @@
+---
+import { company } from '../../design/company.js';
+
+interface Props {
+  title: string;
+  crumbs?: string[];
+  systemName: string;
+}
+
+const { title, crumbs = [], systemName } = Astro.props;
+const hasSearch = Astro.slots.has('search');
+---
+
+<header class="cap-shell-header cap-glass">
+  <div>
+    {crumbs.length > 0 && (
+      <nav class="cap-shell-header__crumbs" aria-label="Migas de pan">
+        {crumbs.map((crumb, index) => (
+          <Fragment>
+            {index > 0 && <span aria-hidden="true"> › </span>}
+            {crumb}
+          </Fragment>
+        ))}
+      </nav>
+    )}
+    <h1 class="cap-shell-header__title">{title}</h1>
+  </div>
+  {hasSearch && <slot name="search" />}
+</header>
+
+<header class="cap-shell-topbar cap-glass">
+  <span class="cap-shell-logo" aria-hidden="true">{company.mark}</span>
+  <span class="cap-shell-topbar__title">{systemName}</span>
+  <h1 class="cap-shell-topbar__hidden-title">{title}</h1>
+  {hasSearch && (
+    <button class="cap-shell-topbar__icon-button" type="button" aria-label="Buscar" data-cap-search-open>
+      <i class="mdi mdi-magnify" aria-hidden="true"></i>
+    </button>
+  )}
+</header>

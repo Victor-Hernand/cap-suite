@@ -1,10 +1,11 @@
 import { ref } from 'vue';
 import { isInputError } from 'astro:actions';
 import { UPLOAD_RULES, oversizedUploadTotalMessage, uploadLimitLabel } from '../../lib/fieldRules';
+import { storePendingToast } from '../../lib/pendingToast';
 import { uploadKindOf, type Field } from './types';
 
 type ActionFailure = { code?: string; status?: number; message: string };
-type ActionResult<Data> = { data?: Data; error?: ActionFailure };
+export type ActionResult<Data> = { data?: Data; error?: ActionFailure };
 type SuccessHandler<Data> = (data: Data) => void;
 export type FieldErrors = Record<string, string[] | undefined>;
 
@@ -42,6 +43,17 @@ function oversizedFileMessage(fields: Field[], formData: FormData): string | nul
     }
   }
   return null;
+}
+
+/** Recarga (o va a `url`) y muestra el toast del resultado en la página siguiente. */
+export function navigateWithToast(toast: CapToastOptions, url?: string) {
+  try {
+    storePendingToast(sessionStorage, toast);
+  } catch {
+    // Sin sessionStorage (navegación privada estricta) se pierde el toast, no el guardado.
+  }
+  if (url) window.location.assign(url);
+  else window.location.reload();
 }
 
 /** Estado y envío de los formularios del admin: errores por campo, error general y recarga al guardar. */

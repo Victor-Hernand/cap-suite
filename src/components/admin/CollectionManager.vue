@@ -1,14 +1,24 @@
 <script setup lang="ts">
 import { computed, ref, toRef } from 'vue';
 import { actions } from 'astro:actions';
-import DeleteRowButton from './DeleteRowButton.vue';
+import CapAlert from '../../design/vue/CapAlert.vue';
+import CapButton from '../../design/vue/CapButton.vue';
+import CapConfirmDialog from '../../design/vue/CapConfirmDialog.vue';
+import EmptyState from '../EmptyState.vue';
+import AdminListCard from './AdminListCard.vue';
+import AdminTable from './AdminTable.vue';
+import CollectionCell from './CollectionCell.vue';
 import FormModal from './FormModal.vue';
-import SortableHeader from './SortableHeader.vue';
+import RowActionsMenu from './RowActionsMenu.vue';
+import TableFilter from './TableFilter.vue';
 import TablePager from './TablePager.vue';
+import { statusBadgeClass } from '../../design/statuses.js';
+import { sectionTitleClass } from '../../lib/capClasses';
+import { useDeleteConfirmation } from './useDeleteConfirmation';
 import { useTableView } from './useTableView';
-import { useActionForm } from './useActionForm';
-import { alertErrorClass, inputClass, primaryButtonClass } from './formStyles';
-import { UNSORTED_COLLECTIONS, type Collection, type Column, type Field, type Row } from './types';
+import { navigateWithToast, useActionForm } from './useActionForm';
+import { createFirstLabel, deleteDialogTitle, newEntityLabel, outcomeTitle, type EntityNames } from './entityLabels';
+import { UNSORTED_COLLECTIONS, type Collection, type Column, type Field, type Row, type RowAction } from './types';
 
 const props = withDefaults(
   defineProps<{
@@ -20,41 +30,73 @@ const props = withDefaults(
     entityNamePlural: string;
     /** Género gramatical de la entidad: "Nuevo recurso" / "Nueva empresa". */
     entityGender: 'm' | 'f';
+    /** Texto de la barra de acciones, a la izquierda del botón de crear. */
+    summary?: string;
+    /** Título de la lista cuando va dentro de una tarjeta con otras listas; reemplaza al texto de la barra. */
+    title?: string;
+    /** Con varias listas en la pantalla no llevan filtro de texto: un solo buscador por pantalla. */
+    filterable?: boolean;
+    /** Con varias listas en la pantalla, solo una lleva el botón de crear primario. */
+    createVariant?: 'primary' | 'secondary';
     /** Valores que no se editan en el formulario y se envían en crear y editar. */
     fixedValues?: Record<string, string>;
   }>(),
-  { fixedValues: () => ({}) },
+  { summary: '', title: '', filterable: true, createVariant: 'primary', fixedValues: () => ({}) },
 );
 
+const COLLECTION_ICONS: Record<Collection, string> = {
+  apps: 'application-outline',
+  resources: 'file-document-outline',
+  contacts: 'account-outline',
+  companies: 'domain',
+  manuals: 'book-open-outline',
+  departments: 'office-building-outline',
+  departmentProcesses: 'sitemap-outline',
+  departmentFormats: 'file-outline',
+  departmentLinks: 'link-variant',
+  departmentNotices: 'bullhorn-outline',
+};
+
+const entity = computed<EntityNames>(() => ({
+  singular: props.entityName,
+  plural: props.entityNamePlural,
+  gender: props.entityGender,
+}));
 const group = computed(() => actions[props.collection]);
 const isSortable = computed(() => !UNSORTED_COLLECTIONS.includes(props.collection));
-const {
-  filterText,
-  sortKey,
-  page,
-  pageCount,
-  pageRows,
-  rangeStart,
-  rangeEnd,
-  totalFiltered,
-  isManualOrder,
-  toggleSort,
-  sortState,
-} = useTableView(toRef(props, 'rows'), toRef(props, 'columns'));
+const titleColumn = computed(() => props.columns[0]);
+const detailColumns = computed(() => props.columns.slice(1).filter((column) => column.kind !== 'toggle'));
+
+const { filterText, page, pageCount, pageRows, rangeStart, rangeEnd, totalFiltered, isManualOrder, toggleSort, sortState } =
+  useTableView(toRef(props, 'rows'), toRef(props, 'columns'));
 const { submitting, formError, fieldErrors, resetErrors, runAction, submit } = useActionForm();
 
 const modalOpen = ref(false);
 const editingRow = ref<Row | null>(null);
-const pendingDeleteId = ref<number | null>(null);
+const removal = useDeleteConfirmation<Row>(runAction);
+const { pendingTarget: pendingDeleteRow, deleting } = removal;
 
-const newLabel = computed(() => `${props.entityGender === 'f' ? 'Nueva' : 'Nuevo'} ${props.entityName}`);
-const firstOneLabel = computed(() => (props.entityGender === 'f' ? 'la primera' : 'el primero'));
-const columnSpan = computed(() => props.columns.length + 1);
+const newLabel = computed(() => newEntityLabel(entity.value));
+
+const cellText = (row: Row, column: Column) => String(row[column.key] ?? '') || '—';
+const recordLabel = (row: Row) => cellText(row, titleColumn.value);
+const detailText = (row: Row) =>
+  detailColumns.value
+    .map((column) => String(row[column.key] ?? ''))
+    .filter(Boolean)
+    .join(' · ');
+const activeToggleLabels = (row: Row) =>
+  props.columns.filter((column) => column.kind === 'toggle' && row[column.key]).map((column) => column.label);
 
 function openForm(row: Row | null = null) {
   editingRow.value = row;
   resetErrors();
   modalOpen.value = true;
+}
+
+function closeForm() {
+  modalOpen.value = false;
+  resetErrors();
 }
 
 const initialValues = computed(() => {
@@ -70,135 +112,156 @@ function submitForm(formData: FormData) {
   for (const [name, value] of Object.entries(props.fixedValues)) formData.set(name, value);
   if (editingRow.value) formData.set('id', String(editingRow.value.id));
   const action = editingRow.value ? group.value.update : group.value.create;
-  submit(props.fields, formData, () => action(formData));
+  const toast: CapToastOptions = {
+    status: 'ok',
+    title: outcomeTitle(entity.value, editingRow.value ? 'updated' : 'created'),
+    detail: String(formData.get(props.fields[0].name) ?? ''),
+  };
+  submit(props.fields, formData, () => action(formData), () => navigateWithToast(toast));
 }
 
-function removeRow(id: number) {
-  pendingDeleteId.value = null;
-  runAction(() => group.value.remove({ id }));
-}
-
-function moveRowBy(id: number, direction: 'up' | 'down') {
-  runAction(() => group.value.move({ id, direction }));
+function confirmDelete() {
+  removal.confirm(
+    (row) => group.value.remove({ id: row.id }),
+    (row) => navigateWithToast({ status: 'ok', title: outcomeTitle(entity.value, 'deleted'), detail: recordLabel(row) }),
+  );
 }
 
 function toggleFeatured(row: Row) {
   if (props.collection !== 'apps') return;
   runAction(() => actions.apps.toggleFeatured({ id: row.id, featured: !row.featured }));
 }
+
+function rowActions(row: Row, { includeFeatured }: { includeFeatured: boolean }): RowAction[] {
+  const rowActionList: RowAction[] = [{ key: 'edit', label: 'Editar', icon: 'pencil-outline' }];
+  if (includeFeatured && props.collection === 'apps') {
+    rowActionList.push(
+      row.featured
+        ? { key: 'featured', label: 'Quitar de destacadas', icon: 'star-off-outline' }
+        : { key: 'featured', label: 'Destacar', icon: 'star-outline' },
+    );
+  }
+  // Subir y bajar solo tienen sentido viendo el orden manual completo.
+  if (isSortable.value && isManualOrder.value) {
+    rowActionList.push({ key: 'up', label: 'Subir', icon: 'arrow-up' }, { key: 'down', label: 'Bajar', icon: 'arrow-down' });
+  }
+  rowActionList.push({ key: 'delete', label: 'Eliminar', icon: 'delete-outline', danger: true });
+  return rowActionList;
+}
+
+function onRowAction(row: Row, key: string) {
+  if (key === 'edit') openForm(row);
+  else if (key === 'delete') removal.request(row);
+  else if (key === 'featured') toggleFeatured(row);
+  else if (key === 'up' || key === 'down') runAction(() => group.value.move({ id: row.id, direction: key }));
+}
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center justify-between gap-3">
-      <input
-        v-model="filterText"
-        type="search"
-        placeholder="Filtrar…"
-        aria-label="Filtrar la tabla"
-        :class="[inputClass, 'w-56']"
-      />
-      <button type="button" :class="primaryButtonClass" @click="openForm()">
-        + {{ newLabel }}
-      </button>
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 v-if="props.title" :class="sectionTitleClass">{{ props.title }}</h2>
+      <p v-else class="text-sm text-cap-text-soft">{{ props.summary }}</p>
+      <div v-if="props.rows.length > 0" class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <TableFilter v-if="props.filterable" v-model="filterText" :label="`Filtrar ${props.entityNamePlural}`" />
+        <CapButton :variant="props.createVariant" icon="plus" @click="openForm()">{{ newLabel }}</CapButton>
+      </div>
     </div>
 
-    <p v-if="formError && !modalOpen" :class="[alertErrorClass, 'mt-3']" role="alert">{{ formError }}</p>
+    <CapAlert v-if="formError && !modalOpen" status="error" title="No se completó la acción" :detail="formError" />
 
-    <div class="mt-4 overflow-x-auto rounded-xl border border-edge bg-surface">
-      <div v-if="props.rows.length === 0" class="px-5 py-10 text-center text-sm text-body">
-        Aún no hay {{ props.entityNamePlural }}. Crea {{ firstOneLabel }} con el botón «{{ newLabel }}».
-      </div>
-      <div v-else-if="totalFiltered === 0" class="px-5 py-10 text-center text-sm text-body">
-        Nada coincide con «{{ filterText }}».
-      </div>
-      <table v-else class="w-full text-left text-sm">
-        <thead>
-          <tr class="border-b border-edge font-mono text-[9px] uppercase tracking-widest text-muted">
-            <SortableHeader
-              v-for="column in props.columns"
-              :key="column.key"
-              :label="column.label"
-              :sort-state="sortState(column.key)"
-              :active="sortKey === column.key"
-              @sort="toggleSort(column.key)"
+    <EmptyState
+      v-if="props.rows.length === 0"
+      :compact="Boolean(props.title)"
+      :icon="COLLECTION_ICONS[props.collection]"
+      :title="`Aún no hay ${props.entityNamePlural}`"
+      :detail="`${createFirstLabel(entity)} para que aparezca en el portal.`"
+    >
+      <CapButton :variant="props.createVariant" icon="plus" @click="openForm()">{{ newLabel }}</CapButton>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="totalFiltered === 0"
+      filtered
+      icon="magnify"
+      title="Ningún registro coincide con los filtros"
+      :detail="`No hay ${props.entityNamePlural} que contengan «${filterText.trim()}».`"
+    >
+      <CapButton variant="secondary" @click="filterText = ''">Limpiar filtros</CapButton>
+    </EmptyState>
+
+    <div v-else>
+      <AdminTable class="hidden lg:block" :columns="props.columns" :rows="pageRows" :sort-state="sortState" @sort="toggleSort">
+        <template #cell="{ row, column }">
+          <CollectionCell
+            :row="row"
+            :column="column"
+            :text="cellText(row, column)"
+            :record-label="recordLabel(row)"
+            @toggle="toggleFeatured(row)"
+          />
+        </template>
+        <template #actions="{ row }">
+          <RowActionsMenu
+            :menu-id="`${props.collection}-${row.id}-actions`"
+            :record-label="recordLabel(row)"
+            :actions="rowActions(row, { includeFeatured: false })"
+            @select="onRowAction(row, $event)"
+          />
+        </template>
+      </AdminTable>
+
+      <ul class="flex flex-col gap-3 lg:hidden">
+        <li v-for="row in pageRows" :key="row.id">
+          <AdminListCard
+            :icon="COLLECTION_ICONS[props.collection]"
+            :title="recordLabel(row)"
+            :subtitle="detailText(row)"
+            :href="titleColumn.kind === 'link' && titleColumn.hrefKey ? String(row[titleColumn.hrefKey]) : ''"
+          >
+            <span v-for="label in activeToggleLabels(row)" :key="label" :class="statusBadgeClass('neutral')">{{ label }}</span>
+            <RowActionsMenu
+              :menu-id="`${props.collection}-${row.id}-actions-mobile`"
+              :record-label="recordLabel(row)"
+              :actions="rowActions(row, { includeFeatured: true })"
+              @select="onRowAction(row, $event)"
             />
-            <th class="px-4 py-2"><span class="sr-only">Acciones</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in pageRows" :key="row.id" class="border-b border-edge/60 last:border-b-0">
-            <td v-for="column in props.columns" :key="column.key" class="px-4 py-3">
-              <span
-                v-if="column.kind === 'led'"
-                class="flex min-w-[7rem] max-w-[16rem] items-center gap-2"
-                :title="String(row[column.key] ?? '')"
-              >
-                <span class="h-1.5 w-1.5 shrink-0 rounded-full" :style="{ background: String(row.ledColor ?? '#15181D') }"></span>
-                <span class="truncate">{{ row[column.key] ?? '—' }}</span>
-              </span>
-              <button
-                v-else-if="column.kind === 'toggle'"
-                type="button"
-                class="relative h-4 w-7 rounded-full transition-colors"
-                :class="row[column.key] ? 'bg-green-600' : 'bg-edge-strong'"
-                :aria-label="row[column.key] ? 'Quitar de destacadas' : 'Destacar'"
-                @click="toggleFeatured(row)"
-              >
-                <span
-                  class="absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all"
-                  :class="row[column.key] ? 'right-0.5' : 'left-0.5'"
-                ></span>
-              </button>
-              <a
-                v-else-if="column.kind === 'link' && column.hrefKey"
-                :href="String(row[column.hrefKey])"
-                class="block min-w-[7rem] max-w-[16rem] truncate font-semibold text-ink underline decoration-edge-strong underline-offset-2 hover:decoration-ink"
-                :title="String(row[column.key] ?? '')"
-              >{{ row[column.key] ?? '—' }}</a>
-              <span
-                v-else
-                class="block min-w-[7rem] max-w-[16rem] truncate"
-                :class="column.kind === 'muted' ? 'text-muted' : 'font-semibold text-ink'"
-                :title="String(row[column.key] ?? '')"
-              >{{ row[column.key] ?? '—' }}</span>
-            </td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              <template v-if="isSortable && isManualOrder">
-                <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Subir" @click="moveRowBy(row.id, 'up')">↑</button>
-                <button type="button" class="px-1 text-muted hover:text-ink" aria-label="Bajar" @click="moveRowBy(row.id, 'down')">↓</button>
-              </template>
-              <button type="button" class="ml-2 font-semibold text-ink hover:underline" @click="openForm(row)">Editar</button>
-              <DeleteRowButton
-                :pending="pendingDeleteId === row.id"
-                @request="pendingDeleteId = row.id"
-                @confirm="removeRow(row.id)"
-              />
-            </td>
-          </tr>
-        </tbody>
-        <TablePager
-          v-model:page="page"
-          :page-count="pageCount"
-          :range-start="rangeStart"
-          :range-end="rangeEnd"
-          :total="totalFiltered"
-          :column-span="columnSpan"
-        />
-      </table>
+          </AdminListCard>
+        </li>
+      </ul>
+
+      <TablePager
+        v-if="pageCount > 1"
+        v-model:page="page"
+        :page-count="pageCount"
+        :range-start="rangeStart"
+        :range-end="rangeEnd"
+        :total="totalFiltered"
+      />
     </div>
 
     <FormModal
       v-if="modalOpen"
       :title="editingRow ? `Editar ${props.entityName}` : newLabel"
-      :submit-label="`Guardar ${props.entityName}`"
+      :submit-label="editingRow ? 'Guardar cambios' : `Crear ${props.entityName}`"
       :fields="props.fields"
       :initial-values="initialValues"
       :submitting="submitting"
       :form-error="formError"
       :field-errors="fieldErrors"
-      @close="modalOpen = false"
+      @close="closeForm"
       @submit="submitForm"
+    />
+
+    <CapConfirmDialog
+      :open="pendingDeleteRow !== null"
+      :title="pendingDeleteRow ? deleteDialogTitle(entity, recordLabel(pendingDeleteRow)) : ''"
+      message="Desaparece del portal de inmediato. No se puede deshacer."
+      :confirm-label="`Eliminar ${props.entityName}`"
+      icon="delete-outline"
+      :loading="deleting"
+      @confirm="confirmDelete"
+      @cancel="removal.cancel"
     />
   </div>
 </template>

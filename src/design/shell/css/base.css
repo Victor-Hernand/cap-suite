@@ -1,0 +1,347 @@
+/* Lienzo, vidrio y controles compartidos por el marco, las capas y el acceso. */
+
+:where([class^="cap-"], [class*=" cap-"]) {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+body {
+  margin: 0;
+  background: var(--cap-page);
+  color: var(--cap-text);
+}
+
+.cap-shell {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  min-height: 100dvh;
+  padding: 12px;
+}
+
+/* Fijo porque hace scroll la ventana: el vidrio siempre debe tener manchones detrás. */
+.cap-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(48% 54% at 8% 18%, var(--cap-blob-red), transparent 70%),
+    radial-gradient(56% 60% at 92% 88%, var(--cap-blob-wine), transparent 70%),
+    radial-gradient(46% 43% at 60% 10%, var(--cap-blob-taupe), transparent 70%);
+}
+
+.cap-shell__main {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.cap-shell__content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 4px 12px;
+}
+
+.cap-glass,
+.cap-toast {
+  border: 1px solid var(--cap-glass-border);
+  background: var(--cap-glass-bg);
+  box-shadow: var(--cap-shadow-glass);
+  color: var(--cap-frame-ink);
+  -webkit-backdrop-filter: blur(var(--cap-glass-blur)) saturate(var(--cap-glass-saturate));
+  backdrop-filter: blur(var(--cap-glass-blur)) saturate(var(--cap-glass-saturate));
+}
+
+.cap-glass--light {
+  border: 1px solid var(--cap-glass-light-border);
+  background: var(--cap-glass-light-bg);
+  box-shadow: var(--cap-shadow-glass-light);
+  color: var(--cap-text);
+  -webkit-backdrop-filter: blur(var(--cap-glass-light-blur)) saturate(var(--cap-glass-light-saturate));
+  backdrop-filter: blur(var(--cap-glass-light-blur)) saturate(var(--cap-glass-light-saturate));
+}
+
+.cap-glass :focus-visible,
+.cap-toast :focus-visible {
+  outline: 2px solid var(--cap-frame-ink);
+  outline-offset: 2px;
+}
+
+/* Los respaldos reasignan los tokens: así cubren toda pieza de vidrio sin repetir selectores.
+   Selectores duplicados a propósito: ganan a tokens.css aunque este se importe después. */
+@supports not (backdrop-filter: blur(1px)) {
+  :root:root,
+  .dark.dark {
+    --cap-glass-bg: var(--cap-frame);
+    --cap-glass-light-bg: var(--cap-card);
+    --cap-glass-tooltip-bg: var(--cap-frame-ink);
+    --cap-overlay-blur: 0px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  :root:root,
+  .dark.dark {
+    --cap-glass-bg: var(--cap-frame);
+    --cap-glass-light-bg: var(--cap-card);
+    --cap-glass-tooltip-bg: var(--cap-frame-ink);
+    --cap-overlay-blur: 0px;
+  }
+}
+
+/* Geometría común de la píldora elástica; cada pieza pone su pintura y pill-nav.js el recorte. */
+[data-cap-pill] {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+.cap-shell-logo {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--cap-red);
+  box-shadow: var(--cap-shadow-logo);
+  color: var(--cap-on-accent);
+  font: 600 15px var(--cap-font-display);
+}
+
+/* Texto oscuro sobre topo: el blanco del boceto da 2.7:1. */
+.cap-shell-avatar {
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--cap-taupe);
+  color: var(--cap-chrome);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cap-shell-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.cap-shell-avatar::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--cap-frame);
+  border-radius: 50%;
+  background: var(--cap-status-ok-solid);
+}
+
+.cap-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 500 14px var(--cap-font-text);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color var(--cap-duration-fast) var(--cap-ease-standard),
+    opacity var(--cap-duration-fast) var(--cap-ease-standard),
+    transform var(--cap-duration-fast) var(--cap-ease-standard);
+}
+
+.cap-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.cap-button:focus-visible {
+  outline: 2px solid var(--cap-text);
+  outline-offset: 2px;
+}
+
+.cap-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cap-button[aria-busy="true"] {
+  opacity: 0.85;
+  cursor: progress;
+}
+
+.cap-button[aria-busy="true"]::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--cap-glass-handle);
+  border-top-color: currentcolor;
+  border-radius: 50%;
+  animation: cap-spin 800ms linear infinite;
+}
+
+@keyframes cap-spin {
+  to { transform: rotate(360deg); }
+}
+
+.cap-button--primary {
+  background: var(--cap-gradient-primary);
+  color: var(--cap-on-accent);
+}
+
+.cap-button--primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.cap-button--secondary,
+.cap-button--provider {
+  border-color: var(--cap-control-line);
+  background: var(--cap-card);
+  color: var(--cap-text);
+}
+
+.cap-button--secondary:hover:not(:disabled),
+.cap-button--provider:hover:not(:disabled) {
+  background: var(--cap-card-2);
+}
+
+.cap-button--danger {
+  border-color: var(--cap-status-error-ink);
+  background: var(--cap-card);
+  color: var(--cap-status-error-ink);
+}
+
+.cap-button--danger:hover:not(:disabled) {
+  background: var(--cap-status-error-tint);
+}
+
+.cap-button--danger-solid {
+  background: var(--cap-status-error-solid);
+  color: var(--cap-on-accent);
+}
+
+.cap-button--danger-solid:hover:not(:disabled) {
+  background: var(--cap-status-error-solid-hover);
+}
+
+.cap-field__label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.cap-field__control {
+  display: flex;
+  align-items: center;
+  height: 46px;
+  padding: 0 6px 0 14px;
+  border: 1px solid var(--cap-input-line);
+  border-radius: var(--cap-radius-control);
+  background: var(--cap-card);
+}
+
+.cap-field__control:focus-within {
+  border-color: var(--cap-text);
+  box-shadow: 0 0 0 1px var(--cap-text), 0 0 0 4px var(--cap-focus-ring);
+}
+
+.cap-field--error .cap-field__control {
+  border-color: var(--cap-status-error);
+  box-shadow: 0 0 0 1px var(--cap-status-error);
+}
+
+/* El borde rojo ya está sin foco: el foco necesita un anillo propio, con 2px de aire entre ambos. */
+.cap-field--error .cap-field__control:focus-within {
+  box-shadow: 0 0 0 1px var(--cap-status-error);
+  outline: 2px solid var(--cap-text);
+  outline-offset: 3px;
+}
+
+.cap-field__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--cap-text);
+  font: 400 14px var(--cap-font-text);
+}
+
+.cap-field__input::placeholder {
+  color: var(--cap-text-soft);
+}
+
+.cap-field__reveal {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--cap-text-soft);
+  font-size: 19px;
+  cursor: pointer;
+}
+
+.cap-field__reveal:focus-visible {
+  outline: 2px solid var(--cap-text);
+}
+
+.cap-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.cap-check__box {
+  position: relative;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--cap-input-line);
+  border-radius: 5px;
+  background: var(--cap-card);
+  appearance: none;
+  cursor: pointer;
+}
+
+.cap-check__box:checked {
+  border-color: var(--cap-text);
+  background: var(--cap-text);
+}
+
+.cap-check__box:checked::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 4.5px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--cap-text-inverse);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.cap-check__box:focus-visible {
+  outline: 2px solid var(--cap-text);
+  outline-offset: 2px;
+}

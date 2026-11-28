@@ -1,0 +1,23 @@
+---
+import { itemAriaLabel, itemIconClass } from '../../data/navigation';
+import type { NavItem } from '../../data/navigation';
+
+interface Props {
+  item: NavItem;
+  active: boolean;
+}
+
+const { item, active } = Astro.props;
+---
+
+<a class="cap-shell-sidebar__item" href={item.href} aria-current={active ? 'page' : undefined} aria-label={itemAriaLabel(item)}>
+  <i class:list={['cap-shell-sidebar__icon mdi', itemIconClass(item, active)]} aria-hidden="true"></i>
+  <span class="cap-shell-sidebar__label">{item.label}</span>
+  {item.count ? (
+    <Fragment>
+      <span class="cap-shell-sidebar__count">{item.count}</span>
+      <span class="cap-shell-sidebar__dot" aria-hidden="true"></span>
+    </Fragment>
+  ) : null}
+  <span class="cap-shell-sidebar__tooltip" aria-hidden="true">{item.label}</span>
+</a>

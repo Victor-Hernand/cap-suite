@@ -5,9 +5,18 @@ export type Row = Record<string, unknown> & { id: number };
 export interface Column {
   key: string;
   label: string;
-  kind?: 'text' | 'muted' | 'led' | 'toggle' | 'link';
+  kind?: 'text' | 'muted' | 'swatch' | 'toggle' | 'link';
   /** Con `kind: 'link'`, la clave de la fila que trae la dirección del enlace. */
   hrefKey?: string;
+}
+
+/** Opción del menú ⋮ de una fila: navega con `href` o se emite su `key`. */
+export interface RowAction {
+  key: string;
+  label: string;
+  icon: string;
+  href?: string;
+  danger?: boolean;
 }
 
 export interface FieldOption {

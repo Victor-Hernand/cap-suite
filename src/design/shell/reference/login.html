@@ -1,0 +1,110 @@
+<!doctype html>
+<!-- Textos de ejemplo; en producción salen de tokens.json › company -->
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Acceso CAP · referencia</title>
+  <script>
+    const hashFlags = location.hash.slice(1).split(',');
+    let storedTheme;
+    try { storedTheme = localStorage.theme; } catch { storedTheme = undefined; }
+    const theme = hashFlags.includes('dark')
+      ? 'dark'
+      : storedTheme ?? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@500;600&display=swap">
+  <link rel="stylesheet" href="../../tokens.css">
+  <link rel="stylesheet" href="../../shell.css">
+  <script type="module" src="../../shell-auto.js"></script>
+</head>
+<body>
+  <main class="cap-login">
+    <!-- Foto de demostración: cada sistema entrega la suya; no se incluye en el paquete. -->
+    <section class="cap-login__photo" id="login-photo" style="--cap-login-photo: url('https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=1600&q=70')">
+      <div class="cap-login__brand-tag cap-glass"><span class="cap-shell-logo" aria-hidden="true">E</span>Facturación</div>
+      <div class="cap-login__quote cap-glass">
+        <p class="cap-login__quote-text">Emite, cobra y revisa cada empresa del grupo desde un mismo lugar.</p>
+        <small class="cap-login__quote-owner">Empresa · Uso interno</small>
+      </div>
+    </section>
+
+    <section class="cap-login__card cap-glass--light">
+      <form class="cap-login__form" id="login-form" action="#" data-cap-login-form="Ingresando…">
+        <h1 class="cap-login__title">Ingresa a Facturación</h1>
+        <p class="cap-login__subtitle">Subtítulo de acceso de la empresa.</p>
+
+        <div class="cap-alert cap-alert--error" id="login-error" role="alert" hidden>
+          <i class="cap-alert__icon mdi mdi-alert-circle-outline" aria-hidden="true"></i>
+          <div><strong class="cap-alert__title">Correo o contraseña incorrectos</strong><span class="cap-alert__detail">Te quedan 2 intentos.</span></div>
+        </div>
+
+        <div class="cap-field">
+          <label class="cap-field__label" for="login-email">Correo</label>
+          <div class="cap-field__control"><input class="cap-field__input" id="login-email" type="email" autocomplete="username" placeholder="nombre@empresa.com"></div>
+        </div>
+        <div class="cap-field" id="login-password-field">
+          <label class="cap-field__label" for="login-password">Contraseña</label>
+          <div class="cap-field__control">
+            <input class="cap-field__input" id="login-password" type="password" autocomplete="current-password" placeholder="••••••••">
+            <button class="cap-field__reveal" type="button" data-cap-password-toggle aria-controls="login-password" aria-label="Mostrar contraseña"><i class="mdi mdi-eye-outline" aria-hidden="true"></i></button>
+          </div>
+        </div>
+
+        <div class="cap-login__options">
+          <label class="cap-check"><input class="cap-check__box" type="checkbox" name="remember">Mantener la sesión</label>
+          <a class="cap-login__link" href="#recover">¿Olvidaste tu contraseña?</a>
+        </div>
+
+        <button class="cap-button cap-button--primary cap-login__submit" id="login-submit" type="submit">Ingresar</button>
+
+        <p class="cap-login__divider">o continúa con</p>
+        <div class="cap-login__providers">
+          <a class="cap-button cap-button--provider" href="#"><img src="../../logos/microsoft.svg" alt="" width="18" height="18">Microsoft</a>
+          <a class="cap-button cap-button--provider" href="#"><img src="../../logos/google.svg" alt="" width="18" height="18">Google</a>
+        </div>
+
+        <p class="cap-login__help">¿Problemas para entrar? Escribe a <a class="cap-login__link" href="mailto:mesadeayuda@ejemplo.com">mesadeayuda@ejemplo.com</a></p>
+      </form>
+
+      <form class="cap-login__form" id="login-recover" action="#" data-cap-login-form="Enviando…" hidden>
+        <h1 class="cap-login__title">Recupera tu acceso</h1>
+        <p class="cap-login__subtitle">Te enviaremos un enlace para crear una contraseña nueva.</p>
+        <div class="cap-alert cap-alert--ok" role="status">
+          <i class="cap-alert__icon mdi mdi-email-check-outline" aria-hidden="true"></i>
+          <div><strong class="cap-alert__title">Te enviamos el enlace</strong><span class="cap-alert__detail">Revisa amunoz@ejemplo.com. Vence en 30 minutos.</span></div>
+        </div>
+        <div class="cap-field">
+          <label class="cap-field__label" for="recover-email">Correo</label>
+          <div class="cap-field__control"><input class="cap-field__input" id="recover-email" type="email" autocomplete="username" value="amunoz@ejemplo.com"></div>
+        </div>
+        <button class="cap-button cap-button--primary cap-login__submit" type="submit">Enviar de nuevo</button>
+        <p class="cap-login__help"><a class="cap-login__link" href="#"><i class="mdi mdi-arrow-left" aria-hidden="true"></i> Volver a ingresar</a></p>
+      </form>
+    </section>
+
+    <button class="cap-login__theme" type="button" data-cap-theme-toggle aria-label="Alternar modo oscuro"><i class="mdi mdi-weather-night" aria-hidden="true"></i></button>
+  </main>
+
+  <script>
+    // Solo para esta referencia: muestra cada estado con #error, #loading, #recover o #no-photo (combinables con #dark).
+    const showLoginState = () => {
+      const flags = location.hash.slice(1).split(',');
+      const submit = document.getElementById('login-submit');
+      const isLoading = flags.includes('loading');
+      document.getElementById('login-error').hidden = !flags.includes('error');
+      document.getElementById('login-password-field').classList.toggle('cap-field--error', flags.includes('error'));
+      document.getElementById('login-form').hidden = flags.includes('recover');
+      document.getElementById('login-recover').hidden = !flags.includes('recover');
+      submit.setAttribute('aria-busy', String(isLoading));
+      submit.disabled = isLoading;
+      submit.textContent = isLoading ? 'Ingresando…' : 'Ingresar';
+      if (flags.includes('no-photo')) document.getElementById('login-photo').style.removeProperty('--cap-login-photo');
+    };
+    addEventListener('hashchange', showLoginState);
+    showLoginState();
+  </script>
+</body>
+</html>

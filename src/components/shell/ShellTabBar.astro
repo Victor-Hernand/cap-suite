@@ -1,0 +1,31 @@
+---
+import { isActiveHref, itemIconClass, mobileDestinations } from '../../data/navigation';
+import type { NavGroup } from '../../data/navigation';
+
+interface Props {
+  navigation: NavGroup[];
+}
+
+const { navigation } = Astro.props;
+const pathname = Astro.url.pathname;
+---
+
+<nav class="cap-shell-tabbar cap-glass" aria-label="Destinos principales">
+  {mobileDestinations(navigation).map((item) => {
+    const active = isActiveHref(pathname, item.href);
+    return (
+      <a class="cap-shell-tabbar__tab" href={item.href} aria-current={active ? 'page' : undefined}>
+        <i class:list={['mdi', itemIconClass(item, active)]} aria-hidden="true"></i>{item.label}
+      </a>
+    );
+  })}
+  <button
+    class="cap-shell-tabbar__tab cap-shell-tabbar__tab--more"
+    type="button"
+    aria-expanded="false"
+    aria-controls="cap-more-sheet"
+    data-cap-sheet-trigger
+  >
+    <i class="mdi mdi-dots-horizontal" aria-hidden="true"></i>Más
+  </button>
+</nav>

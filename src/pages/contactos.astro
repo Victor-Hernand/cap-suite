@@ -1,49 +1,81 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SectionHeader from '../components/SectionHeader.astro';
+import ContactAvatar from '../components/ContactAvatar.astro';
 import ContactCard from '../components/ContactCard.astro';
+import EmptyState from '../components/EmptyState.astro';
 import { getDb, listContacts } from '../lib/db';
 import { findDepartmentByName } from '../data/departments';
 import { listDepartments } from '../lib/departments';
+import { contactPhoneHref, contactPhoneLabel } from '../lib/contacts';
+import { tableCellClass, tableClass, tableHeadClass } from '../lib/capClasses';
 
 const db = getDb();
-const contacts = listContacts(db);
 const catalog = listDepartments(db);
-
-const departments = [...new Set(contacts.map((contact) => contact.department))];
-const groups = departments.map((department) => ({
-  department,
-  slug: findDepartmentByName(catalog, department)?.slug ?? null,
-  items: contacts.filter((contact) => contact.department === department),
+const contacts = listContacts(db).map((contact) => ({
+  ...contact,
+  departmentSlug: findDepartmentByName(catalog, contact.department)?.slug ?? null,
 }));
+
+const columns = ['Nombre', 'Cargo', 'Departamento', 'Empresa', 'Teléfono'];
+const stickyHeadClass = `${tableHeadClass} lg:sticky lg:top-cap-below-header z-cap-header`;
+
+function headCornerClass(index: number): string {
+  if (index === 0) return 'rounded-tl-cap-card';
+  return index === columns.length - 1 ? 'rounded-tr-cap-card' : '';
+}
 ---
 
-<Layout title="Contactos — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
-    <SectionHeader as="h1" eyebrow="Contactos" title="Directorio del grupo" />
-
-    {groups.length === 0 && (
-      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
-        Aún no hay contactos en el directorio.
+<Layout title="Contactos">
+  {contacts.length === 0 ? (
+    <EmptyState icon="account-box-outline" title="Aún no hay contactos en el directorio" detail="Se agregan desde el panel de administración." />
+  ) : (
+    <>
+      <p class="text-sm text-cap-text-soft tabular-nums">
+        {contacts.length} {contacts.length === 1 ? 'persona' : 'personas'} en el directorio
       </p>
-    )}
 
-    {groups.map((group) => (
-      <div class="mt-10">
-        <div class="flex items-baseline justify-between border-b border-edge pb-2">
-          <h2 class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">
-            {group.slug
-              ? <a href={`/departamentos/${group.slug}`} class="underline decoration-edge-strong underline-offset-2 hover:text-ink hover:decoration-ink">{group.department}</a>
-              : group.department}
-          </h2>
-          <span class="font-mono text-[10px] tracking-[0.18em] text-muted">
-            {group.items.length} {group.items.length === 1 ? 'persona' : 'personas'}
-          </span>
-        </div>
-        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {group.items.map((contact) => <ContactCard contact={contact} />)}
-        </div>
+      <div class="hidden isolate rounded-cap-card border border-cap-divider bg-cap-card lg:block">
+        <table class={tableClass}>
+          <thead>
+            <tr>
+              {columns.map((column, index) => (
+                <th scope="col" class={`${headCornerClass(index)} ${stickyHeadClass}`}>{column}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody class="cap-stagger-rows [&>tr:last-child>td:first-child]:rounded-bl-cap-card [&>tr:last-child>td:last-child]:rounded-br-cap-card">
+            {contacts.map((contact) => (
+              <tr class="transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2">
+                <td class={`${tableCellClass} py-2`}>
+                  <div class="flex items-center gap-3">
+                    <ContactAvatar name={contact.name} photoPath={contact.photoPath} />
+                    <div class="min-w-0">
+                      <a href={`mailto:${contact.email}`} class="font-medium text-cap-brand hover:underline dark:text-cap-brand-soft">{contact.name}</a>
+                      <p class="truncate text-xs text-cap-text-soft">{contact.email}</p>
+                    </div>
+                  </div>
+                </td>
+                <td class={tableCellClass}>{contact.role}</td>
+                <td class={tableCellClass}>
+                  {contact.departmentSlug
+                    ? <a href={`/departamentos/${contact.departmentSlug}`} class="underline decoration-gray-400 underline-offset-2 hover:decoration-current">{contact.department}</a>
+                    : contact.department}
+                </td>
+                <td class={tableCellClass}>{contact.company}</td>
+                <td class={`${tableCellClass} whitespace-nowrap tabular-nums`}>
+                  <a href={contactPhoneHref(contact)} class="hover:underline">{contactPhoneLabel(contact)}</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    ))}
-  </section>
+
+      <div class="flex flex-col gap-3 lg:hidden">
+        {contacts.map((contact) => (
+          <ContactCard contact={contact} departmentHref={contact.departmentSlug ? `/departamentos/${contact.departmentSlug}` : null} />
+        ))}
+      </div>
+    </>
+  )}
 </Layout>

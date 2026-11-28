@@ -1,0 +1,66 @@
+.cap-segmented {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  max-width: 100%;
+  padding: 3px;
+  border: 1px solid var(--cap-divider);
+  border-radius: 999px;
+  background: var(--cap-card);
+}
+
+.cap-segmented__pill {
+  background: var(--cap-wine);
+}
+
+.cap-segmented__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cap-text-soft);
+  font: 500 13px var(--cap-font-text);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--cap-duration-fast) var(--cap-ease-standard);
+}
+
+.cap-segmented__item:is([aria-pressed="true"], [aria-current="page"]) {
+  color: var(--cap-on-accent);
+}
+
+.cap-segmented__item:focus-visible {
+  outline: 2px solid var(--cap-text);
+  outline-offset: 2px;
+}
+
+.cap-segmented__count {
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--cap-card-2);
+  color: var(--cap-text-soft);
+  font-size: 12px;
+}
+
+.cap-segmented__item:is([aria-pressed="true"], [aria-current="page"]) .cap-segmented__count {
+  background: var(--cap-red-hover);
+  color: var(--cap-on-accent);
+}
+
+@media (max-width: 639.98px) {
+  .cap-segmented {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .cap-segmented::-webkit-scrollbar {
+    display: none;
+  }
+}

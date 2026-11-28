@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { actions } from 'astro:actions';
+import CapAlert from '../../design/vue/CapAlert.vue';
+import CapButton from '../../design/vue/CapButton.vue';
+import CapConfirmDialog from '../../design/vue/CapConfirmDialog.vue';
 import FileDrop from './FileDrop.vue';
 import FormField from './FormField.vue';
 import PolicyAttachmentsSection from './PolicyAttachmentsSection.vue';
@@ -8,16 +11,25 @@ import PolicyGuidelinesSection from './PolicyGuidelinesSection.vue';
 import PolicyVersionsSection from './PolicyVersionsSection.vue';
 import RequiredMark from './RequiredMark.vue';
 import StoredFileLink from './StoredFileLink.vue';
-import { alertErrorClass, fieldErrorClass, labelClass, primaryButtonClass, selectClass } from './formStyles';
-import { buildPolicyFormData, createEditorState, snapshotOf, type ScalarFieldName } from './policyEditorState';
-import { useActionForm } from './useActionForm';
-import type { Field, FieldOption } from './types';
-import { departmentOptionsOf, type Department } from '../../data/departments';
-import { policyClassifications, policyStatuses, policyTypes, type ListOption } from '../../data/policies';
-import { FIELD_MAX, uploadPickerRules } from '../../lib/fieldRules';
+import { deleteDialogTitle, outcomeTitle, type EntityNames } from './entityLabels';
+import { buildPolicyFormData, createEditorState, snapshotOf } from './policyEditorState';
+import { policyContentFields, policyGeneralFields, policyUploadFields } from './policyEditorFields';
+import { navigateWithToast, useActionForm } from './useActionForm';
+import { useDeleteConfirmation } from './useDeleteConfirmation';
+import type { Department } from '../../data/departments';
+import { policyStatuses } from '../../data/policies';
+import { uploadPickerRules } from '../../lib/fieldRules';
 import type { PolicyDetail } from '../../lib/policies';
-
-type EditorField = Field & { name: ScalarFieldName };
+import { statusBadgeClass } from '../../design/statuses.js';
+import {
+  cardClass,
+  fieldErrorClass,
+  fieldHelpClass,
+  fieldLabelClass,
+  fieldSelectClass,
+  sectionTitleClass,
+  statusDotClass,
+} from '../../lib/capClasses';
 
 const props = withDefaults(defineProps<{ policy?: PolicyDetail | null; departments?: Department[] }>(), {
   policy: null,
@@ -29,43 +41,20 @@ const savedSnapshot = snapshotOf(state);
 const hasPendingChanges = computed(() => snapshotOf(state) !== savedSnapshot);
 const policyId = props.policy?.id ?? null;
 
+const POLICY: EntityNames = { singular: 'política', plural: 'políticas', gender: 'f' };
+
 const { submitting, formError, fieldErrors, runAction, submit } = useActionForm();
 const alertRef = ref<HTMLElement | null>(null);
-const confirmingDelete = ref(false);
-const deleting = ref(false);
+const lastAction = ref<'save' | 'delete'>('save');
+const failedActionTitle = computed(() =>
+  lastAction.value === 'delete' ? 'No se completó la acción' : 'No se pudo guardar la política',
+);
+const removal = useDeleteConfirmation<number>(runAction);
+const { pendingTarget: pendingDeleteId, deleting } = removal;
 const leavingAfterSuccess = ref(false);
 const shouldWarnBeforeLeaving = computed(() => hasPendingChanges.value && !leavingAfterSuccess.value);
 
-const optionsOf = (list: readonly ListOption[]): FieldOption[] => list.map(({ id, label }) => ({ value: id, label }));
-
-const generalFields: EditorField[] = [
-  { name: 'title', label: 'TÍTULO', kind: 'text', required: true, maxLength: FIELD_MAX.policyTitle },
-  {
-    name: 'department',
-    label: 'DEPARTAMENTO',
-    kind: 'select',
-    required: true,
-    options: departmentOptionsOf(props.departments),
-  },
-  { name: 'type', label: 'TIPO DE DOCUMENTO', kind: 'select', required: true, options: optionsOf(policyTypes) },
-  { name: 'classification', label: 'CLASIFICACIÓN', kind: 'select', required: true, options: optionsOf(policyClassifications) },
-  { name: 'owner', label: 'RESPONSABLE', kind: 'text', maxLength: FIELD_MAX.shortText },
-  { name: 'approver', label: 'APROBADOR', kind: 'text', maxLength: FIELD_MAX.shortText },
-  { name: 'nextReviewDate', label: 'PRÓXIMA REVISIÓN', kind: 'date' },
-];
-
-const contentFields: EditorField[] = [
-  { name: 'summary', label: 'RESUMEN', kind: 'textarea', maxLength: FIELD_MAX.longText },
-  { name: 'objective', label: 'OBJETIVO', kind: 'textarea', maxLength: FIELD_MAX.longText },
-  { name: 'scope', label: 'ÁMBITO DE APLICACIÓN', kind: 'textarea', maxLength: FIELD_MAX.longText },
-  { name: 'relatedDocuments', label: 'DOCUMENTOS RELACIONADOS', kind: 'textarea', maxLength: FIELD_MAX.longText },
-  { name: 'indicators', label: 'INDICADORES', kind: 'textarea', maxLength: FIELD_MAX.longText },
-];
-
-const uploadFields: Field[] = [
-  { name: 'officialFile', label: 'Documento oficial', kind: 'file-policy' },
-  { name: 'attachmentFiles', label: 'Anexo', kind: 'file-policy' },
-];
+const generalFields = policyGeneralFields(props.departments);
 
 const officialFilePicker = uploadPickerRules('policies');
 const isStoredDraft = (props.policy?.status ?? 'draft') === 'draft';
@@ -98,67 +87,78 @@ watch(
 
 onBeforeUnmount(() => window.removeEventListener('beforeunload', warnAboutUnsavedChanges));
 
-function leaveTo(url: string) {
+function leaveTo(url: string, toast: CapToastOptions) {
   leavingAfterSuccess.value = true;
-  window.location.assign(url);
+  navigateWithToast(toast, url);
 }
 
 function save() {
+  lastAction.value = 'save';
   const formData = buildPolicyFormData(state, policyId);
-  submit(uploadFields, formData, () => actions.policies.save(formData), ({ id }) => leaveTo(`/admin/politicas/${id}`));
+  const toast: CapToastOptions = {
+    status: 'ok',
+    title: outcomeTitle(POLICY, policyId === null ? 'created' : 'updated'),
+    detail: state.fields.title,
+  };
+  submit(policyUploadFields, formData, () => actions.policies.save(formData), ({ id }) => leaveTo(`/admin/politicas/${id}`, toast));
 }
 
-async function removePolicy() {
-  if (policyId === null || deleting.value) return;
-  deleting.value = true;
-  const succeeded = await runAction(() => actions.policies.remove({ id: policyId }), [], () => leaveTo('/admin/politicas'));
-  if (succeeded) return;
-  deleting.value = false;
-  confirmingDelete.value = false;
+function removePolicy() {
+  lastAction.value = 'delete';
+  removal.confirm(
+    (id) => actions.policies.remove({ id }),
+    () => leaveTo('/admin/politicas', { status: 'ok', title: outcomeTitle(POLICY, 'deleted'), detail: props.policy?.title }),
+  );
 }
 
-const sectionClass = 'rounded-xl border border-edge bg-surface p-5';
-const sectionTitleClass = 'mb-4 font-mono text-[10px] uppercase tracking-widest text-muted';
+const sectionHeadingClass = `${sectionTitleClass} mb-4`;
 </script>
 
 <template>
   <!-- novalidate: los mensajes de validación los da el servidor, en español. -->
-  <form class="flex max-w-4xl flex-col gap-5" novalidate @submit.prevent="save">
-    <div v-if="formError" ref="alertRef" :class="alertErrorClass" role="alert">
-      <p>{{ formError }}</p>
-      <ul v-if="listErrors.length > 0" class="mt-1 list-disc pl-5">
+  <form class="flex max-w-7xl flex-col gap-8" novalidate @submit.prevent="save">
+    <div v-if="formError" ref="alertRef">
+      <CapAlert status="error" :title="failedActionTitle" :detail="formError" />
+      <ul v-if="listErrors.length" class="mt-2 list-disc pl-10 text-sm text-cap-status-error-ink">
         <li v-for="message in listErrors" :key="message">{{ message }}</li>
       </ul>
     </div>
 
-    <section :class="sectionClass">
-      <h2 :class="sectionTitleClass">Datos generales</h2>
-      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <section :class="cardClass">
+      <h2 :class="sectionHeadingClass">Datos generales</h2>
+      <div class="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
         <FormField
           v-for="field in generalFields"
           :key="field.name"
-          :class="field.name === 'title' ? 'sm:col-span-2' : ''"
+          :class="field.name === 'title' ? 'md:col-span-2' : ''"
           :field="field"
           :value="state.fields[field.name]"
           :error="fieldErrors[field.name]?.[0]"
           @update:value="state.fields[field.name] = $event"
         />
         <div>
-          <label :class="labelClass" for="field-status">ESTADO <RequiredMark /></label>
-          <select id="field-status" v-model="state.fields.status" :class="selectClass" :disabled="isStoredDraft">
+          <label :class="fieldLabelClass" for="field-status">Estado <RequiredMark /></label>
+          <select
+            id="field-status"
+            v-model="state.fields.status"
+            aria-required="true"
+            :aria-invalid="fieldErrors.status?.[0] ? 'true' : undefined"
+            :class="fieldSelectClass"
+            :disabled="isStoredDraft"
+          >
             <option v-for="status in statusOptions" :key="status.id" :value="status.id">{{ status.label }}</option>
           </select>
-          <p v-if="isStoredDraft" class="mt-1 text-xs text-muted">Para publicar usa el botón Publicar versión.</p>
+          <p v-if="isStoredDraft" :class="fieldHelpClass">Para publicar usa el botón «Publicar versión».</p>
           <p v-if="fieldErrors.status?.[0]" :class="fieldErrorClass">{{ fieldErrors.status[0] }}</p>
         </div>
       </div>
     </section>
 
-    <section :class="sectionClass">
-      <h2 :class="sectionTitleClass">Contenido</h2>
-      <div class="grid grid-cols-1 gap-4">
+    <section :class="cardClass">
+      <h2 :class="sectionHeadingClass">Contenido</h2>
+      <div class="flex flex-col gap-4">
         <FormField
-          v-for="field in contentFields"
+          v-for="field in policyContentFields"
           :key="field.name"
           :field="field"
           :value="state.fields[field.name]"
@@ -168,14 +168,15 @@ const sectionTitleClass = 'mb-4 font-mono text-[10px] uppercase tracking-widest 
       </div>
     </section>
 
-    <section :class="sectionClass">
-      <h2 :class="sectionTitleClass">Documento oficial</h2>
+    <section :class="cardClass">
+      <h2 :class="sectionHeadingClass">Documento oficial</h2>
       <FileDrop
         name="officialFile"
-        label="ARCHIVO"
+        label="Archivo"
         :hint="officialFilePicker.hint"
         :accept="officialFilePicker.accept"
         note="Obligatorio para publicar."
+        :error="fieldErrors.officialFile?.[0]"
         @change="state.officialFile = $event"
       />
       <StoredFileLink
@@ -185,18 +186,18 @@ const sectionTitleClass = 'mb-4 font-mono text-[10px] uppercase tracking-widest 
       />
     </section>
 
-    <section :class="sectionClass">
-      <h2 :class="sectionTitleClass">Lineamientos</h2>
+    <section :class="cardClass">
+      <h2 :class="sectionHeadingClass">Lineamientos</h2>
       <PolicyGuidelinesSection v-model:guidelines="state.guidelines" />
     </section>
 
-    <section :class="sectionClass">
-      <h2 :class="sectionTitleClass">Anexos</h2>
+    <section :class="cardClass">
+      <h2 :class="sectionHeadingClass">Anexos</h2>
       <PolicyAttachmentsSection v-model:attachments="state.attachments" />
     </section>
 
-    <section :class="sectionClass">
-      <h2 :class="sectionTitleClass">Control de cambios</h2>
+    <section :class="cardClass">
+      <h2 :class="sectionHeadingClass">Control de cambios</h2>
       <PolicyVersionsSection
         v-model:versions="state.versions"
         :policy-id="policyId"
@@ -206,34 +207,31 @@ const sectionTitleClass = 'mb-4 font-mono text-[10px] uppercase tracking-widest 
       />
     </section>
 
-    <div class="sticky bottom-0 flex flex-wrap items-center gap-3 border-t border-edge bg-base py-4">
-      <p class="text-xs" :class="hasPendingChanges ? 'font-semibold text-ink' : 'text-muted'">
-        {{ hasPendingChanges ? 'Cambios pendientes sin guardar' : 'Sin cambios pendientes' }}
-      </p>
-      <div class="ml-auto flex items-center gap-2">
-        <template v-if="policyId !== null">
-          <button
-            v-if="!confirmingDelete"
-            type="button"
-            class="rounded-lg border border-edge px-4 py-2 text-sm text-red-700"
-            @click="confirmingDelete = true"
-          >Eliminar política</button>
-          <template v-else>
-            <button type="button" class="rounded-lg border border-edge px-4 py-2 text-sm text-ink" @click="confirmingDelete = false">
-              Cancelar
-            </button>
-            <button
-              type="button"
-              class="rounded-lg bg-red-700 px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-              :disabled="deleting"
-              @click="removePolicy"
-            >{{ deleting ? 'Eliminando…' : '¿Eliminar definitivamente?' }}</button>
-          </template>
-        </template>
-        <button type="submit" :class="primaryButtonClass" :disabled="submitting">
-          {{ submitting ? 'Guardando…' : 'Guardar política' }}
-        </button>
+    <div
+      class="sticky bottom-4 flex flex-wrap items-center gap-3 rounded-cap-card border border-cap-divider bg-cap-card px-5 py-3 shadow-md max-lg:bottom-24"
+    >
+      <span :class="statusBadgeClass(hasPendingChanges ? 'warning' : 'neutral')">
+        <span :class="statusDotClass" />{{ hasPendingChanges ? 'Cambios sin guardar' : 'Sin cambios pendientes' }}
+      </span>
+      <div class="ml-auto flex flex-wrap items-center gap-2">
+        <CapButton v-if="policyId !== null" variant="danger" icon="delete-outline" @click="removal.request(policyId)">
+          Eliminar política
+        </CapButton>
+        <CapButton type="submit" :variant="policyId === null ? 'primary' : 'secondary'" :loading="submitting">
+          Guardar política
+        </CapButton>
       </div>
     </div>
+
+    <CapConfirmDialog
+      :open="pendingDeleteId !== null"
+      :title="deleteDialogTitle(POLICY, props.policy?.title ?? '')"
+      message="Desaparece del portal de inmediato. No se puede deshacer."
+      confirm-label="Eliminar política"
+      icon="delete-outline"
+      :loading="deleting"
+      @confirm="removePolicy"
+      @cancel="removal.cancel"
+    />
   </form>
 </template>

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue';
 import { actions } from 'astro:actions';
 import FormModal from './FormModal.vue';
-import { useActionForm } from './useActionForm';
+import { navigateWithToast, useActionForm } from './useActionForm';
 import type { Field } from './types';
 import { todayIsoDate } from '../../lib/dates';
 import { FIELD_MAX } from '../../lib/fieldRules';
@@ -33,16 +33,16 @@ const replacesListedVersion = computed(() => props.listedVersions.includes(typed
 const fields = computed<Field[]>(() => [
   {
     name: 'version',
-    label: 'VERSIÓN',
+    label: 'Versión',
     kind: 'text',
     required: true,
     placeholder: 'v2.1',
     hint: replacesListedVersion.value ? `${versionHint} ${REPLACES_LISTED_VERSION_NOTE}` : versionHint,
     maxLength: FIELD_MAX.badge,
   },
-  { name: 'effectiveDate', label: 'FECHA DE VIGENCIA', kind: 'date', required: true },
-  { name: 'author', label: 'AUTOR', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
-  { name: 'reason', label: 'MOTIVO DEL CAMBIO', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
+  { name: 'effectiveDate', label: 'Fecha de vigencia', kind: 'date', required: true },
+  { name: 'author', label: 'Autor', kind: 'text', required: true, maxLength: FIELD_MAX.shortText },
+  { name: 'reason', label: 'Motivo del cambio', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
 ]);
 
 const initialValues = { effectiveDate: todayIsoDate() };
@@ -53,7 +53,8 @@ function trackTypedVersion(name: string, value: string) {
 
 function publish(formData: FormData) {
   formData.set('id', String(props.policyId));
-  submit(fields.value, formData, () => actions.policies.publish(formData));
+  const toast: CapToastOptions = { status: 'ok', title: 'Versión publicada', detail: String(formData.get('version') ?? '') };
+  submit(fields.value, formData, () => actions.policies.publish(formData), () => navigateWithToast(toast));
 }
 </script>
 

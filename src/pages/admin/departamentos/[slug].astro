@@ -1,11 +1,13 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import BackLink from '../../../components/BackLink.astro';
 import CollectionManager from '../../../components/admin/CollectionManager.vue';
 import type { Collection, Column, Field, Row } from '../../../components/admin/types';
 import { noticeKinds } from '../../../data/departments';
 import { labelOf } from '../../../data/policies';
 import { FIELD_MAX } from '../../../lib/fieldRules';
 import { getDb } from '../../../lib/db';
+import { cardClass, inlineLinkClass } from '../../../lib/capClasses';
 import { formats, links, notices, processes, splitSteps } from '../../../lib/departmentContent';
 import { getDepartmentBySlug } from '../../../lib/departments';
 
@@ -40,10 +42,10 @@ const sections: Section[] = [
       { key: 'stepsSummary', label: 'Pasos', kind: 'muted' },
     ],
     fields: [
-      { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+      { name: 'name', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
       {
         name: 'steps',
-        label: 'PASOS',
+        label: 'Pasos',
         kind: 'textarea',
         required: true,
         hint: 'Un paso por línea.',
@@ -66,15 +68,15 @@ const sections: Section[] = [
       { key: 'source', label: 'Origen', kind: 'muted' },
     ],
     fields: [
-      { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+      { name: 'name', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
       {
         name: 'url',
-        label: 'ENLACE',
+        label: 'Enlace',
         kind: 'url',
         placeholder: 'https://… (o sube un archivo abajo)',
         maxLength: FIELD_MAX.url,
       },
-      { name: 'file', label: 'ARCHIVO', kind: 'file-policy' },
+      { name: 'file', label: 'Archivo', kind: 'file-policy' },
     ],
   },
   {
@@ -89,8 +91,8 @@ const sections: Section[] = [
       { key: 'url', label: 'Dirección', kind: 'muted' },
     ],
     fields: [
-      { name: 'label', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
-      { name: 'url', label: 'DIRECCIÓN', kind: 'url', required: true, placeholder: 'https://…', maxLength: FIELD_MAX.url },
+      { name: 'label', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+      { name: 'url', label: 'Dirección', kind: 'url', required: true, placeholder: 'https://…', maxLength: FIELD_MAX.url },
     ],
   },
   {
@@ -109,11 +111,11 @@ const sections: Section[] = [
       { key: 'kindLabel', label: 'Tipo', kind: 'muted' },
     ],
     fields: [
-      { name: 'date', label: 'FECHA', kind: 'date', required: true },
-      { name: 'body', label: 'AVISO', kind: 'textarea', required: true, maxLength: FIELD_MAX.longText },
+      { name: 'date', label: 'Fecha', kind: 'date', required: true },
+      { name: 'body', label: 'Aviso', kind: 'textarea', required: true, maxLength: FIELD_MAX.longText },
       {
         name: 'kind',
-        label: 'TIPO',
+        label: 'Tipo',
         kind: 'select',
         required: true,
         options: noticeKinds.map(({ id, label }) => ({ value: id, label })),
@@ -123,23 +125,26 @@ const sections: Section[] = [
 ];
 ---
 
-<AdminLayout title={department.name} active="departamentos">
-  <a href="/admin/departamentos" class="text-sm font-semibold text-body hover:text-ink">← Departamentos</a>
-  <h1 class="mt-2 text-2xl font-extrabold">{department.name}</h1>
-  <p class="mt-1 text-sm text-body">
-    Contenido que se muestra en la
-    <a href={`/departamentos/${department.slug}`} class="font-semibold text-ink hover:underline">página pública del departamento</a>.
-  </p>
+<AdminLayout title={department.name} crumbs={['Departamentos']}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <BackLink href="/admin/departamentos" label="Departamentos" />
+    <p class="text-sm text-cap-text-soft">
+      Contenido de la <a href={`/departamentos/${department.slug}`} class={inlineLinkClass}>página pública del departamento</a>.
+      El equipo se administra en <a href="/admin/contactos" class={inlineLinkClass}>Contactos</a>.
+    </p>
+  </div>
   {
     sections.map((section) => (
-      <section class="mt-8">
-        <h2 class="mb-3 text-lg font-extrabold">{section.title}</h2>
+      <section class={cardClass}>
         <CollectionManager
           client:load
           collection={section.collection}
           entityName={section.entityName}
           entityNamePlural={section.entityNamePlural}
           entityGender={section.entityGender}
+          title={section.title}
+          createVariant="secondary"
+          filterable={false}
           rows={section.rows}
           columns={section.columns}
           fields={section.fields}
@@ -148,7 +153,4 @@ const sections: Section[] = [
       </section>
     ))
   }
-  <p class="mt-10 text-sm text-body">
-    El equipo se administra en <a href="/admin/contactos" class="font-semibold text-ink hover:underline">Contactos</a>.
-  </p>
 </AdminLayout>

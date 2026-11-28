@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { nextTick, onMounted, ref, useId, watch } from 'vue';
+import CapAlert from '../../design/vue/CapAlert.vue';
+import CapButton from '../../design/vue/CapButton.vue';
+import { useEscapeKey } from '../../design/vue/composables/useEscapeKey.js';
+import { useFocusTrap } from '../../design/vue/composables/useFocusTrap.js';
 import FormField from './FormField.vue';
-import { alertErrorClass, primaryButtonClass } from './formStyles';
+import RequiredMark from './RequiredMark.vue';
 import type { Field } from './types';
+import { sectionTitleClass } from '../../lib/capClasses';
 import type { FieldErrors } from './useActionForm';
 
 const props = defineProps<{
@@ -21,13 +26,28 @@ const emit = defineEmits<{
   fieldInput: [name: string, value: string];
 }>();
 
+const titleId = useId();
 const formRef = ref<HTMLFormElement | null>(null);
+const firstFieldRef = ref<HTMLElement | null>(null);
+// El modal existe mientras está abierto (el padre lo monta con v-if): trampa de foco y Esc siempre activos.
+const alwaysActive = ref(true);
 const hasRequiredFields = props.fields.some((field) => field.required);
 
-// Sin foco inicial, lo que se escribía al abrir el modal no llegaba a ningún campo.
+// Registrado antes que la trampa de foco: así el foco inicial cae en el primer campo y no en el cierre.
 onMounted(() => {
-  formRef.value?.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), select, textarea')?.focus();
+  firstFieldRef.value =
+    formRef.value?.querySelector<HTMLElement>('input:not([type=hidden]):not([type=file]), select, textarea') ?? null;
 });
+useFocusTrap(formRef, alwaysActive, firstFieldRef);
+useEscapeKey(alwaysActive, close);
+
+watch(
+  () => props.fieldErrors,
+  async () => {
+    await nextTick();
+    formRef.value?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  },
+);
 
 function close() {
   if (!props.submitting) emit('close');
@@ -39,49 +59,47 @@ function onSubmit() {
 </script>
 
 <template>
-  <div class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-6 pt-16" @click.self="close">
-    <!-- novalidate: la validación nativa del navegador sale en su idioma; los mensajes los da el servidor. -->
-    <form
-      ref="formRef"
-      class="flex max-h-[85vh] w-full max-w-lg flex-col rounded-2xl bg-surface text-ink shadow-xl"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="form-modal-title"
-      novalidate
-      @submit.prevent="onSubmit"
-    >
-      <div class="flex items-center justify-between border-b border-edge px-6 py-4">
-        <h2 id="form-modal-title" class="text-lg font-extrabold text-ink">{{ props.title }}</h2>
-        <button type="button" class="text-muted hover:text-ink" aria-label="Cerrar" @click="close">✕</button>
+  <div class="fixed inset-0 z-cap-modal bg-cap-chrome/35 backdrop-blur-sm animate-cap-fade-in" @click="close" />
+  <!-- novalidate: la validación nativa del navegador sale en su idioma; los mensajes los da el servidor. -->
+  <form
+    ref="formRef"
+    role="dialog"
+    aria-modal="true"
+    :aria-labelledby="titleId"
+    novalidate
+    class="fixed inset-x-4 top-[10vh] z-cap-modal mx-auto flex max-h-[80vh] w-full max-w-lg animate-cap-rise-in flex-col rounded-cap-shell border border-cap-divider bg-cap-card shadow-xl max-md:inset-0 max-md:max-h-none max-md:max-w-none max-md:rounded-none max-md:border-0"
+    @submit.prevent="onSubmit"
+  >
+    <header class="flex items-center justify-between border-b border-cap-divider px-6 py-4">
+      <h2 :id="titleId" :class="sectionTitleClass">{{ props.title }}</h2>
+      <button
+        type="button"
+        aria-label="Cerrar"
+        class="rounded-full p-1 text-cap-text-soft transition-colors duration-cap-fast ease-cap hover:bg-cap-card-2 hover:text-gray-900 dark:hover:text-gray-100"
+        @click="close"
+      >
+        <i class="mdi mdi-close text-xl" aria-hidden="true" />
+      </button>
+    </header>
+    <div class="min-h-0 flex-1 overflow-y-auto p-6 text-sm text-gray-700 dark:text-gray-300">
+      <CapAlert v-if="props.formError" class="mb-4" status="error" title="No se pudo guardar" :detail="props.formError" />
+      <div class="flex flex-col gap-4">
+        <FormField
+          v-for="field in props.fields"
+          :key="field.name"
+          :field="field"
+          :value="props.initialValues[field.name] ?? ''"
+          :error="props.fieldErrors[field.name]?.[0]"
+          @update:value="emit('fieldInput', field.name, $event)"
+        />
       </div>
-      <div class="overflow-y-auto px-6 py-4">
-        <p v-if="props.formError" :class="[alertErrorClass, 'mb-4']" role="alert">{{ props.formError }}</p>
-        <div class="grid grid-cols-1 gap-4">
-          <FormField
-            v-for="field in props.fields"
-            :key="field.name"
-            :field="field"
-            :value="props.initialValues[field.name] ?? ''"
-            :error="props.fieldErrors[field.name]?.[0]"
-            @update:value="emit('fieldInput', field.name, $event)"
-          />
-        </div>
+    </div>
+    <footer class="flex flex-wrap items-center justify-between gap-2 border-t border-cap-divider px-6 py-4">
+      <p v-if="hasRequiredFields" class="text-xs text-cap-text-soft"><RequiredMark /> Campo obligatorio</p>
+      <div class="ml-auto flex gap-2">
+        <CapButton variant="secondary" @click="close">Cancelar</CapButton>
+        <CapButton type="submit" :loading="props.submitting">{{ props.submitLabel }}</CapButton>
       </div>
-      <div class="flex items-center justify-between gap-2 border-t border-edge px-6 py-4">
-        <p v-if="hasRequiredFields" class="text-xs text-muted"><span class="text-red-700">*</span> Campo obligatorio</p>
-        <div class="ml-auto flex gap-2">
-          <button type="button" class="rounded-lg border border-edge px-4 py-2 text-sm text-ink" @click="close">
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            :class="primaryButtonClass"
-            :disabled="props.submitting"
-          >
-            {{ props.submitting ? 'Guardando…' : props.submitLabel }}
-          </button>
-        </div>
-      </div>
-    </form>
-  </div>
+    </footer>
+  </form>
 </template>

@@ -1,7 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
+import BackLink from '../../../components/BackLink.astro';
 import PolicyEditor from '../../../components/admin/PolicyEditor.vue';
-import { badgeClassOf, labelOf, policyStatuses } from '../../../data/policies';
+import { labelOf, policyStatuses } from '../../../data/policies';
+import { policyBadgeClass } from '../../../lib/policyBadges';
+import { inlineLinkClass, statusDotClass } from '../../../lib/capClasses';
 import { getDb } from '../../../lib/db';
 import { getPolicy } from '../../../lib/policies';
 import { listDepartments } from '../../../lib/departments';
@@ -14,18 +17,17 @@ const isDraft = policy.status === 'draft';
 const departments = listDepartments(db);
 ---
 
-<AdminLayout title={policy.title} active="politicas">
-  <a href="/admin/politicas" class="text-xs font-semibold text-muted hover:text-ink">← Todas las políticas</a>
-  <div class="mt-2 flex flex-wrap items-center gap-3">
-    <h1 class="text-2xl font-extrabold">{policy.title}</h1>
-    <span class={badgeClassOf(policy.status)}>{labelOf(policyStatuses, policy.status)}</span>
+<AdminLayout title={policy.title} crumbs={['Políticas']}>
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <BackLink href="/admin/politicas" label="Todas las políticas" />
+    <div class="flex flex-wrap items-center gap-3 text-sm text-cap-text-soft">
+      <span class={policyBadgeClass(policy.status)}><span class={statusDotClass}></span>{labelOf(policyStatuses, policy.status)}</span>
+      {isDraft
+        ? <span>Borrador: no aparece en el portal hasta publicar una versión.</span>
+        : (
+          <span>Visible en el portal: <a href={`/politicas/${policy.slug}`} class={inlineLinkClass}>ver ficha pública</a></span>
+        )}
+    </div>
   </div>
-  <p class="mt-1 text-sm text-body">
-    {isDraft
-      ? 'Borrador: no aparece en el portal hasta publicar una versión.'
-      : <>Visible en el portal: <a href={`/politicas/${policy.slug}`} class="font-semibold text-ink hover:underline">ver ficha pública ↗</a></>}
-  </p>
-  <div class="mt-5">
-    <PolicyEditor client:load policy={policy} departments={departments} />
-  </div>
+  <PolicyEditor client:load policy={policy} departments={departments} />
 </AdminLayout>

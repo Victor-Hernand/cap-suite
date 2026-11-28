@@ -5,10 +5,11 @@ const PAGE_SIZE = 10;
 
 type SortDirection = 'asc' | 'desc';
 
+// El ícono de orden solo se pinta en la columna activa.
 const SORT_STATE = {
-  none: { icon: '↕', aria: 'none' },
-  asc: { icon: '↑', aria: 'ascending' },
-  desc: { icon: '↓', aria: 'descending' },
+  none: { icon: '', aria: 'none' },
+  asc: { icon: 'mdi-arrow-up', aria: 'ascending' },
+  desc: { icon: 'mdi-arrow-down', aria: 'descending' },
 } as const;
 
 export type SortState = (typeof SORT_STATE)[keyof typeof SORT_STATE];
@@ -70,7 +71,7 @@ export function useTableView(rows: Ref<Row[]>, columns: MaybeRefOrGetter<Column[
     }
   }
 
-  /** Icono y valor de aria-sort de la cabecera de una columna. */
+  /** Ícono y valor de aria-sort de la cabecera de una columna. */
   function sortState(key: string): SortState {
     return SORT_STATE[sortKey.value === key ? sortDirection.value : 'none'];
   }

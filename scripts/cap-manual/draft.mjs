@@ -10,14 +10,13 @@ import {
   hasUncommittedChanges,
   parseCliArguments,
   readGitContext,
-  requireEnvironment,
+  resolveCapGestionCredentials,
   runAsMain,
   validateManualDirectory,
 } from './lib.mjs';
 
 const USAGE = 'Uso: node draft.mjs <carpeta-del-manual> [--pr <url-del-pr>]';
 const SCRIPT_FILE_NAME = 'guion.json';
-const TOKEN_HINT = 'Pide tu token personal a un administrador de CAP Gestión y exporta CAP_GESTION_URL y CAP_GESTION_TOKEN en tu shell; nunca los guardes en archivos del repositorio.';
 
 export function parseDraftArguments(args) {
   const parsed = parseCliArguments(args, { pr: { type: 'string' } }, USAGE);
@@ -63,7 +62,7 @@ function requireManualDirectory(directory) {
 async function main(...args) {
   try {
     const { directory, pullRequestUrl } = parseDraftArguments(args);
-    const environment = requireEnvironment(process.env, ['CAP_GESTION_URL', 'CAP_GESTION_TOKEN'], TOKEN_HINT);
+    const credentials = resolveCapGestionCredentials(process.env);
     requireManualDirectory(directory);
     const git = readGitContext(directory);
     assertDraftAllowed({
@@ -71,7 +70,7 @@ async function main(...args) {
       hasScript: existsSync(join(directory, SCRIPT_FILE_NAME)),
       scriptHasUncommittedChanges: hasUncommittedChanges(directory, SCRIPT_FILE_NAME),
     });
-    const client = createCapGestionClient({ url: environment.CAP_GESTION_URL, token: environment.CAP_GESTION_TOKEN });
+    const client = createCapGestionClient(credentials);
     const draft = await sendDraft({ directory, client, git, pullRequestUrl });
     console.log(`Borrador enviado a CAP Gestión: ${draft.url}`);
   } catch (error) {

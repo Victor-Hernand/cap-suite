@@ -1,16 +1,27 @@
 <script setup lang="ts">
-import { ref, toRef } from 'vue';
+import { toRef } from 'vue';
 import { actions } from 'astro:actions';
-import DeleteRowButton from './DeleteRowButton.vue';
-import SortableHeader from './SortableHeader.vue';
+import CapAlert from '../../design/vue/CapAlert.vue';
+import CapButton from '../../design/vue/CapButton.vue';
+import CapConfirmDialog from '../../design/vue/CapConfirmDialog.vue';
+import EmptyState from '../EmptyState.vue';
+import AdminListCard from './AdminListCard.vue';
+import AdminTable from './AdminTable.vue';
+import RowActionsMenu from './RowActionsMenu.vue';
+import TableFilter from './TableFilter.vue';
 import TablePager from './TablePager.vue';
-import { useActionForm } from './useActionForm';
+import { navigateWithToast, useActionForm } from './useActionForm';
+import { useDeleteConfirmation } from './useDeleteConfirmation';
 import { useTableView } from './useTableView';
-import { alertErrorClass, inputClass, primaryButtonClass } from './formStyles';
-import type { Column, Row } from './types';
-import { badgeClassOf } from '../../data/policies';
+import { deleteDialogTitle, outcomeTitle, type EntityNames } from './entityLabels';
+import type { Column, Row, RowAction } from './types';
+import { policyBadgeClass } from '../../lib/policyBadges';
+import { statusDotClass, tableLinkClass } from '../../lib/capClasses';
 
-const props = withDefaults(defineProps<{ rows?: Row[] }>(), { rows: () => [] });
+const props = withDefaults(defineProps<{ rows?: Row[]; summary?: string }>(), { rows: () => [], summary: '' });
+
+const POLICY: EntityNames = { singular: 'política', plural: 'políticas', gender: 'f' };
+const NEW_POLICY_HREF = '/admin/politicas/nueva';
 
 const columns: Column[] = [
   { key: 'title', label: 'Título' },
@@ -19,89 +30,128 @@ const columns: Column[] = [
   { key: 'statusLabel', label: 'Estado' },
   { key: 'version', label: 'Versión', kind: 'muted' },
 ];
-const columnSpan = columns.length + 1;
 
-const { filterText, sortKey, page, pageCount, pageRows, rangeStart, rangeEnd, totalFiltered, toggleSort, sortState } =
+const { filterText, page, pageCount, pageRows, rangeStart, rangeEnd, totalFiltered, toggleSort, sortState } =
   useTableView(toRef(props, 'rows'), columns);
 const { formError, runAction } = useActionForm();
-const pendingDeleteId = ref<number | null>(null);
+const removal = useDeleteConfirmation<Row>(runAction);
+const { pendingTarget: pendingDeleteRow, deleting } = removal;
 
-function removePolicy(id: number) {
-  pendingDeleteId.value = null;
-  runAction(() => actions.policies.remove({ id }));
+const editHref = (row: Row) => `/admin/politicas/${row.id}`;
+
+const rowActions = (row: Row): RowAction[] => [
+  { key: 'edit', label: 'Editar', icon: 'pencil-outline', href: editHref(row) },
+  { key: 'delete', label: 'Eliminar', icon: 'delete-outline', danger: true },
+];
+
+function onRowAction(row: Row, key: string) {
+  if (key === 'delete') removal.request(row);
+}
+
+function confirmDelete() {
+  removal.confirm(
+    (row) => actions.policies.remove({ id: row.id }),
+    (row) => navigateWithToast({ status: 'ok', title: outcomeTitle(POLICY, 'deleted'), detail: String(row.title) }),
+  );
 }
 </script>
 
 <template>
-  <div>
-    <div class="flex items-center justify-between gap-3">
-      <input
-        v-model="filterText"
-        type="search"
-        placeholder="Filtrar…"
-        aria-label="Filtrar la tabla"
-        :class="[inputClass, 'w-56']"
-      />
-      <a href="/admin/politicas/nueva" :class="[primaryButtonClass, 'shrink-0 whitespace-nowrap']">+ Nueva política</a>
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <p class="text-sm text-cap-text-soft">{{ props.summary }}</p>
+      <div v-if="props.rows.length > 0" class="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+        <TableFilter v-model="filterText" label="Filtrar políticas" />
+        <CapButton :href="NEW_POLICY_HREF" icon="plus">Nueva política</CapButton>
+      </div>
     </div>
 
-    <p v-if="formError" :class="[alertErrorClass, 'mt-3']" role="alert">{{ formError }}</p>
+    <CapAlert v-if="formError" status="error" title="No se completó la acción" :detail="formError" />
 
-    <div class="mt-4 overflow-x-auto rounded-xl border border-edge bg-surface">
-      <div v-if="props.rows.length === 0" class="px-5 py-10 text-center text-sm text-body">
-        Aún no hay políticas. Crea la primera con el botón «Nueva política».
-      </div>
-      <div v-else-if="totalFiltered === 0" class="px-5 py-10 text-center text-sm text-body">
-        Nada coincide con «{{ filterText }}».
-      </div>
-      <table v-else class="w-full text-left text-sm">
-        <thead>
-          <tr class="border-b border-edge font-mono text-[9px] uppercase tracking-widest text-muted">
-            <SortableHeader
-              v-for="column in columns"
-              :key="column.key"
-              :label="column.label"
-              :sort-state="sortState(column.key)"
-              :active="sortKey === column.key"
-              @sort="toggleSort(column.key)"
+    <EmptyState
+      v-if="props.rows.length === 0"
+      icon="file-document-outline"
+      title="Aún no hay políticas"
+      detail="Crea la primera; se guarda como borrador hasta publicarla."
+    >
+      <CapButton :href="NEW_POLICY_HREF" icon="plus">Nueva política</CapButton>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="totalFiltered === 0"
+      filtered
+      icon="magnify"
+      title="Ningún registro coincide con los filtros"
+      :detail="`No hay políticas que contengan «${filterText.trim()}».`"
+    >
+      <CapButton variant="secondary" @click="filterText = ''">Limpiar filtros</CapButton>
+    </EmptyState>
+
+    <div v-else>
+      <AdminTable class="hidden lg:block" :columns="columns" :rows="pageRows" :sort-state="sortState" @sort="toggleSort">
+        <template #cell="{ row, column }">
+          <a
+            v-if="column.key === 'title'"
+            :href="editHref(row)"
+            class="block max-w-sm truncate"
+            :class="tableLinkClass"
+            :title="String(row.title)"
+          >{{ row.title }}</a>
+          <span v-else-if="column.key === 'statusLabel'" :class="policyBadgeClass(String(row.status))">
+            <span :class="statusDotClass" />{{ row.statusLabel }}
+          </span>
+          <span v-else class="block max-w-xs truncate text-cap-text-soft" :title="String(row[column.key] ?? '')">
+            {{ row[column.key] || '—' }}
+          </span>
+        </template>
+        <template #actions="{ row }">
+          <RowActionsMenu
+            :menu-id="`policy-${row.id}-actions`"
+            :record-label="String(row.title)"
+            :actions="rowActions(row)"
+            @select="onRowAction(row, $event)"
+          />
+        </template>
+      </AdminTable>
+
+      <ul class="flex flex-col gap-3 lg:hidden">
+        <li v-for="row in pageRows" :key="row.id">
+          <AdminListCard
+            icon="file-document-outline"
+            :title="String(row.title)"
+            :subtitle="[row.department, row.typeLabel, row.version].filter(Boolean).join(' · ')"
+            :href="editHref(row)"
+          >
+            <span :class="policyBadgeClass(String(row.status))"><span :class="statusDotClass" />{{ row.statusLabel }}</span>
+            <RowActionsMenu
+              :menu-id="`policy-${row.id}-actions-mobile`"
+              :record-label="String(row.title)"
+              :actions="rowActions(row)"
+              @select="onRowAction(row, $event)"
             />
-            <th class="px-4 py-2"><span class="sr-only">Acciones</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="row in pageRows" :key="row.id" class="border-b border-edge/60 last:border-b-0">
-            <td class="px-4 py-3">
-              <a
-                :href="`/admin/politicas/${row.id}`"
-                class="block min-w-[10rem] max-w-[22rem] truncate font-semibold text-ink hover:underline"
-                :title="String(row.title)"
-              >{{ row.title }}</a>
-            </td>
-            <td class="px-4 py-3 text-muted">{{ row.department }}</td>
-            <td class="px-4 py-3 text-muted">{{ row.typeLabel }}</td>
-            <td class="px-4 py-3">
-              <span :class="badgeClassOf(String(row.status))">{{ row.statusLabel }}</span>
-            </td>
-            <td class="px-4 py-3 font-mono text-xs text-muted">{{ row.version || '—' }}</td>
-            <td class="px-4 py-3 text-right whitespace-nowrap">
-              <a :href="`/admin/politicas/${row.id}`" class="font-semibold text-ink hover:underline">Editar</a>
-              <DeleteRowButton
-                :pending="pendingDeleteId === row.id"
-                @request="pendingDeleteId = row.id"
-                @confirm="removePolicy(row.id)"
-              />
-            </td>
-          </tr>
-        </tbody>
-        <TablePager
-          v-model:page="page"
-          :page-count="pageCount"
-          :range-start="rangeStart"
-          :range-end="rangeEnd"
-          :total="totalFiltered"
-          :column-span="columnSpan"
-        />
-      </table>
+          </AdminListCard>
+        </li>
+      </ul>
+
+      <TablePager
+        v-if="pageCount > 1"
+        v-model:page="page"
+        :page-count="pageCount"
+        :range-start="rangeStart"
+        :range-end="rangeEnd"
+        :total="totalFiltered"
+      />
     </div>
+
+    <CapConfirmDialog
+      :open="pendingDeleteRow !== null"
+      :title="pendingDeleteRow ? deleteDialogTitle(POLICY, String(pendingDeleteRow.title)) : ''"
+      message="Desaparece del portal de inmediato. No se puede deshacer."
+      confirm-label="Eliminar política"
+      icon="delete-outline"
+      :loading="deleting"
+      @confirm="confirmDelete"
+      @cancel="removal.cancel"
+    />
   </div>
 </template>

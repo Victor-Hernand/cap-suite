@@ -1,40 +1,66 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SectionHeader from '../components/SectionHeader.astro';
 import ResourceCard from '../components/ResourceCard.astro';
+import EmptyState from '../components/EmptyState.astro';
 import { getDb, listResources } from '../lib/db';
 import { resourceTypes } from '../data/categories';
+import { sectionTitleClass } from '../lib/capClasses';
 
 const db = getDb();
 const resources = listResources(db);
 
+const requestedType = Astro.url.searchParams.get('tipo') ?? '';
+const selectedType = resourceTypes.some((type) => type.id === requestedType) ? requestedType : '';
+
+const filterItems = [
+  { id: '', label: 'Todos', href: '/recursos', count: resources.length },
+  ...resourceTypes.map((type) => ({
+    id: type.id,
+    label: type.label,
+    href: `/recursos?tipo=${type.id}`,
+    count: resources.filter((resource) => resource.type === type.id).length,
+  })),
+];
+
 const groups = resourceTypes
-  .map((type) => ({ label: type.label, items: resources.filter((resource) => resource.type === type.id) }))
+  .filter((type) => !selectedType || type.id === selectedType)
+  .map((type) => ({ id: type.id, label: type.label, items: resources.filter((resource) => resource.type === type.id) }))
   .filter((group) => group.items.length > 0);
 ---
 
-<Layout title="Recursos — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
-    <SectionHeader as="h1" eyebrow="Recursos" title="Materiales y documentos" />
+<Layout title="Recursos">
+  {resources.length === 0 ? (
+    <EmptyState icon="folder-outline" title="Aún no hay recursos publicados" detail="Manuales, plantillas, carpetas y enlaces aparecerán aquí." />
+  ) : (
+    <>
+      <nav class="cap-segmented self-start" aria-label="Filtrar por tipo" data-cap-pill-nav>
+        <span class="cap-segmented__pill" aria-hidden="true" data-cap-pill></span>
+        {filterItems.map((item) => (
+          <a class="cap-segmented__item" href={item.href} aria-current={item.id === selectedType ? 'page' : undefined}>
+            {item.label}<span class="cap-segmented__count">{item.count}</span>
+          </a>
+        ))}
+      </nav>
 
-    {groups.length === 0 && (
-      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
-        Aún no hay recursos publicados.
-      </p>
-    )}
+      {groups.length === 0 && (
+        <EmptyState filtered icon="filter-off-outline" title="Ningún recurso coincide con los filtros" detail="Este tipo aún no tiene recursos publicados.">
+          <a href="/recursos" class="cap-button cap-button--secondary">Limpiar filtros</a>
+        </EmptyState>
+      )}
 
-    {groups.map((group) => (
-      <div class="mt-10">
-        <div class="flex items-baseline justify-between border-b border-edge pb-2">
-          <h2 class="font-mono text-[10px] uppercase tracking-[0.22em] text-muted">{group.label}</h2>
-          <span class="font-mono text-[10px] tracking-[0.18em] text-muted">
-            {group.items.length} {group.items.length === 1 ? 'recurso' : 'recursos'}
-          </span>
-        </div>
-        <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {group.items.map((resource) => <ResourceCard resource={resource} />)}
-        </div>
-      </div>
-    ))}
-  </section>
+      {groups.map((group) => (
+        <section aria-labelledby={`resources-${group.id}`} class="flex flex-col gap-3">
+          <div class="flex items-baseline justify-between gap-3">
+            <h2 id={`resources-${group.id}`} class={sectionTitleClass}>{group.label}</h2>
+            <span class="text-xs text-cap-text-soft tabular-nums">
+              {group.items.length} {group.items.length === 1 ? 'recurso' : 'recursos'}
+            </span>
+          </div>
+          <div class="cap-stagger grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {group.items.map((resource) => <ResourceCard resource={resource} />)}
+          </div>
+        </section>
+      ))}
+    </>
+  )}
 </Layout>

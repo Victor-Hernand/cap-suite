@@ -4,24 +4,26 @@ import CollectionManager from '../../components/admin/CollectionManager.vue';
 import type { Column, Field } from '../../components/admin/types';
 import { FIELD_MAX } from '../../lib/fieldRules';
 import { getDb, listResources } from '../../lib/db';
+import { resourceTypes } from '../../data/categories';
 
 const rows = listResources(getDb()).map((resource) => ({
   ...resource,
+  typeLabel: resourceTypes.find((resourceType) => resourceType.id === resource.type)?.badge ?? resource.type,
   source: resource.url ?? `Archivo: ${resource.filePath}`,
 }));
 
 const columns: Column[] = [
   { key: 'name', label: 'Nombre' },
-  { key: 'type', label: 'Tipo', kind: 'muted' },
+  { key: 'typeLabel', label: 'Tipo', kind: 'muted' },
   { key: 'source', label: 'Origen', kind: 'muted' },
 ];
 
 const fields: Field[] = [
-  { name: 'name', label: 'NOMBRE', kind: 'text', required: true, maxLength: FIELD_MAX.name },
-  { name: 'description', label: 'DESCRIPCIÓN', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
+  { name: 'name', label: 'Nombre', kind: 'text', required: true, maxLength: FIELD_MAX.name },
+  { name: 'description', label: 'Descripción', kind: 'textarea', required: true, maxLength: FIELD_MAX.description },
   {
     name: 'type',
-    label: 'TIPO',
+    label: 'Tipo',
     kind: 'select',
     required: true,
     options: [
@@ -33,29 +35,26 @@ const fields: Field[] = [
   },
   {
     name: 'url',
-    label: 'ENLACE',
+    label: 'Enlace',
     kind: 'url',
     placeholder: 'https://… (o sube un archivo abajo)',
     hint: 'Pega la dirección completa copiada del navegador, por ejemplo de SharePoint.',
     maxLength: FIELD_MAX.url,
   },
-  { name: 'file', label: 'ARCHIVO', kind: 'file-doc' },
+  { name: 'file', label: 'Archivo', kind: 'file-doc' },
 ];
 ---
 
-<AdminLayout title="Recursos" active="recursos">
-  <h1 class="text-2xl font-extrabold">Recursos</h1>
-  <p class="mt-1 text-sm text-body">{rows.length} documentos y enlaces</p>
-  <div class="mt-5">
-    <CollectionManager
-      client:load
-      collection="resources"
-      entityName="recurso"
-      entityGender="m"
-      entityNamePlural="recursos"
-      rows={rows}
-      columns={columns}
-      fields={fields}
-    />
-  </div>
+<AdminLayout title="Recursos">
+  <CollectionManager
+    client:load
+    collection="resources"
+    entityName="recurso"
+    entityGender="m"
+    entityNamePlural="recursos"
+    summary={`${rows.length} documentos y enlaces`}
+    rows={rows}
+    columns={columns}
+    fields={fields}
+  />
 </AdminLayout>

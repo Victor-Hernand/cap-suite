@@ -1,93 +1,26 @@
+@import '../design/tokens.css';
+@import '../design/shell.css';
+@import '@mdi/font/css/materialdesignicons.min.css';
 @import 'tailwindcss';
-@import '@fontsource-variable/inter';
-@import '@fontsource/ibm-plex-mono/400.css';
-@import '@fontsource/ibm-plex-mono/500.css';
-
-@theme {
-  --color-base: #eef0f3;
-  --color-surface: #ffffff;
-  --color-edge: #dfe3e9;
-  --color-edge-strong: #c3c8d1;
-  --color-ink: #15181d;
-  --color-ink-solid: #15181d;
-  --color-body: #4a5160;
-  --color-muted: #7d838e;
-  --color-admin-gold: #d4a843;
-  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
-}
-
-.ambient-strip {
-  height: 2px;
-  border-radius: 2px;
-  box-shadow:
-    0 2px 12px rgba(30, 136, 229, 0.25),
-    0 2px 22px rgba(123, 31, 162, 0.2);
-}
-
-.page-enter {
-  animation: page-enter 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-@keyframes page-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
-:root {
-  color-scheme: light;
-}
-
-/* Color propio en los controles en vez de heredarlo: heredado, el texto de inputs y
-   títulos del admin salía casi invisible en algunos navegadores (QA "Baja legibilidad"). */
-@layer base {
-  input,
-  select,
-  textarea {
-    color: var(--color-ink);
-  }
-
-  ::placeholder {
-    color: var(--color-muted);
-    opacity: 1;
-  }
-}
-
-.admin-select {
-  appearance: none;
-  color-scheme: light;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%237d838e'%3E%3Cpath fill-rule='evenodd' d='M5.23 7.21a.75.75 0 011.06.02L10 11.17l3.71-3.94a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z' clip-rule='evenodd'/%3E%3C/svg%3E");
-  background-position: right 0.6rem center;
-  background-repeat: no-repeat;
-  background-size: 1.1rem;
-}
+@config '../../tailwind.config.js';
 
 :where(a, button, input, [tabindex]) {
   scroll-margin-top: 5rem;
 }
 
-:where(a, button, input, [tabindex]):focus-visible {
-  outline: 2px solid var(--color-ink);
+/* Sin input: este selector no es de especificidad cero (:focus-visible cuenta) y es más fuerte que
+   focus:outline-none (capa de utilidades), así que los campos marcan el foco con su borde y anillo. */
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--cap-chrome);
   outline-offset: 2px;
-  border-radius: 0.5rem;
 }
 
 ::selection {
-  background-color: color-mix(in oklab, var(--color-ink) 18%, transparent);
-  color: var(--color-ink);
+  background-color: var(--cap-glass-active);
+  color: var(--cap-text);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .page-enter {
-    animation: none;
-  }
-
   *,
   ::before,
   ::after {

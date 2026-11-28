@@ -1,8 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import SectionHeader from '../components/SectionHeader.astro';
 import CompanyCard from '../components/CompanyCard.astro';
 import { getDb, listCompanies, listApps } from '../lib/db';
+import { company as installedCompany } from '../design/company.js';
+import { cardClass } from '../lib/capClasses';
+import EmptyState from '../components/EmptyState.astro';
 
 const db = getDb();
 const apps = listApps(db);
@@ -23,12 +25,6 @@ const marketsCount = new Set(
     .filter(Boolean),
 ).size;
 
-const companiesIntro = {
-  title: 'Las empresas del grupo',
-  description:
-    'Grupo Empresarial CAP es un conglomerado automotriz líder en Honduras. Cada empresa cubre un eslabón de la cadena: importación, distribución, venta al detalle, servicio e instalación, y logística.',
-};
-
 const summary = [
   { value: companies.length, label: 'Empresas' },
   { value: marketsCount, label: 'Mercados (B2B · B2C)' },
@@ -36,33 +32,30 @@ const summary = [
 ];
 ---
 
-<Layout title="Empresas — CAP Suite">
-  <section class="mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6">
-    <SectionHeader as="h1" eyebrow="Grupo Empresarial CAP" title={companiesIntro.title} />
-    <p class="mt-3 max-w-2xl text-sm text-body">{companiesIntro.description}</p>
+<Layout title="Empresas">
+  <p class="max-w-3xl text-sm text-cap-text-soft">
+    {installedCompany.name} es un conglomerado automotriz líder en Honduras. Cada empresa cubre un eslabón de la cadena:
+    importación, distribución, venta al detalle, servicio e instalación, y logística.
+  </p>
 
-    {companies.length === 0 ? (
-      <p class="mt-8 rounded-xl border border-edge bg-surface px-5 py-8 text-center text-sm text-body">
-        Aún no hay empresas registradas.
-      </p>
-    ) : (
-      <>
-        <div class="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-xl border border-edge bg-surface px-5 py-4">
-          {summary.map((stat) => (
-            <div class="flex items-baseline gap-2">
-              <span class="text-2xl font-black tracking-tight text-ink">{stat.value}</span>
-              <span class="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">{stat.label}</span>
-            </div>
-          ))}
-          <span class="ml-auto hidden h-1.5 rounded-full sm:block" style="width:120px;background:linear-gradient(90deg,#C62828,#D4A843,#1E88E5,#43A047,#E53935,#7B1FA2)"></span>
-        </div>
+  {companies.length === 0 ? (
+    <EmptyState icon="domain" title="Aún no hay empresas registradas" detail="Se agregan desde el panel de administración." />
+  ) : (
+    <>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {summary.map((stat) => (
+          <div class={cardClass}>
+            <p class="text-xs font-medium text-cap-text-soft">{stat.label}</p>
+            <p class="mt-3 font-display text-3xl font-semibold tabular-nums text-gray-900 dark:text-gray-100" data-cap-count={stat.value} data-cap-format="integer">{stat.value}</p>
+          </div>
+        ))}
+      </div>
 
-        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {companies.map(({ company, systemsCount, erpUrl }) => (
-            <CompanyCard company={company} systemsCount={systemsCount} erpUrl={erpUrl} />
-          ))}
-        </div>
-      </>
-    )}
-  </section>
+      <div class="cap-stagger grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {companies.map(({ company, systemsCount, erpUrl }) => (
+          <CompanyCard company={company} systemsCount={systemsCount} erpUrl={erpUrl} />
+        ))}
+      </div>
+    </>
+  )}
 </Layout>

@@ -16,10 +16,6 @@ const rows = listPolicies(getDb()).map((policy) => ({
 }));
 ---
 
-<AdminLayout title="Políticas" active="politicas">
-  <h1 class="text-2xl font-extrabold">Políticas</h1>
-  <p class="mt-1 text-sm text-body">{rows.length} documentos normativos</p>
-  <div class="mt-5">
-    <PolicyTable client:load rows={rows} />
-  </div>
+<AdminLayout title="Políticas">
+  <PolicyTable client:load rows={rows} summary={`${rows.length} documentos normativos`} />
 </AdminLayout>
